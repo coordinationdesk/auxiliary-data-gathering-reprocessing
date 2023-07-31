@@ -22,6 +22,7 @@ services:
   database_auxip_olingo:
     image: postgres
     restart: always
+    shm_size: 256mb
     environment:
       POSTGRES_USER: "auxip"
       POSTGRES_PASSWORD: ${AUXIP_POSTGRES_PASSWORD}
@@ -114,6 +115,8 @@ services:
       DB_PASSWORD: ${KEYCLOAK_POSTGRES_PASSWORD}
       KEYCLOAK_USER:     admin
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+      KC_LOG_LEVEL: DEBUG
+      KEYCLOAK_LOG_LEVEL: DEBUG
       PROXY_ADDRESS_FORWARDING: "true"
       KEYCLOAK_FRONTEND_URL: https://reprocessing-auxiliary.copernicus.eu/auth
     volumes:
@@ -137,6 +140,7 @@ services:
   kong:
     build:
       context: ./      
+      dockerfile: ../kong_build/Dockerfile
     image: kong-oidc:latest
     restart: always
     container_name: kong
@@ -217,7 +221,7 @@ services:
 
   #######################################
   # PRIP ingest 
-  #######################################
+ #######################################
   prip_ingestion_s2:
     container_name: prip_ingestion
     image: prip_ingestion:1.0.0
@@ -270,7 +274,6 @@ services:
     volumes:
       - /grib2/ecmwf_ingestion:/ecmwf
 
-
   #######################################
   # ReprocessingDataBaseline database
   #######################################
@@ -309,6 +312,7 @@ services:
   #######################################
   proxy:
     image: nginx:1.19.5-alpine
+    container_name : proxy
     restart: always
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     networks:

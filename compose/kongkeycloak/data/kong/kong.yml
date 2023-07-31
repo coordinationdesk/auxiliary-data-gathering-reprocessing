@@ -12,8 +12,8 @@ services:
       client_secret: "696232a7-baaa-43b2-8263-756cb5c29e7d"
       bearer_only: "no"
       realm: "reprocessing-preparation"
-      introspection_endpoint: "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token/introspect"
-      discovery: "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/.well-known/openid-configuration"
+      introspection_endpoint: "https://192.168.253.2/auth/realms/reprocessing-preparation/protocol/openid-connect/token/introspect"
+      discovery: "https://192.168.253.2/auth/realms/reprocessing-preparation/.well-known/openid-configuration"
       session_secret: "bXkgc2Vzc2lvbiBzZWNyZXQ="
 
   routes:
@@ -31,8 +31,8 @@ services:
       client_secret: "696232a7-baaa-43b2-8263-756cb5c29e7d"
       bearer_only: "no"
       realm: "reprocessing-preparation"
-      introspection_endpoint: "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token/introspect"
-      discovery: "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/.well-known/openid-configuration"
+      introspection_endpoint: "https://192.168.253.2/auth/realms/reprocessing-preparation/protocol/openid-connect/token/introspect"
+      discovery: "https://192.168.253.2/auth/realms/reprocessing-preparation/.well-known/openid-configuration"
       # redirect_uri_path: "/auxip.svc"
       session_secret: "bXkgc2Vzc2lvbiBzZWNyZXQ="
 
@@ -51,8 +51,8 @@ services:
       client_secret: "696232a7-baaa-43b2-8263-756cb5c29e7d"
       bearer_only: "no"
       realm: "reprocessing-preparation"
-      introspection_endpoint: "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token/introspect"
-      discovery: "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/.well-known/openid-configuration"
+      introspection_endpoint: "https://192.168.253.2/auth/realms/reprocessing-preparation/protocol/openid-connect/token/introspect"
+      discovery: "https://192.168.253.2/auth/realms/reprocessing-preparation/.well-known/openid-configuration"
       # redirect_uri_path: "/reprocessing.svc"
       session_secret: "bXkgc2Vzc2lvbiBzZWNyZXQ="
 

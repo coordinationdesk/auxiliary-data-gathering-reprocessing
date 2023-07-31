@@ -7,4 +7,4 @@ RUN apk update && apk add git unzip luarocks
 RUN luarocks install kong-oidc
 RUN luarocks install lua-resty-openidc 1.7.4 --force
 
-USER kong
+#USER kong
