@@ -11,7 +11,7 @@ encoding: utf-8
 project : Copernicus
 subproject : Reprocessing reference package preparation
 baseurl: /site
-docurl: frederic.ligeard@csgroup.fr
+docurl:  coordination_desk@telespazio.com
 
 
 collections:
