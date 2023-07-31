@@ -73,7 +73,7 @@ cd ${REPROBASE_BACKUP}
 DUMP_FILE=dump_reprobaseline_`date +%d-%m-%Y"_"%H_%M_%S`.gz
 
 
-export PGPASSWORD=${REPROBASE_POSTGRES_PASSWORD};pg_dumpall -c -U reprobaseline -d 'postgresql://database/reprobaseline' | gzip > dump_reprobaseline_`date +%d-%m-%Y"_"%H_%M_%S`.gz | gzip > ${DUMP_FILE}
+export PGPASSWORD=${REPROBASE_POSTGRES_PASSWORD};pg_dumpall -c -U reprobaseline -d 'postgresql://database/reprobaseline' | gzip  > ${DUMP_FILE}
 
 code=$?
 if [ $code -ne 0 ]; then
@@ -109,7 +109,7 @@ if [ `date +%d` -lt 8 ]; then
 	cd ${REPROCESSINGDATABASELINE_BACKUP}
 	DUMP_FILE=dump_reprocessingdatabaseline_`date +%d-%m-%Y"_"%H_%M_%S`.gz
 
-	export PGPASSWORD=${REPROCESSINGDATABASELINE_POSTGRES_PASSWORD};pg_dumpall -c -U reprocessingdatabaseline -d 'postgresql://database_reprocessing/reprocessingdatabaseline' | gzip > dump_reprocessingdatabaseline_`date +%d-%m-%Y"_"%H_%M_%S`.gz | gzip > ${DUMP_FILE}
+	export PGPASSWORD=${REPROCESSINGDATABASELINE_POSTGRES_PASSWORD};pg_dumpall -c -U reprocessingdatabaseline -d 'postgresql://database_reprocessing/reprocessingdatabaseline' |  gzip > ${DUMP_FILE}
 
 	code=$?
 	if [ $code -ne 0 ]; then
