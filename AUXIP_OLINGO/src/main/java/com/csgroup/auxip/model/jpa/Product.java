@@ -382,7 +382,6 @@ public class Product {
 								.bucket("auxip")
 								.key("uuid/fullname".replace("uuid", this.Id.toString()).replace("fullname", this.Name) )
 								.build();
-   
 		// Create a GetObjectPresignRequest to specify the signature duration
 		GetObjectPresignRequest getObjectPresignRequest =
 			GetObjectPresignRequest.builder()
@@ -392,6 +391,7 @@ public class Product {
    
 		// Generate the presigned request
 		PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
+                //LOG.debug("Get Object request Headers: " + presignedGetObjectRequest.getResponseHeaders().toString()); 
    
 		// Log the presigned URL, for example.
 		// System.out.println("Presigned URL: " + presignedGetObjectRequest.url());
@@ -401,7 +401,7 @@ public class Product {
 		// that need to be freed. If you are using one S3Presigner per application (as recommended), this
 		// usually is not needed.
 		presigner.close();
-		LOG.debug(presignedGetObjectRequest.url().toString());
+		LOG.debug("Generated Presigned Url for product: " + presignedGetObjectRequest.url().toString());
 		return presignedGetObjectRequest.url().toString();
 	}
 

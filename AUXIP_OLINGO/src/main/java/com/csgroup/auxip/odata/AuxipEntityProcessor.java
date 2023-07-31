@@ -445,6 +445,7 @@ public class AuxipEntityProcessor implements EntityProcessor, MediaEntityProcess
 			response.setStatusCode(HttpStatusCode.FOUND.getStatusCode());
 			response.setHeader("Content-Disposition", "filename="+entity.getProperty("Name").getValue().toString());
 			response.setHeader(HttpHeader.LOCATION, mediaContent);
+			LOG.debug("Response Header set, filename: {} ", entity.getProperty("Name").getValue().toString());
 		} else {
 			int statusCode = HttpStatusCode.BAD_REQUEST.getStatusCode();
 			throw new ODataApplicationException("Not implemented",statusCode, Locale.ROOT,String.valueOf(statusCode));

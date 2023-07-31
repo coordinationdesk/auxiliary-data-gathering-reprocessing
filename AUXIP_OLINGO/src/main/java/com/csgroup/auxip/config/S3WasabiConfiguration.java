@@ -32,6 +32,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 import java.net.URI;
 
@@ -55,14 +56,23 @@ public class S3WasabiConfiguration {
 
 	LOG.debug("s3.access_key: "+this.accessKey);
 	LOG.debug("s3.secret_key: "+this.secretAccessKey);
-        Region region = Region.EU_CENTRAL_1;
-        final String END_POINT = "https://s3.eu-central-1.wasabisys.com";
+        //Region region = Region.EU_CENTRAL_1;
+        Region region = Region.of("waw2-1");
+
+        // final String END_POINT = "https://s3.eu-central-1.wasabisys.com";
+        final String END_POINT = "https://s3.waw2-1.cloudferro.com";
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(this.accessKey, this.secretAccessKey));
         
         return S3Presigner.builder()
         .credentialsProvider(credentialsProvider)
         .endpointOverride(URI.create(END_POINT))
+        .serviceConfiguration(S3Configuration.builder()
+				.pathStyleAccessEnabled(true)
+				.checksumValidationEnabled(false)
+				.build())
         .region(region).build();
+        //.build(); 
 
     }
 }
+
