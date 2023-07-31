@@ -4,6 +4,8 @@ VERSION="0.0.2"
 
 CUR_DIR="$( cd "$(dirname "$0")" ; pwd -P )"
 
+shopt -s extglob
+
 docker image inspect global_build:01.00.00 > /dev/null
 if [ $? -ne 0 ]; then
     echo "Building docker for build"
@@ -23,7 +25,7 @@ cd  ${CUR_DIR}/build_package
 rm -rf source
 
 mkdir source
-cp -r ${CUR_DIR}/../../AUXIP_OLINGO/* source/
+cp -r ${CUR_DIR}/../../AUXIP_OLINGO/!(distribution) source/
 
 docker run --rm -v ${CUR_DIR}/build_package/source:/source global_build:01.00.00
 
@@ -32,7 +34,7 @@ cd ${CUR_DIR}
 
 cd build_docker
 
-rm -r tmp_dir
+[ -d tmp_dir ] && rm -r tmp_dir
 
 mkdir tmp_dir
 

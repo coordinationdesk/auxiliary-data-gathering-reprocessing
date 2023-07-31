@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 VERSION="1.0"
 
+shopt -s extglob
 
 CUR_DIR="$( cd "$(dirname "$0")" ; pwd -P )"
 
@@ -25,7 +26,7 @@ rm -rf source
 rm -rf source_jpadatasource
 
 mkdir source
-cp -r ${CUR_DIR}/../../../ReproBaseAPI/* source/
+cp -r ${CUR_DIR}/../../../ReproBaseAPI/!(distribution) source/
 mkdir source_jpadatasource
 cp -r ${CUR_DIR}/../../../JPADatasource/* source_jpadatasource/
 
@@ -37,7 +38,7 @@ cd ${CUR_DIR}
 
 cd docker_binary
 
-rm -r tmp_dir
+[ -d tmp_dir ] && rm -r tmp_dir
 
 mkdir tmp_dir
 

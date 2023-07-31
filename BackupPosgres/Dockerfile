@@ -12,7 +12,7 @@ RUN apt-get update -y \
     && sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update \
-    && apt-get install -y  --no-install-recommends postgresql-client-13
+    && apt-get install -y  --no-install-recommends postgresql-client
     
 
 ADD rolling-cron /etc/cron.d/
