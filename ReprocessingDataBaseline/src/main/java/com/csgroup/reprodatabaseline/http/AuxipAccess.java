@@ -33,6 +33,7 @@ public class AuxipAccess {
 		List<String> res = new ArrayList<String>();
 		ObjectMapper mapper = new ObjectMapper();
 		for (AuxFile f : files) {
+			LOG.debug("getListOfAuxFileeURLS: Building POST REequest for aux file " + f.FullName.trim());
 			String post = httpHandler.getPost(
 					config.getAuxip_url() + "/Products?$filter=contains(Name,'" + f.FullName.trim() + "\')",
 					bearerToken);
@@ -72,7 +73,7 @@ public class AuxipAccess {
 					// String post_wasabi = httpHandler.getLocation(config.getAuxip_url()+
 					// "/Products("+id.toString()+")/$value", bearerToken);
 
-					String auxipLink = config.getAuxip_url() + "/Products(" + id.toString() + ")/$value";
+					String auxipLink = config.getExternalAuxip_url() + "/Products(" + id.toString() + ")/$value";
 
 					res.add(auxipLink);
 				}
@@ -86,6 +87,7 @@ public class AuxipAccess {
 		ObjectMapper mapper = new ObjectMapper();
 		for (AuxFile f : files) {
 			if (f.AuxipUrl == null) {
+				LOG.debug("setListOfAuxFileeURLS: Building POST REequest for aux file " + f.FullName.trim());
 				String post = httpHandler.getPost(
 						config.getAuxip_url() + "/Products?$filter=contains(Name,'" + f.FullName.trim() + "\')",
 						bearerToken);
@@ -123,7 +125,7 @@ public class AuxipAccess {
 						// String post_wasabi = httpHandler.getLocation(config.getAuxip_url()+
 						// "/Products("+id.toString()+")/$value", bearerToken);
 
-						String auxipLink = config.getAuxip_url() + "/Products(" + id.toString() + ")/$value";
+						String auxipLink = config.getExternalAuxip_url() + "/Products(" + id.toString() + ")/$value";
 						f.AuxipUrl = auxipLink;
 					}
 				}

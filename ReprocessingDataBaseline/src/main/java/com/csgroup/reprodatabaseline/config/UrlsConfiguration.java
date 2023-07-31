@@ -38,6 +38,8 @@ public class UrlsConfiguration {
     @Value("${urls.auxip}")
     private String auxip_url;
 
+    @Value("${urls.external_auxip}")
+    private String external_auxip_url;
 	public String getReprocessing_baseline_url() {
 		return reprocessing_baseline_url;
 	}
@@ -46,5 +48,8 @@ public class UrlsConfiguration {
 		return auxip_url;
 	}
     
+	public String getExternalAuxip_url() {
+		return external_auxip_url;
+	}
     
 }
