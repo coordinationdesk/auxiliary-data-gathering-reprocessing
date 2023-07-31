@@ -4,7 +4,7 @@
 import argparse
 import os,re,subprocess,datetime,glob,shutil
 import request_generator
-import ecmwfapi
+import cdsapi
 from lxml import etree as ET
 
 
@@ -21,15 +21,15 @@ def save_to_xml_file(root_node, xml_filepath):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This script generates the ECMXF files for a period",  # main description for help
-            epilog='Usage samples : \n\tpython ECMWF_Ingestion.py -u username -pw password \n\n', formatter_class=argparse.RawTextHelpFormatter)  # displayed after help
+            epilog='Usage samples : \n\tpython ECMWF_Ingestion.py -u ads_url -pw userkey \n\n', formatter_class=argparse.RawTextHelpFormatter)  # displayed after help
     parser.add_argument("-k", "--key",
-                        help="Mars user key",
+                        help="Mars ADS key",
                         required=True)
     parser.add_argument("-u", "--url",
-                        help="Mars user url",
+                        help="Mars ADS url",
                         required=True)
-    parser.add_argument("-m", "--email",
-                        help="Mars user email",
+    parser.add_argument("-m", "--user",
+                        help="Mars ADS User id ",
                         required=True)
     parser.add_argument("-w", "--working",
                         help="Working folder",
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     fixed_header_hdr = root_hdr.find("Fixed_Header",namespaces=my_namespaces)
     #Open HDR template file
     template_filename_cams = os.path.join(os.path.dirname(os.path.realpath(__file__)),"hdr_template_cams.xml")
-    print("template hdr _cams: "+template_filename_cams)
+    print("template hdr _cams filenames: "+template_filename_cams)
     my_namespaces_cams = dict([node for _, node in ET.iterparse(template_filename_cams, events = ['start-ns'])])
     tree_hdr_cams = ET.parse(template_filename_cams)
     root_hdr_cams = tree_hdr_cams.getroot()
@@ -74,25 +74,36 @@ if __name__ == "__main__":
     #CAMS
     print("Starting CAMS data handling")
     request_3 = request_generator.RequestGenerator()
-    request_3.param_list = ["aod550","z","ssaod550","duaod550","omaod550","bcaod550","suaod550","aod469","aod670","aod865","aod1240"]
+    request_3.param_list = ['black_carbon_aerosol_optical_depth_550nm',
+			    'dust_aerosol_optical_depth_550nm',
+                            'organic_matter_aerosol_optical_depth_550nm',
+                            'sea_salt_aerosol_optical_depth_550nm',
+                            'sulphate_aerosol_optical_depth_550nm', 'surface_geopotential',
+                            'total_aerosol_optical_depth_1240nm',
+                            'total_aerosol_optical_depth_469nm',
+                            'total_aerosol_optical_depth_550nm',
+                            'total_aerosol_optical_depth_670nm',
+                            'total_aerosol_optical_depth_865nm']
+    request_num_params = len(request_3.param_list)
     request_3.domain = None
-    request_3.dataset = "cams_nrealtime"
+    #request_3.dataset = "cams_nrealtime"
     request_3.grid = "0.4/0.4"
-    request_3.classid = "mc"
-    request_3.time_list = ["00:00:00","06:00:00","12:00:00","18:00:00"]
-    request_3.type = "an"
-    request_3.step = None
+    #request_3.classid = "mc"
+    request_3.time_list = ["00:00","06:00","12:00","18:00"]
+    request_3.type = "analysis"
+    #request_3.type = "an"
+    #request_3.step = None
     request_3_filename = os.path.join(args.working, "request3.req")
     request_3_target = os.path.join(args.working, "request3.grib")
     request_3.target = request_3_target
     request_3.date_begin = args.startdate
     request_3.date_end = args.enddate
-    request_3.write_to_file(request_3_filename)
-    with open(request_3_filename) as f:
-       data = f.read()
-       #Exec request
-       c = ecmwfapi.ECMWFService('mars',key=args.key,url=args.url,email=args.email)
-       c.execute(data, request_3_target)
+    # request_3.write_to_file(request_3_filename)
+    # Write to file if a log is needed of request issued
+   #Exec request
+    full_key = "{0}:{1}".format(args.user, args.key)
+    cdsclient = cdsapi.Client(url=args.url, key=full_key, debug=True)
+    cdsclient.retrieve(request_3.dataset, request_3.request_as_dict(), request_3.target)
     #Split the grib into pieces to recompose afterword
     request_3_split_folder = os.path.join(args.working, "request_3_split")
     os.makedirs(request_3_split_folder, exist_ok=True)
@@ -102,17 +113,14 @@ if __name__ == "__main__":
       print("Failed to cut grib for request 3")
       exit(1)
     request_4 = request_3
-    request_4.time_list = ["00:00:00","06:00:00"]
+    request_4.time_list = ["00:00","06:00"]
     request_4.date_begin = (end_date_pyt+datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     request_4.date_end = None
     request_4_filename = os.path.join(args.working, "request4.req")
     request_4_target = os.path.join(args.working, "request4.grib")
-    request_4.write_to_file(request_4_filename)
-    with open(request_4_filename) as f:
-       data = f.read()
-       #Exec request
-       c = ecmwfapi.ECMWFService('mars',key=args.key,url=args.url,email=args.email)
-       c.execute(data, request_4_target)
+    request_4.target = request_4_target
+    # request_4.write_to_file(request_4_filename)
+    cdsclient.retrieve(request_4.dataset, request_4.request_as_dict(), request_4.target)
     #test if grib is here
     if not os.path.exists(request_4_target):
        print("Output grib for request 4 is not available")
@@ -124,27 +132,31 @@ if __name__ == "__main__":
       print("Failed to cut grib for request 4")
       exit(1)
 
-    print("CAMS Datas retrieved")
+    print("CAMS Data gribs retrieved and splitted")
     #Put in each output files
     work_date_pyt = start_date_pyt
     CAMS_working_dir = os.path.join(args.working, "CAMS_Files")
     os.makedirs(CAMS_working_dir, exist_ok=True)
     while work_date_pyt <= end_date_pyt:
+        print("Processing date ", work_date_pyt)
         files_to_tar = []
-        for t in [0,6,12,18,24,30]:
+        # for t in [0,6,12,18,24,30]:
+        for t in [0,12,24]:
             cur_date_pyt = work_date_pyt + datetime.timedelta(hours=t)
             # find request 1 grib file
             file_to_search = "z_cams_c_ecmf_"+cur_date_pyt.strftime("%Y%m%d")+"_prod_an_sfc_"+cur_date_pyt.strftime("%H")+"*.grib"
-            req_cams_grib_file = glob.glob(os.path.join(request_3_split_folder, file_to_search))
-            if len(req_cams_grib_file) != 11:
+            print("Searching files for date ", cur_date_pyt.strftime("%Y%m%d"), ", hour ", cur_date_pyt.strftime("%H"))
+            req_cams_grib_files = glob.glob(os.path.join(request_3_split_folder, file_to_search))
+            if len(req_cams_grib_files) != request_num_params:
                 print("Error on getting request cams file for date " + file_to_search)
-                print(req_cams_grib_file)
+                print(req_cams_grib_files)
                 exit(1)
-            for c in req_cams_grib_file:
+            for cams_file in req_cams_grib_files:
                 #Create the GRIB output files
-                grib_output_filename = "z_cams_c_ecmf_"+work_date_pyt.strftime("%Y%m%d%H%M%S")+"_prod_an_sfc_"+"{:03d}".format(t)+c[str(c).rfind("_"):]
+                grib_output_filename = "z_cams_c_ecmf_"+work_date_pyt.strftime("%Y%m%d%H%M%S")+"_prod_an_sfc_"+"{:03d}".format(t)+cams_file[str(cams_file).rfind("_"):]
+                print("Copying CAMS file ", cams_file, " to file ", grib_output_filename)
                 #Agglomerate both files
-                shutil.copyfile(c,os.path.join(CAMS_working_dir,grib_output_filename))
+                shutil.copyfile(cams_file,os.path.join(CAMS_working_dir,grib_output_filename))
                 files_to_tar.append(grib_output_filename)
         #create HDR file
         valid_start = (work_date_pyt).strftime("%Y%m%dT%H%M%S")

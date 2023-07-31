@@ -83,8 +83,6 @@ if [[ ! -d $WORK_FOLDER ]]; then
   fi
 fi
 
-STOP_DATE=$(date '+%Y-%m-%d' -d "5 day ago")
-START_DATE=$(date '+%Y-%m-%d' -d "$((TIME_PERIOD + 5)) day ago")
 ERROR_FILE_LOG="${WORK_FOLDER}/$(date '+%Y-%m-%d')_ECMWF_error.log"
 echo "START_DATE: "$START_DATE
 echo "STOP_DATE: "$STOP_DATE
@@ -98,7 +96,15 @@ echo "TEMP_FOLDER_LISTING : ${TEMP_FOLDER_LISTING}" >> $ERROR_FILE_LOG
 TEMP_FOLDER_JSONS=$(mktemp -p $WORK_FOLDER -d)
 echo "TEMP_FOLDER_JSONS : ${TEMP_FOLDER_JSONS}" >> $ERROR_FILE_LOG
 echo "Temporary folder : "$TEMP_FOLDER
-echo "Starting ECMWF download"
+
+if [ -z ${STOP_DATE+x} ]; then
+    STOP_DATE=$(date '+%Y-%m-%d' -d "5 day ago")
+fi
+if [ -z ${START_DATE+x} ]; then
+    START_DATE=$(date '+%Y-%m-%d' -d "$((TIME_PERIOD + 5)) day ago")
+fi
+
+echo "Starting ECMWF download from $START_DATE to $STOP_DATE"
 python3 -u ${CUR_DIR}/ECMWF_Ingestion.py -k ${ECMWF_PASS} -w ${TEMP_FOLDER} -s $START_DATE -e $STOP_DATE -u ${ECMWF_URL} -m ${ECMWF_USER} -o ${TEMP_FOLDER_AUX}
 code=$?
 if [ $code -ne 0 ]; then
@@ -114,7 +120,7 @@ else
     echo "AUXIP ingestion failed" >> $ERROR_FILE_LOG
   else
     echo "AUXIP ingestion done"
-    echo "Starting Reprobase jsons generation"
+    echo "Starting Reprobase jsons generation - Ingestion of S2 Files"
     python3 -u ${CUR_DIR}/ingest_s2files.py -i ${TEMP_FOLDER_LISTING}/file_list_S2.txt -f ${CUR_DIR}/file_types -t ${CUR_DIR}/template.json -o ${TEMP_FOLDER_JSONS}/
     code=$?
     if [ $code -ne 0 ]; then

@@ -9,13 +9,14 @@ odata_datetime_format = "%Y-%m-%dT%H:%M:%SZ[GMT]"
 odata_datetime_nosec_format = "%Y-%m-%dT%H:%MZ[GMT]"
 
 
+verify_cert=True
 def send_request(mode, access_token):
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % access_token}
     auxip_endpoint = "https://dev.reprocessing-preparation.ml/reprocessing.svc/AuxTypes?$expand=ProductLevels"
     res = None
     if mode == 'prod':
         auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/reprocessing.svc/AuxTypes?$expand=ProductLevels"
-    resp = requests.get(auxip_endpoint,headers=headers)
+    resp = requests.get(auxip_endpoint,headers=headers,verify=verify_cert)
     if resp.status_code != 200:
         print(resp.status_code)
         print(resp.text)

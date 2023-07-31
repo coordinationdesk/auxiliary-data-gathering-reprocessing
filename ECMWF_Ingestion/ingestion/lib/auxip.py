@@ -8,7 +8,7 @@ import datetime as dt
 
 odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-
+verify_cert=True
 def get_odata_datetime_format(datetime_string):
 
     odata_format = datetime_string
@@ -83,7 +83,7 @@ def is_file_available(access_token,aux_data_file_name,mode='dev'):
         if mode == 'prod':
             auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
 
-        response = requests.get(auxip_endpoint+"?$filter=contains(Name,'"+aux_data_file_name+"')",headers=headers)
+        response = requests.get(auxip_endpoint+"?$filter=contains(Name,'"+aux_data_file_name+"')",headers=headers,verify=verify_cert)
         if response.status_code != 200:
             print(response.status_code)
             print(response.text)

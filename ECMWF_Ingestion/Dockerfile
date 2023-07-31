@@ -1,12 +1,15 @@
-FROM ubuntu:20.10
+ARG DEBIAN_FRONTEND noninteractive
+FROM ubuntu:20.04
 MAINTAINER CS SI
 
+ENV TZ=UTC
 RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get update \
+    && apt-get install -y  tzdata \
     && apt-get install -y  --no-install-recommends apt-utils rclone cron ca-certificates lsb-core wget gnupg2 \
     && apt-get install -y  --no-install-recommends python3-requests python3-lxml python3-pip libeccodes-tools \
-    && pip3 install ecmwf-api-client \
+    && pip3 install cdsapi \
     && pip3 install numpy \
     && apt-get clean 
 
@@ -16,6 +19,7 @@ ADD ECMWF_Ingestion.py /
 ADD request_generator.py /
 ADD FileUtils.py /
 ADD ECMWF_Ingestion.sh /
+ADD ECMWF_Recover_Ingestion.sh /
 ADD template.json /
 ADD hdr_template.xml /
 ADD hdr_template_cams.xml /
@@ -25,6 +29,7 @@ ADD mc /
 ADD file_types.tgz /
 
 RUN chmod a+x /ECMWF_Ingestion.sh
+RUN chmod a+x /ECMWF_Recover_Ingestion.sh
 RUN chmod a+x /mc
 
 #ENTRYPOINT ["/ECMWF_Ingestion.sh"]
