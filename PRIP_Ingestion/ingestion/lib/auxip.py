@@ -11,6 +11,14 @@ import datetime as dt
 
 odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
+verify_cert=True
+def get_repro_host(mode):
+    repro_host = "https://dev.reprocessing-preparation.ml"
+    if mode == 'prod':
+        #repro_host = "reprocessing-auxiliary.copernicus.eu"
+        repro_host = "https://192.168.253.2"
+    return repro_host 
+
 
 def get_odata_datetime_format(datetime_string):
 
@@ -49,12 +57,16 @@ def get_token_info(user,password,mode='dev'):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {"username":user, "password":password,"client_id":"reprocessing-preparation","grant_type":"password"}
 
-    token_endpoint = "https://dev.reprocessing-preparation.ml/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
-    if mode == 'prod':
-        token_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
+    token_endpoint = "{}/auth/realms/reprocessing-preparation/protocol/openid-connect/token".format(get_repro_host(mode))
+    # token_endpoint = "https://dev.reprocessing-preparation.ml/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
+    # if mode == 'prod':
+    #     token_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
 
-    response = requests.post(token_endpoint,data=data,headers=headers)
+    print("Using Endpoint: ", token_endpoint)
+    response = requests.post(token_endpoint,data=data,headers=headers,verify=verify_cert)
     if response.status_code != 200:
+        print("HTTP ", response.status_code)
+        print("Response: ", response)
         print(response.json())
         raise Exception("Bad return code when getting token")
     return response.json()
@@ -69,10 +81,9 @@ def refresh_token_info(token_info,timer,mode='dev'):
     else:
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         data = {"refresh_token":token_info['refresh_token'],"client_id":"reprocessing-preparation","grant_type":"refresh_token"}
-        token_endpoint = "https://dev.reprocessing-preparation.ml/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
-        if mode == 'prod':
-            token_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
-        response = requests.post(token_endpoint,data=data,headers=headers)
+        token_endpoint = "{}/auth/realms/reprocessing-preparation/protocol/openid-connect/token".format(get_repro_host(mode))
+        print("Using Endpoint: ", token_endpoint)
+        response = requests.post(token_endpoint,data=data,headers=headers,verify=verify_cert)
         if response.status_code != 200:
             print(response.json())
             raise Exception("Bad return code when refreshing token")
@@ -82,9 +93,9 @@ def refresh_token_info(token_info,timer,mode='dev'):
 def get_latest_of_type(access_token,aux_type_list,sat,mode='dev'):
     try:
         headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % access_token }
-        auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
-        if mode == 'prod':
-            auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/"
+        auxip_endpoint = "{}/auxip.svc/".format(get_repro_host(mode))
+        # if mode == 'prod':
+        #     auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/"
         if len(aux_type_list) == 0:
             return aux_type_list
         request = auxip_endpoint + "Products?$filter=contains(Name,'" + aux_type_list[0] + "')"
@@ -92,7 +103,7 @@ def get_latest_of_type(access_token,aux_type_list,sat,mode='dev'):
             request = request + " or contains(Name,'" + aux_type_list[idx] + "')"
         request = request + " and startswith(Name,'"+sat+"')&$orderby=PublicationDate desc&$top=1"
         print("Request : " + request)
-        response = requests.get(request,headers=headers)
+        response = requests.get(request,headers=headers,verify=verify_cert)
         print(response.text)
         #print(access_token)
         if response.status_code != 200:
@@ -112,11 +123,12 @@ def get_latest_of_type(access_token,aux_type_list,sat,mode='dev'):
 def is_file_available(access_token,aux_data_file_name,mode='dev'):
     try:
         headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % access_token }
-        auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
-        if mode == 'prod':
-            auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
+        auxip_endpoint = "{}/auxip.svc/".format(get_repro_host(mode))
+        # auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
+        # if mode == 'prod':
+        #     auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
 
-        response = requests.get(auxip_endpoint+"?$filter=contains(Name,'"+aux_data_file_name+"')",headers=headers)
+        response = requests.get(auxip_endpoint+"?$filter=contains(Name,'"+aux_data_file_name+"')",headers=headers,verify=verify_cert)
         if response.status_code != 200:
             print(response.status_code)
             print(response.text)
@@ -136,9 +148,10 @@ def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode
     access_token = token_info['access_token']
     try:
 
-        auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
-        if mode == 'prod':
-            auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
+        auxip_endpoint = "{}/auxip.svc/".format(get_repro_host(mode))
+        #auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
+        #if mode == 'prod':
+        #    auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
 
         for f in range(0, len(aux_data_files_names), step):
             # refesh token if necessary
@@ -153,7 +166,7 @@ def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode
             for t in range(min(len(aux_data_files_names),f+1), min(len(aux_data_files_names),f+step),1):
                 request = request + " or contains(Name,'"+aux_data_files_names[t]+"')"
             print(request)
-            response = requests.get(request,headers=headers)
+            response = requests.get(request,headers=headers,verify=verify_cert)
             if response.status_code != 200:
                 print(response.status_code)
                 print(response.text)
@@ -173,11 +186,12 @@ def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode
 def search_in_auxip(name,access_token,mode='dev'):
     try:
         headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % access_token }
-        auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
-        if mode == 'prod':
-            auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
+        auxip_endpoint = "{}/auxip.svc/".format(get_repro_host(mode))
+        # auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
+        # if mode == 'prod':
+        #     auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
 
-        response = requests.get(auxip_endpoint+"?$filter=contains(Name,'"+name+"')&$expand=Attributes",headers=headers)
+        response = requests.get(auxip_endpoint+"?$filter=contains(Name,'"+name+"')&$expand=Attributes",headers=headers,verify=verify_cert)
         if response.status_code != 200:
             print(response.status_code)
             print(response.text)
@@ -252,13 +266,14 @@ def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev'):
             return 0
         else:
             headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % access_token }
-            auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
-            if mode == 'prod':
-                auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
+            auxip_endpoint = "{}/auxip.svc/".format(get_repro_host(mode))
+            # auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
+            # if mode == 'prod':
+            #     auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
 
-            response = requests.post(auxip_endpoint,data=json.dumps(product),headers=headers)
+            response = requests.post(auxip_endpoint,data=json.dumps(product),headers=headers,verify=verify_cert)
 
-            # print( "Sending product to auxip.svc", product)
+            print( "Sending product to auxip.svc", product)
             if response.status_code == 201 :
                 print("%s ==> sent to auxip.svc successfully " % path_to_auxiliary_data_file )
                 return 0

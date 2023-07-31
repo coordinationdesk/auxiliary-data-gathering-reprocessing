@@ -4,6 +4,7 @@ import time,sys,os
 from ingestion.lib.auxip import get_latest_of_type,are_file_availables,get_token_info
 
 
+verify_cert=True
 def prip_list(user, password, auxip_user, auxip_password, base_url, type_list, sat, mode="prod"):
     file_list = []
     file_name_list = []
@@ -28,7 +29,7 @@ def prip_list(user, password, auxip_user, auxip_password, base_url, type_list, s
         stop = i + step
         request_top= request+"&$top="+str(step)+"&$skip="+str(start)
         print("Request : "+request_top)
-        response = requests.get(request_top, auth=HTTPBasicAuth(user, password),headers=headers,verify=False)
+        response = requests.get(request_top, auth=HTTPBasicAuth(user, password),headers=headers,verify=verify_cert)
         if response is not None:
             if response.status_code == 200:
                 resp_json = response.json()
@@ -64,7 +65,7 @@ def prip_download(id, name,user, password,base_url,output_folder):
         with open(file_path,"wb") as fid:
             start = time.perf_counter()
             product_response = requests.get(base_url+"Products(%s)/$value" % id ,auth=HTTPBasicAuth(user, password),
-                                            headers=headers,stream=True,verify=False)
+                                            headers=headers,stream=True,verify=verify_cert)
             if product_response.status_code == 404:
                 raise Exception("Not found on the server : "+base_url+"/Products(%s)/$value" % id)
             total_length = int(product_response.headers.get('content-length'))
