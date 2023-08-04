@@ -41,6 +41,6 @@ def generate_wasabi_listing(path_to_mc,bucket):
                 file_name = line.split('B ')[1].split('/')[1].split('\n')[0].strip()
                 wasabi_listing.append(file_name)
             except Exception as e:
-                pass
+                print(e)
 
     return wasabi_listing

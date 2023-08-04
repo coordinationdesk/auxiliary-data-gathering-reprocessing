@@ -3,10 +3,9 @@
 
 import sys
 import os
-import numpy as np
 import argparse
 import uuid as UUID
-import threading
+#import threading
 import time
 
 from lib.auxip import post_to_auxip,get_token_info,refresh_token_info,are_file_availables
@@ -19,7 +18,7 @@ KO = 1
 def upload_and_post(thread_id,path_to_mc,bucket,auxip_user,auxip_password,listing,listing_out,mode="dev"):
     global_status = OK
     token_info = get_token_info(auxip_user, auxip_password,mode=mode)
-    access_token = token_info['access_token']
+    # access_token = token_info['access_token']
     with open("report_thread_%d.txt" % thread_id,"w") as report:
         timer_start = time.time()
         access_token = token_info['access_token']
@@ -38,16 +37,19 @@ def upload_and_post(thread_id,path_to_mc,bucket,auxip_user,auxip_password,listin
                     access_token = token_info['access_token']
                 # do a post to auxip.svc if the upload to wasabi is OK
                 if post_to_auxip(access_token,path_to_auxfile,uuid,mode) == OK:
-                    message = "%s : %s\tupload_to_wasabi : OK post_to_auxip : OK\n" % (path_to_auxfile,uuid)
+                    message = "%s : %s\tupload_to_wasabi : OK; post_to_auxip : OK\n" % (path_to_auxfile,uuid)
                     listing_out.append(os.path.basename(path_to_auxfile))
                 else:
                     global_status = KO
-                    message = "%s : %s\tupload_to_wasabi : OK post_to_auxip : KO\n" % (path_to_auxfile,uuid)
+                    print("%s ==> Failure posting to AUXIP" % path_to_auxfile)
+                    message = "%s : %s\tupload_to_wasabi : OK; post_to_auxip : KO\n" % (path_to_auxfile,uuid)
             else:
                 global_status = KO
-                message = "%s : %s\tupload_to_wasabi : KO post_to_auxip : NO VALID UUID\n" % (path_to_auxfile,uuid)
+                print("%s ==> Failed upload to Wasabi with : %s " % (path_to_auxfile,uuid) )
+                message = "%s : %s\tupload_to_wasabi : KO; post_to_auxip : NO VALID UUID\n" % (path_to_auxfile,uuid)
 
             report.write(message)
+    print("Exiting upload_and_post with status ", global_status)
     return global_status
 
 
@@ -61,8 +63,9 @@ def ingest(auxiliary_data_files, auxip_user, auxip_password, path_to_mc, output_
 
     # get token_info
     timer_start = time.time()
-    token_info = get_token_info(auxip_user, auxip_password,mode=mode)
-    access_token = token_info['access_token']
+    # Get Token either here or in upload_and_post
+    # token_info = get_token_info(auxip_user, auxip_password,mode=mode)
+    # access_token = token_info['access_token']
     # Create listings
     not_yet_uploaded = []
     print("Testing files in auxip or not ...")
@@ -127,5 +130,8 @@ if __name__ == "__main__":
             # auxiliary_data_files.append(os.path.join(root,name))
             auxiliary_data_files[name] = os.path.join(root, name)
     print("Done")
-    ingest(auxiliary_data_files, args.user, args.password, args.path_to_mc,args.output,args.mode, args.bucket)
+    if len(auxiliary_data_files):
+        ingest(auxiliary_data_files, args.user, args.password, args.path_to_mc,args.output,args.mode, args.bucket)
+    else:
+        print("No auxiliary data files downloaded to ingest in folder ", args.input)
 

@@ -38,7 +38,6 @@ ADD ecmwf-cron /etc/cron.d/
 ADD setenv.sh /setenv.sh
 RUN chmod a+x /setenv.sh \
     && chmod a+x /etc/cron.d/ecmwf-cron \
-    && chmod a+x /etc/cron.d/ecmwf-cron \
     && crontab /etc/cron.d/ecmwf-cron
 
 CMD ["/setenv.sh"]

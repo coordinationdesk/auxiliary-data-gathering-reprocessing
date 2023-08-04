@@ -78,7 +78,7 @@ services:
     networks:
       - proxynet
     volumes:
-      - /auxip_snapshot:/auxip_snapshot
+      - /adg_data/auxip_snapshot:/auxip_snapshot
 
 #######################################
 # keycloak DB
@@ -193,7 +193,7 @@ services:
     networks:
       - proxynet
     volumes:
-      - /auxip_snapshot:/archives
+      - /adg_data/auxip_snapshot:/archives
       - /auxip_working:/working
 
 #######################################
@@ -224,7 +224,7 @@ services:
  #######################################
   prip_ingestion_s2:
     container_name: prip_ingestion
-    image: prip_ingestion:1.0.0
+    image: prip_ingestion:1.1.0
     restart: always
     environment:
       S3_ACCESS_KEY: ${PRIPS2_S3_ACCESS_KEY}
@@ -244,7 +244,7 @@ services:
     networks:
       - proxynet
     volumes:
-      - /grib2/prip_ingestion:/prip
+      - /adg_data/grib2/prip_ingestion:/prip
 
   #######################################
   # ECMWF ingest 
@@ -272,7 +272,7 @@ services:
     networks:
       - proxynet
     volumes:
-      - /grib2/ecmwf_ingestion:/ecmwf
+      - /adg_data/grib2/ecmwf_ingestion:/ecmwf
 
   #######################################
   # ReprocessingDataBaseline database
@@ -324,7 +324,7 @@ services:
       - ./data/nginx:/etc/nginx/conf.d
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
-      - /auxip_snapshot:/etc/nginx/html/archives
+      - /adg_data/auxip_snapshot:/etc/nginx/html/archives
       - /var/www/site:/etc/nginx/html/site
    # depends_on:
    #   - certbot

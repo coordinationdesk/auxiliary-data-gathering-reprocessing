@@ -54,6 +54,7 @@ def main():
     #         with open(os.path.join(args.bands,filename)) as f:
     #             band = json.load(f)
     #             band_dict[band["Name"]] = band["Id"]
+    # TODO: Put to a function : load_filetype_configuration(filetype_dir)
     filetype_dict = []
     for (dirpath, dirnames, filenames) in os.walk(args.filetypes):
         for filename in filenames:
@@ -97,6 +98,11 @@ def main():
             update = True
         else:
             template = copy.copy(template_base)
+
+        # TODO: Put in function:
+        #   auxtype_file_json = extract_s3_parameters(filename, template)
+        # TODO: Put in function: get_platform(filename)
+        # template["Unit"] = get_platform(filename)
         if "S3A_" in filename:
             template["Unit"] = "A"
         elif "S3B_" in filename:
@@ -110,6 +116,7 @@ def main():
         filetype = None
         mission = None
         product_levels = None
+        # Look for type, and get filetype/mission/levels associated
         for type in filetype_dict:
             if filetype_str in type[0]:
                 filetype = type[0]
@@ -118,6 +125,13 @@ def main():
                 break
         if filetype is None:
             raise Exception("unknown file type")
+        # TODO: Put Format in Constant
+        # TODO : Define function to convert String from format 1 to fmroat 2,
+        #  with anoptional offset (timedelta)
+        # offset = datetime.timedelta(hours=6) if "SR_2_RMO_AX" in filetype else None
+        # start_good = parse_date(dic["Validity_Start"], "%Y%m%dT%H%M%S", offset)
+        # stop_good = parse_date(dic["Validity_Stop"], "%Y%m%dT%H%M%S", offset)
+        # crea_good = parse_date(dic["Generation_Date"], "%Y%m%dT%H%M%S", None)
         start_dt = datetime.datetime.strptime(dic["Validity_Start"], "%Y%m%dT%H%M%S")
         stop_dt = datetime.datetime.strptime(dic["Validity_Stop"], "%Y%m%dT%H%M%S")
         if "SR_2_RMO_AX" in filetype:
