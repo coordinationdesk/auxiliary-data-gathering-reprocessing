@@ -1,118 +1,24 @@
-#!/bin/bash
-function init_variables() {
-  if [ -z ${PRIP_USER+x} ]; then
-  echo "PRIP_USER not set"
-  exit 1
-fi
-echo "PRIP_USER: "${PRIP_USER}
-if [ -z ${PRIP_PASS+x} ]; then
-  echo "PRIP_PASS not set"
-  exit 1
-fi
-#echo "PRIP_PASS: "${PRIP_PASS}
-if [ -z ${AUXIP_USER+x} ]; then
-  echo "AUXIP_USER not set"
-  exit 1
-fi
-echo "AUXIP_USER: "${AUXIP_USER}
-if [ -z ${AUXIP_PASS+x} ]; then
-  echo "AUXIP_PASS not set"
-  exit 1
-fi
-#echo "AUXIP_PASS: "${AUXIP_PASS}
-if [ -z ${MODE+x} ]; then
-  echo "MODE not set"
-  exit 1
-fi
-echo "MODE: "${MODE}
+#!/bin/bash 
 
-if [ $MODE != "prod" ]; then
-  echo "Due to IP restriction the PRIP ingestion can't be launched in dev mode"
-  exit 1
-fi
-#S3 stuff
-if [ -z ${S3_ACCESS_KEY+x} ]; then
-  echo "S3_ACCESS_KEY not set, no S3"
-  MCPATH="mc"
-else
-  if [ -z ${MCPATH+x} ]; then
-   echo "MCPATH not set"
-   exit 1
-  fi
-  echo "MCPATH : "$MCPATH
-  #echo "S3_ACCESS_KEY: "${S3_ACCESS_KEY}
-  if [ -z ${S3_SECRET_KEY+x} ]; then
-   echo "S3_SECRET_KEY not set"
-   exit 1
-  fi
-  echo "S3_SECRET_KEY: "${S3_SECRET_KEY}
-  if [ -z ${S3_ENDPOINT+x} ]; then
-   echo "S3_ENDPOINT not set"
-   exit 1
-  fi
-  echo "S3_ENDPOINT: "${S3_ENDPOINT}
-  if [ -z ${S3_BUCKET+x} ]; then
-   echo "S3_BUCKET not set"
-   exit 1
-  fi
-  echo "S3_BUCKET: "${S3_BUCKET}
-  ${MCPATH} alias set "wasabi-auxip-archives" ${S3_ENDPOINT} ${S3_ACCESS_KEY} ${S3_SECRET_KEY} --api S3v4
-fi
-}
+source InitFuncs.sh
 
-function init_folders() {
-  START_DATE=$1
-  ERROR_FILE_LOG="${WORK_FOLDER}/${START_DATE}_PRIP_error.log"
-  TEMP_FOLDER=$(mktemp -p $WORK_FOLDER -d)
-  echo "TEMP_FOLDER : ${TEMP_FOLDER}" >> $ERROR_FILE_LOG
-  TEMP_FOLDER_LISTING=$(mktemp -p $WORK_FOLDER -d)
-  echo "TEMP_FOLDER_LISTING : ${TEMP_FOLDER_LISTING}" >> $ERROR_FILE_LOG
-  TEMP_FOLDER_JSONS=$(mktemp -p $WORK_FOLDER -d)
-  echo "TEMP_FOLDER_JSONS : ${TEMP_FOLDER_JSONS}" >> $ERROR_FILE_LOG
-
-if [[ ! -d $TEMP_FOLDER ]]; then
-  mkdir -p $TEMP_FOLDER
-  if [[ ! -d $TEMP_FOLDER ]]; then
-    echo $TEMP_FOLDER" folder can't be created and doesnt exists"
-    exit 1
-  fi
-fi
-
-if [[ ! -d $TEMP_FOLDER_LISTING ]]; then
-  mkdir -p $TEMP_FOLDER_LISTING
-  if [[ ! -d $TEMP_FOLDER_LISTING ]]; then
-    echo $TEMP_FOLDER_LISTING" folder can't be created and doesnt exists"
-    exit 1
-  fi
-fi
-if [[ ! -d $TEMP_FOLDER_JSONS ]]; then
-  mkdir -p $TEMP_FOLDER_JSONS
-  if [[ ! -d $TEMP_FOLDER_JSONS ]]; then
-    echo $TEMP_FOLDER_JSONS" folder can't be created and doesnt exists"
-    exit 1
-  fi
-fi
-
-  echo "Temporary folder : "$TEMP_FOLDER
-}
-
-CUR_DIR="$(
-  cd "$(dirname "$0")"
-  pwd -P
-)"
-
+echo "$# Arguments"
 if [ $# -lt 1 ]; then
-  echo "PRIP_Ingestion.sh tmp"
+  echo "PRIP_Ingestion.sh tmp_dir [REFERENCE_DATE [MISSION]]"
+  echo "REFERENCE_DATE: YYYY-mm-DD  (Only data for Reerence Date will be ingested)"
+  echo "MISSION: S1|S2|S3   (Only data for selected mission will be ingested)"
   exit 1
 fi
 
 WORK_FOLDER=$1
 echo "WORK_FOLDER : "$WORK_FOLDER
+
+
 # OPTIONAL ARGUMENT: Reference DATE
 # IF NOT SPECIFIED; get it from AUXIP
 PUBLICATION_DATE_FORMAT="%Y-%m-%d"
 REFERENCE_DATE=""
-
+REQ_MISSION=""
 if [[ $# -gt 1 ]]; then
   REFERENCE_DATE=$2
   echo "Ingesting from Date $REFERENCE_DATE"
@@ -124,8 +30,24 @@ if [[ $# -gt 1 ]]; then
   else
     echo "Ingesting from Reference date $REFERENCE_DATE"
   fi
+  if [[ $# -gt 2 ]]; then
+    # CHeck Mission is valid
+    REQ_MISSION=$3
+	case $REQ_MISSION in
+	    S1|S2|S3)
+		# do nothing
+		;;
+	    *)
+		# error
+		echo ' MISSION ($REQ_MISSION) not valid  ' >&2
+		exit 1
+	esac
+
+  fi
 fi
 
+# TODO: Add Options to allow differentiate REFERENCE DATE AND MISSION
+# OR: SPECIFY MISSION ONLY IF REFERNCE DATE IS SPECIFIED
 if [[ -z ${REFERENCE_DATE} ]]; then
   FROM_DATE_ARG=""
   TO_DATE_ARG=""
@@ -139,16 +61,16 @@ else
   TO_DATE_ARG="-to ${TO_DATE}"
 fi
 
+set -a MISSIONS
+#MISSIONS="S1 S2 S3"
+MISSIONS="S1 S2 S3"
+if [[ ! -z ${REQ_MISSION} ]]; then
+  echo "Ingesting only Mission  $REQ_MISSION"
+    MISSIONS="$REQ_MISSION"
+fi
 init_variables
 
-if [[ ! -d $WORK_FOLDER ]]; then
-  mkdir -p $WORK_FOLDER
-  if [[ ! -d $WORK_FOLDER ]]; then
-    echo $WORK_FOLDER" folder can't be created and doesnt exists"
-    exit 1
-  fi
-fi
-
+create_folder $WORK_FOLDER
 #EXECUTION DATE
 START_DATE=$(date '+%Y-%m-%d')
 
@@ -180,10 +102,11 @@ function ingest_downloaded_files() {
     fi
     master_code=$master_code_auxip
   fi
+	# AUXIP Ingested Files: Generation of related JSONs to put in ReproBase
   if [ $master_code -eq 0 ]; then
       echo "AUXIP ingestion done"
       echo "Removing files downloaded from LTA (Ingested on AUXIP)..."
-      rm  "${DWL_TEMP_FOLDER}/*"
+      rm  -rf "${DWL_TEMP_FOLDER}"
       echo "Removed files downloaded from LTA"
       if [ -s "${LISTING_FOLDER}/file_list_${MISSION}.txt" ]; then
         echo "Starting Reprobase jsons generation for $MISSION"
@@ -205,6 +128,7 @@ function ingest_downloaded_files() {
       fi
       master_code=$master_code_reprobase
   fi
+	# Adding auxip related JSONS into ReproBase 
   if [ $master_code -eq 0 ]; then
       echo "Reprobase json generation done"
       master_code=0
@@ -243,8 +167,11 @@ function ingest_mission() {
   MISSION_TEMP_FOLDER=${TEMP_FOLDER}/$MISSION
   MISSION_TEMP_FOLDER_LISTING=${TEMP_FOLDER_LISTING}/${MISSION}
   MISSION_TEMP_FOLDER_JSONS=${TEMP_FOLDER_JSONS}/${MISSION}
+  create_folder $MISSION_TEMP_FOLDER
+  create_folder $MISSION_TEMP_FOLDER_LISTING
+  create_folder $MISSION_TEMP_FOLDER_JSONS
   echo "Function ingest_mission: Ingesting Mission ${MISSION} with arg ${FROM_DATE_ARG} and ${TO_DATE_ARG}"
-  python3 -u ${CUR_DIR}/PRIP_Ingestion_Sx.py -m ${MISSION} -u ${PRIP_USER} -pw ${PRIP_PASS} \
+  python3 -u ${CUR_DIR}/PRIP_Ingestion.py -m ${MISSION} -u ${PRIP_USER} -pw ${PRIP_PASS} \
         -w ${MISSION_TEMP_FOLDER} -au ${AUXIP_USER} -apw ${AUXIP_PASS}    \
         -fd file_types \
         ${FROM_DATE_ARG} ${TO_DATE_ARG}
@@ -288,8 +215,8 @@ function ingest_mission_types() {
           ${FROM_DATE_ARG} ${TO_DATE_ARG}
     code=$?
     if [ $code -ne 0 ]; then
-      echo "PRIP Retrieve failed"
-      echo "PRIP Retrieve  for mission $MISSION, type ${AUX_TYPES} failed" >> ${ERROR_FILE_LOG}
+      echo "PRIP Retrieve for mission $MISSION, type ${AUX_TYPES} failed"
+      echo "PRIP Retrieve  for mission $MISSION, type ${AUX_TYPES} failed (error: $code)" >> ${ERROR_FILE_LOG}
     fi
     ingest_downloaded_files $MISSION $code "${MISSION_TYPE_TEMP_FOLDER}" "${MISSION_TYPE_TEMP_FOLDER_LISTING}" "${MISSION_TYPE_TEMP_FOLDER_JSONS}"
     ingestion_code=$?
@@ -352,9 +279,6 @@ function ingest_mission_type_by_type() {
 }
 
 echo "Starting PRIP download"
-set -a MISSIONS
-#MISSIONS="S1 S2 S3"
-MISSIONS="S1 S2 S3"
 ingestion_code=0
 for mission in ${MISSIONS}
 do
