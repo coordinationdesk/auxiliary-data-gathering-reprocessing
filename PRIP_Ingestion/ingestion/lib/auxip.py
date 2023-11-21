@@ -43,10 +43,14 @@ def get_odata_datetime_format(datetime_string):
 
     return odata_format
 
-def _get_token_info(json_data, mode='dev'):
-    auth_endpoint = "https://dev.reprocessing-preparation.ml/auth"
+def _get_auth_base_endpoint(mode):
+    base_endpoint = "https://dev.reprocessing-preparation.ml/auth"
     if mode == 'prod':
-        auth_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auth"
+        base_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auth"
+    return base_endpoint
+
+def _get_token_info(json_data, mode='dev'):
+    auth_endpoint = _get_auth_base_endpoint(mode)
     tk_realm = "reprocessing-preparation"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     token_request = "{}/realms/{}/protocol/openid-connect/token".format(auth_endpoint, tk_realm)
@@ -175,7 +179,8 @@ def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode
                 print(response.text)
                 raise Exception("Error while accessing auxip")
             json_resp = response.json()
-            print(json_resp)
+            # print(json_resp)
+	    # Return Name, checksum
             for g in json_resp["value"]:
                 availables.append(g["Name"])
     except Exception as e:
