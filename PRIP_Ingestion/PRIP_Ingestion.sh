@@ -289,7 +289,7 @@ do
     (( ingestion_code=$result||$ingestion_code ))
 done
 # Remove temporary folders if ALL missions have been successful
-  ingestion_code=$?
+  #ingestion_code=$?
   echo "Completed all missions ingestion: Removing temporary folders"
   if [ $ingestion_code -eq 0 ]; then
     echo "No Errors Found"
