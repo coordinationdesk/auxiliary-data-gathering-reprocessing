@@ -1,7 +1,7 @@
 import requests
 from requests.auth import HTTPBasicAuth
 import time,sys,os
-from ingestion.lib.auxip import get_latest_of_type,are_file_availables,get_token_info
+from ingestion.lib.auxip import get_latest_of_type,are_file_availables,get_token_info,are_file_availables_w_checksum
 
 # TODO: Define class to hold AUXIP, LTA credentials, lta_base_url
 #  type_list, satellite, mode
@@ -20,15 +20,26 @@ def _add_odata_top(odata_request, top_num_result):
 def _add_odata_skip(odata_request, skip_results):
     return odata_request + "&$skip="+str(skip_results)
 
-def get_lta_files(user, password, lta_base_url,
-                  type_list, sat,
-                  from_date, to_date="",
-                  max_results=100000):
-    print("Querying LTA (", lta_base_url, "), for Sat ", sat, ", from date ", from_date)
-    # Retrieve List of files from LTA
-    file_list = []
-    headers = {'Content-type': 'application/json'}
-    lta_request = lta_base_url + "Products?$orderby=PublicationDate asc" + \
+def _build_lta_simple_base_request(base_url):
+    lta_request = base_url + "Products?orderby=PublicationDate asc"
+    return lta_request
+
+def _build_lta_names_base_request(base_url,
+                           names_list):
+    lta_request = _build_lta_simple_base_request(base_url) + \
+                "&$filter="
+    lta_request += "("
+    lta_request += f"contains(Name,'{names_list[0]}')"
+    for prod_name in names_list[1:]:
+        if prod_name:
+            lta_request += f" or contains(Name,'{prod_name}')"
+    lta_request += ")"
+    return lta_request
+
+def _build_lta_base_request(base_url,
+                           type_list, sat,
+                           from_date, to_date):
+    lta_request = _build_lta_simple_base_request(base_url) + \
                 "&$filter=PublicationDate gt " + from_date
     if to_date and len(to_date):
         lta_request = lta_request + " and PublicationDate lt " + to_date
@@ -41,12 +52,89 @@ def get_lta_files(user, password, lta_base_url,
     if len(type_list) > 1:
         lta_request += ")"
     lta_request += " and startswith(Name,'"+sat+"')"
+    return lta_request
+    
+def _build_paginated_request(lta_request, start, step):
+    stop = start + step
+    request_top = _add_odata_top(lta_request, step)
+    request_top = _add_odata_skip(request_top, start)
+    return request_top
+
+def _get_lta_aux_files(response):
+    aux_files = []
+    resp_json = response.json()
+    print("Number of element found with curr request: ", len(resp_json["value"]))
+    if len(resp_json["value"]) == 0:
+        return []
+    #print(resp_json["value"][0])
+    for aux_file in resp_json["value"]:
+        ID = aux_file["Id"]
+        file_size = aux_file["ContentLength"]
+        aux_files.append((ID, aux_file["Name"], file_size))
+    return aux_files
+
+def _get_lta_file_results(user, password, lta_request, max_results):
+    file_list = []
+    headers = {'Content-type': 'application/json'}
     step=min(200, max_results)
     for i in range(0, max_results, step):
-        start = i
-        stop = i + step
-        request_top = _add_odata_top(lta_request, step)
-        request_top = _add_odata_skip(request_top, start)
+        request_top = _build_paginated_request(lta_request, i, step)
+        print("LTA Request : ", request_top)
+        response = requests.get(request_top, auth=HTTPBasicAuth(user, password),
+                                headers=headers,
+                                verify=False)
+        if response is not None:
+            if response.status_code == 200:
+                resp_json = response.json()
+                print("Number of element found with curr request: ", len(resp_json["value"]))
+                if len(resp_json["value"]) == 0:
+                    break
+                #print(resp_json["value"][0])
+                for aux_file in resp_json["value"]:
+                    # print(aux_file)
+                    ID = aux_file["Id"]
+                    file_size = aux_file["ContentLength"]
+                    cksum_info = aux_file["Checksum"][0]
+                    file_cksum = cksum_info["Value"]
+                    cksum_alg = cksum_info["Algorithm"]
+                    file_list.append((ID, aux_file["Name"], file_size, file_cksum, cksum_alg))
+                if len(resp_json["value"]) < step:
+                    break
+            else:
+                raise Exception("Error on request code : "+str(response.status_code))
+    return file_list
+
+def get_lta_files_from_names(user, password, lta_base_url,
+                  names_list,
+                  max_results=100000):
+    print("Querying LTA (", lta_base_url, "), for Names ")
+    retrieved_results = []
+    # NUmber of names to be included in each single request
+    req_num_names = 4
+    # Retrieve List of files from LTA
+    # get results on small subsets of names list
+    for i in range(0, len(names_list), req_num_names): 
+        names_sublist = names_list[i: min(i + req_num_names, len(names_list))] 
+        print("\nRequesting names: ", names_sublist)
+        if names_sublist[0]:
+            lta_request = _build_lta_names_base_request(lta_base_url, names_sublist)
+        retrieved_results.extend( _get_lta_file_results(user, password, lta_request, max_results))
+    return retrieved_results
+
+
+def get_lta_files(user, password, lta_base_url,
+                  type_list, sat,
+                  from_date, to_date="",
+                  max_results=100000):
+    print("Querying LTA (", lta_base_url, "), for Sat ", sat, ", from date ", from_date)
+    # Retrieve List of files from LTA
+    file_list = []
+    headers = {'Content-type': 'application/json'}
+    lta_request = _build_lta_base_request(lta_base_url, type_list, sat, from_date, to_date)
+    step=min(200, max_results)
+    # return _get_lta_file_results(user, password, lta_request, max_results, step)
+    for i in range(0, max_results, step):
+        request_top = _build_paginated_request(lta_request, i, step)
         print("LTA Request : ", request_top)
         response = requests.get(request_top, auth=HTTPBasicAuth(user, password),
                                 headers=headers,
@@ -66,7 +154,26 @@ def get_lta_files(user, password, lta_base_url,
                 raise Exception("Error on request code : "+str(response.status_code))
     return file_list
 
-# TODO: Update to use latest_pub_date specified by caller
+def prip_list_from_names(user, password, auxip_user, auxip_password,
+                         lta_base_url,aux_names, mode="prod"):
+    file_list = []
+    lta_files = get_lta_files_from_names(user, password, lta_base_url,
+                              aux_names)
+    # lta_files is a list of pairs: first item is ID, secondi item is filename, third is size,
+    # fourth is checksum, fifth is checksum algorithm
+    filename_checksum_list = [(f_rec[1],f_rec[3],f_rec[4]) for f_rec in lta_files]
+    # Get list of files that are present in AUZIP, with same checksum
+    availables = are_file_availables_w_checksum(auxip_user, auxip_password,
+                                     filename_checksum_list,
+                                     step=10, mode=mode)
+    print("Of ", len(aux_names), " requested Aux Names, ", len(availables), " Files are already present in AUXIP")
+    #print("Files already present in AUXIP: ", availables)
+    auxip_missing_files = [f for f in lta_files if f[1] not in availables]
+    return  auxip_missing_files
+
+# latest_pub_date is set to from_date, specified by caller
+# if not specified, it is taken from auxip latest publication date
+#  for all the specified types
 # Expected date in format: YYYY-mm-DDTHH:MM:SS.mmmmmmZ
 def prip_list(user, password, auxip_user, auxip_password,
               lta_base_url, type_list,

@@ -147,7 +147,7 @@ def is_file_available(access_token,aux_data_file_name,mode='dev'):
 
 # TODO: Define a Unit Test, and a Functional test against a AUXIP test service
 # step: number of files to be checked in same request
-def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode='dev'):
+def _are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode):
     availables = []
     timer_start = time.time()
     token_info = get_token_info(auxip_user, auxip_password,mode=mode)
@@ -182,7 +182,11 @@ def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode
             # print(json_resp)
 	    # Return Name, checksum
             for g in json_resp["value"]:
-                availables.append(g["Name"])
+                # file_size = g["ContentLength"]
+                cksum_info = g["Checksum"][0]
+                file_cksum = cksum_info["Value"]
+                cksum_alg = cksum_info["Algorithm"]
+                availables.append((g["Name"], file_cksum, cksum_alg))
     except Exception as e:
         print("==> get ends with error ")
         print(e)
@@ -190,7 +194,24 @@ def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode
 
     return availables
 
+def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode='dev'):
+   auxip_availables = _are_file_availables(auxip_user, auxip_password, aux_data_files_names, step, mode)
+   return [file[0] for file in auxip_availables]
     
+def are_file_availables_w_checksum(auxip_user,auxip_password,aux_files_names_cksum,step,mode='dev'):
+   print("Checking AUXIP availability for: ", aux_files_names_cksum)
+   # input: list of tuples: filename + checksum, + chksum alg)
+   # Build a lookup dictionary to find checksum for filenames
+   in_aux_checksums = { af[0]: af[1] for af in aux_files_names_cksum}
+   print("File Checksums received: ", in_aux_checksums)
+   aux_data_files_names = list(in_aux_checksums.keys())
+   auxip_availables = _are_file_availables(auxip_user, auxip_password,
+                                           aux_data_files_names, step, mode)
+   print("Found Auxip Files: ", auxip_availables)
+   # each availabel auxip file specifies the checksum (and the alog)
+   # Select the files with the cksum = in both auxip and input
+   return [file[0] for file in auxip_availables if file[1] == in_aux_checksums[file[0]]]
+
 def search_in_auxip(name,access_token,mode='dev'):
     try:
         headers = {'Content-Type': 'application/json',
