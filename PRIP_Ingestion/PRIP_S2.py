@@ -239,7 +239,7 @@ def prip_download(id, name,user, password,base_url,output_folder):
                     #sys.stdout.write("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), downloaded_bytes//(time.perf_counter() - start)))
                     #sys.stdout.flush()
                     # fid.write(product_response.content)
-                print("Download Done")
+                print("Download Done\n")
             # No need to close if using "with"
             fid.close()
     except Exception as e:
