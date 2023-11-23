@@ -61,11 +61,6 @@ def ingest(auxiliary_data_files, auxip_user, auxip_password, path_to_mc, output_
     # =======================================================================
     auxiliary_data_filenames = [name for name in auxiliary_data_files.keys()]
 
-    # get token_info
-    timer_start = time.time()
-    # Get Token either here or in upload_and_post
-    # token_info = get_token_info(auxip_user, auxip_password,mode=mode)
-    # access_token = token_info['access_token']
     # Create listings
     not_yet_uploaded = []
     print("Testing files in auxip or not ...")
