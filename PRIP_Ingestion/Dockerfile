@@ -26,6 +26,7 @@ ADD PRIP_Ingestion.py /
 ADD FileUtils.py /
 ADD mission_aux_types.py /
 ADD PRIP_S2.py /
+ADD InitFuncs.sh /
 ADD PRIP_Ingestion.sh /
 ADD PRIP_Ingestion_list.sh /
 ADD template.json /
