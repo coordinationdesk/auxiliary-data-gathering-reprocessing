@@ -73,16 +73,23 @@ def _get_lta_aux_files(response):
         aux_files.append((ID, aux_file["Name"], file_size))
     return aux_files
 
-def _get_lta_file_results(user, password, lta_request, max_results):
+def _get_lta_file_results(user, password, lta_request, max_results, req_timeout=30):
+    next_trial_time = 60 # seconds
     file_list = []
     headers = {'Content-type': 'application/json'}
     step=min(200, max_results)
     for i in range(0, max_results, step):
         request_top = _build_paginated_request(lta_request, i, step)
         print("LTA Request : ", request_top)
-        response = requests.get(request_top, auth=HTTPBasicAuth(user, password),
-                                headers=headers,
-                                verify=False)
+        try:
+            response = requests.get(request_top, auth=HTTPBasicAuth(user, password),
+                                    headers=headers,
+                                    timeout=req_timeout,
+                                    verify=False)
+        except requests.Timeout as to_exc:
+            print("Request from ", i, " failed after timeout (", req_timeout,"): ", str(to_exc))
+            response = None
+            time.sleep(next_trial_time)
         if response is not None:
             if response.status_code == 200:
                 resp_json = response.json()
@@ -234,6 +241,7 @@ def prip_download(id, name,user, password,base_url,output_folder):
                 downloaded_bytes = 0
                 for data in product_response.iter_content(chunk_size=4096):
                     downloaded_bytes += len(data)
+                    # print("...Downloaded ", downloaded_bytes,"/", total_length," bytes")
                     fid.write(data)
                     done = int(50 * downloaded_bytes / total_length)
                     #sys.stdout.write("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), downloaded_bytes//(time.perf_counter() - start)))
