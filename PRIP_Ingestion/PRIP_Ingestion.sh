@@ -171,8 +171,9 @@ function ingest_mission() {
   create_folder $MISSION_TEMP_FOLDER_LISTING
   create_folder $MISSION_TEMP_FOLDER_JSONS
   echo "Function ingest_mission: Ingesting Mission ${MISSION} with arg ${FROM_DATE_ARG} and ${TO_DATE_ARG}"
-  python3 -u ${CUR_DIR}/PRIP_Ingestion.py -m ${MISSION} -u ${PRIP_USER} -pw ${PRIP_PASS} \
-        -w ${MISSION_TEMP_FOLDER} -au ${AUXIP_USER} -apw ${AUXIP_PASS}    \
+  python3 -u ${CUR_DIR}/PRIP_Ingestion.py -m ${MISSION} -lu ${PRIP_ENDPOINT} -u ${PRIP_USER} -pw ${PRIP_PASS} \
+        -w ${MISSION_TEMP_FOLDER} \
+        -au ${AUXIP_USER} -apw ${AUXIP_PASS}    \
         -fd file_types \
         ${FROM_DATE_ARG} ${TO_DATE_ARG}
   code=$?
@@ -209,8 +210,9 @@ function ingest_mission_types() {
     mkdir -p ${MISSION_TYPE_TEMP_FOLDER_JSONS}
     echo "[BEGIN] Function ingest_mission_types: Ingesting Mission ${MISSION} , Types: $AUX_TYPES, with arg ${FROM_DATE_ARG} and ${TO_DATE_ARG}"
     echo "[BEGIN] Function ingest_mission_types: Ingesting Mission ${MISSION} , Types: $AUX_TYPES, with arg ${FROM_DATE_ARG} and ${TO_DATE_ARG}" >> ${ERROR_FILE_LOG}
-    python3 -u ${CUR_DIR}/PRIP_Ingestion.py -m ${MISSION} -u ${PRIP_USER} -pw ${PRIP_PASS} \
-          -w ${MISSION_TYPE_TEMP_FOLDER} -au ${AUXIP_USER} -apw ${AUXIP_PASS}    \
+    python3 -u ${CUR_DIR}/PRIP_Ingestion.py -m ${MISSION} -lu ${PRIP_ENDPOINT}  -u ${PRIP_USER} -pw ${PRIP_PASS} \
+          -w ${MISSION_TYPE_TEMP_FOLDER}    \
+          -au ${AUXIP_USER} -apw ${AUXIP_PASS}    \
           -t ${AUX_TYPES} \
           ${FROM_DATE_ARG} ${TO_DATE_ARG}
     code=$?

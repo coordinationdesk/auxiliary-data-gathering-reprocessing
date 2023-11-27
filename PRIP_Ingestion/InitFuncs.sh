@@ -1,5 +1,10 @@
 function init_variables() {
-  if [ -z ${PRIP_USER+x} ]; then
+if [ -z ${PRIP_ENDPOINT+x} ]; then
+  echo "PRIP_ENDPOINT not set"
+  exit 1
+fi
+echo "PRIP_ENDPOINT: "${PRIP_ENDPOINT}
+if [ -z ${PRIP_USER+x} ]; then
   echo "PRIP_USER not set"
   exit 1
 fi
