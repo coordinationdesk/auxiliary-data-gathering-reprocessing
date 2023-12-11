@@ -93,7 +93,7 @@ def main():
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
         print("Files to download from LTA", prip_list)
-        for file_id, file_name, file_size, *_ in prip_list:
+        for file_id, file_name, *_ in prip_list:
             print()
             print("File ", file_id, ", name: ", file_name)
             PRIP_S2.prip_download(file_id, file_name,
