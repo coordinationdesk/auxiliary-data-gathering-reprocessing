@@ -49,15 +49,12 @@ def extract_TaskName(a_task_name):
     return (a_task_name.split("-"))[0]
 
 
-
-
 def is_a_valid_filename(the_file_name):
     p = re.compile('(S2A|S2B|S2_)_([A-Z|0-9]{4})_([A-Z|0-9|_]{4})([A-Z|0-9|_]{6})_([A-Z|0-9|_|\.]+)')
     return p.match(the_file_name)
 
 def parse_filename(the_file_name):
-    p = re.compile('(S2A|S2B|S2_)_([A-Z|0-9]{4})_([A-Z|0-9|_]{4})([A-Z|0-9|_]{6})_([A-Z|0-9|_|\.]+)')
-    ama = p.match(the_file_name)
+    ama = is_a_valid_filename(the_file_name)
     if not ama:
         return ama
     items = ama.groups()
