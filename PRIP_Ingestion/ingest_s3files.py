@@ -6,6 +6,7 @@ import json
 import os
 import re
 import uuid
+import sys
 
 DEBUG=True
 
@@ -233,3 +234,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    sys.exit(0)
