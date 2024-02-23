@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/bin:/usr/bin:/usr/local/bin
+
+10 16 * * * /home/eouser/git_rep/preparation/support/clean_auxip_snaps.sh  
