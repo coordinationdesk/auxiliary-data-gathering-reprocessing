@@ -15,8 +15,6 @@ RUN apt-get update -y \
     && apt-get install -y  --no-install-recommends python3-requests python3-lxml python3-pip \
     && apt-get clean
 
-#    && pip3 install numpy \
-
     
 ADD ingest_s1files.py /
 ADD ingest_s2files.py /
