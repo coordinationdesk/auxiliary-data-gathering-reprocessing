@@ -51,6 +51,13 @@ public class S3WasabiConfiguration {
     @Value("${s3.secret_key}")
     private String secretAccessKey;
 
+    @Value("${s3.endpoint}")
+    private String endPoint; 
+
+    public String getEndPoint() {
+	return this.endPoint;
+    }
+
     @Bean
     public S3Presigner s3Presigner() {
 
@@ -60,7 +67,7 @@ public class S3WasabiConfiguration {
         Region region = Region.of("waw2-1");
 
         // final String END_POINT = "https://s3.eu-central-1.wasabisys.com";
-        final String END_POINT = "https://s3.waw2-1.cloudferro.com";
+        String END_POINT =  this.getEndPoint(); // "https://s3.waw2-1.cloudferro.com"; //  
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(this.accessKey, this.secretAccessKey));
         
         return S3Presigner.builder()
