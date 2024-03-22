@@ -8,7 +8,7 @@
                 <Notes/>
 		<Mission>Sentinel-2</Mission>
                 <File_Class>OPER</File_Class>
-                <File_Type>AUX_CAMSAN</File_Type>
+                <File_Type>AUX_CAMSRE</File_Type>
                 <File_Version>0001</File_Version>
                 <Validity_Period>
 			<Validity_Start>{val_start}</Validity_Start>

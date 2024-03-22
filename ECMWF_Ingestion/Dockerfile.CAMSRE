@@ -1,0 +1,43 @@
+ARG DEBIAN_FRONTEND noninteractive
+FROM ubuntu:20.04
+MAINTAINER CS SI
+
+ENV TZ=UTC
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get update \
+    && apt-get install -y  tzdata \
+    && apt-get install -y  --no-install-recommends apt-utils rclone cron ca-certificates lsb-core wget gnupg2 \
+    && apt-get install -y  --no-install-recommends python3-requests python3-lxml python3-pip libeccodes-tools \
+    && pip3 install cdsapi \
+    && apt-get clean 
+
+ADD ingest_s2files.py /
+ADD ingestion /ingestion
+ADD CAMSRE_Ingestion.py /
+ADD DownloadCamsreGrib.py /
+ADD request_generator.py /
+ADD FileUtils.py /
+ADD CAMSRE_Ingestion.sh /
+ADD InitFuncs.sh /
+#ADD CAMSRE_Recover_Ingestion.sh /
+ADD template.json /
+ADD hdr_template_cams.xml /
+ADD update_base.py /
+ADD get_reprobase_file_types.py /
+ADD mc /
+ADD file_types.tgz /
+
+RUN chmod a+x /CAMSRE_Ingestion.sh
+#RUN chmod a+x /CAMSRE_Recover_Ingestion.sh
+RUN chmod a+x /mc
+
+#ENTRYPOINT ["/CAMSRE_Ingestion.sh"]
+
+ADD camsre-cron /etc/cron.d/
+ADD setenv.sh /setenv.sh
+RUN chmod a+x /setenv.sh \
+    && chmod a+x /etc/cron.d/camsre-cron 
+#    && crontab /etc/cron.d/ecmwf-cron
+
+CMD ["/setenv.sh"]
