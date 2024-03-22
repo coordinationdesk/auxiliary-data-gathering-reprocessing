@@ -3,10 +3,10 @@
 
 import sys
 import os
-import numpy as np
+#import numpy as np
 import argparse
 import uuid as UUID
-import threading
+#import threading
 import time
 
 from lib.auxip import post_to_auxip,get_token_info,refresh_token_info,is_file_available
