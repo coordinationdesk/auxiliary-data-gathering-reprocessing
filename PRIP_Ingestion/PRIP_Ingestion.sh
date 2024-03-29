@@ -1,13 +1,20 @@
 #!/bin/bash 
 
-source InitFuncs.sh
+source ${PWD}/InitFuncs.sh
 
 echo "$# Arguments"
 if [ $# -lt 1 ]; then
-  echo "PRIP_Ingestion.sh tmp_dir [REFERENCE_DATE [MISSION]]"
+  echo "$0 tmp_dir [REFERENCE_DATE [MISSION]]"
   echo "REFERENCE_DATE: YYYY-mm-DD  (Only data for Reerence Date will be ingested)"
   echo "MISSION: S1|S2|S3   (Only data for selected mission will be ingested)"
   exit 1
+fi
+
+# CHECK IF ANOTHER INSTANCE IS RUNNING
+# Processes include: containing bash, bash, and grep
+if [ `ps ax | grep $0 | wc -l` -gt 3 ]; then  
+  echo "$0 Already running"
+  exit 0
 fi
 
 WORK_FOLDER=$1
@@ -77,6 +84,7 @@ START_DATE=$(date '+%Y-%m-%d')
 # MOVE Folders creation inside ingest mission, to be done for each mission!
 init_folders $START_DATE
 
+# TODO: Remove and import function from IngestDownloadedFiles_funcs.sh
 function ingest_downloaded_files() {
   MISSION=$1
   code=$2
@@ -226,15 +234,15 @@ function ingest_mission_types() {
       echo "No errors for $MISSION ingestion"
       echo "Removing temporary folders"
       echo "Removing TEMP Folder ${MISSION_TYPE_TEMP_FOLDER:?}"
-      rm -rf "${MISSION_TYPE_TEMP_FOLDER:?}"/*
+      rm -rf "${MISSION_TYPE_TEMP_FOLDER:?}"/
       REM_RES=$?
       echo "Removal result: $REM_RES"
       echo "Removing TEMP LISTING Folder ${MISSION_TYPE_TEMP_FOLDER_LISTING:?}"
-      rm -rf ${MISSION_TYPE_TEMP_FOLDER_LISTING:?}/*
+      rm -rf ${MISSION_TYPE_TEMP_FOLDER_LISTING:?}/
       REM_RES=$?
       echo "Removal result: $REM_RES"
       echo "Removing TEMP Reprobase JSON Folder ${MISSION_TYPE_TEMP_FOLDER_JSONS:?}"
-      rm -rf ${MISSION_TYPE_TEMP_FOLDER_JSONS:?}/*
+      rm -rf ${MISSION_TYPE_TEMP_FOLDER_JSONS:?}/
       REM_RES=$?
       echo "Removal result: $REM_RES"
 
@@ -296,11 +304,11 @@ done
   if [ $ingestion_code -eq 0 ]; then
     echo "No Errors Found"
     echo "Removing TEMP Folder ${TEMP_FOLDER:?}"
-    rm -rf "${TEMP_FOLDER:?}"/*
+    rm -rf "${TEMP_FOLDER:?}"/
     echo "Removing TEMP LISTING Folder ${TEMP_FOLDER_LISTING:?}"
-    rm -rf ${TEMP_FOLDER_LISTING:?}/*
+    rm -rf ${TEMP_FOLDER_LISTING:?}/
     echo "Removing TEMP Reprobase JSON Folder ${TEMP_FOLDER_JSONS:?}"
-    rm -rf ${TEMP_FOLDER_JSONS:?}/*
+    rm -rf ${TEMP_FOLDER_JSONS:?}/
   else
      echo "Errors found during ingestion - Keeping temporary folders"
   fi

@@ -22,6 +22,7 @@ def send_request(request, jsonload, access_token):
     try:
         resp = requests.put(request, headers=headers, json=jsonload)
     except Exception as e:
+        print("Retrying failed request ", request, " with exception ", e)
         time.sleep(1)
         resp = requests.put(request, headers=headers, json=jsonload)
 
@@ -32,7 +33,7 @@ def send_request(request, jsonload, access_token):
     try:
         res = resp.json()
     except Exception as e:
-        print(resp)
+        print("Failed converting to Json response: ", resp)
         print(resp.text)
         raise
     finally:
