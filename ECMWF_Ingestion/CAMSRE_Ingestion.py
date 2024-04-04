@@ -67,7 +67,7 @@ if __name__ == "__main__":
     os.makedirs(initialGribExtractionDir, exist_ok=True)
 
     # Open HDR template file
-    template_filename_cams = os.path.join(os.path.dirname(os.path.realpath(__file__)),"hdr_template_cams.xml")
+    template_filename_cams = os.path.join(os.path.dirname(os.path.realpath(__file__)),"hdr_template_camsre.xml")
     print("template hdr _cams: "+template_filename_cams)
     hdr_namespace_table = dict([node for _, node in ET.iterparse(template_filename_cams, events = ['start-ns'])])
     tree_hdr_cams = ET.parse(template_filename_cams)

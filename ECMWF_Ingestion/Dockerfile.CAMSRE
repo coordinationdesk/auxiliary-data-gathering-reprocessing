@@ -22,7 +22,7 @@ ADD CAMSRE_Ingestion.sh /
 ADD InitFuncs.sh /
 #ADD CAMSRE_Recover_Ingestion.sh /
 ADD template.json /
-ADD hdr_template_cams.xml /
+ADD hdr_template_camsre.xml /
 ADD update_base.py /
 ADD get_reprobase_file_types.py /
 ADD mc /

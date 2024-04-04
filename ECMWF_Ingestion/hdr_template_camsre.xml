@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Earth_Explorer_Header 
+	xmlns="http://eop-cfi.esa.int/S2/S2_SCHEMAS"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Fixed_Header>
+		<File_Name>{filename}</File_Name>
+                <File_Description>CAMS Analysis</File_Description>
+                <Notes/>
+		<Mission>Sentinel-2</Mission>
+                <File_Class>OPER</File_Class>
+                <File_Type>AUX_CAMSRE</File_Type>
+                <File_Version>0001</File_Version>
+                <Validity_Period>
+			<Validity_Start>{val_start}</Validity_Start>
+			<Validity_Stop>{val_stop}</Validity_Stop>
+                </Validity_Period>
+                <Source>
+                        <System>ADG_</System>
+                        <Creator>CAMS</Creator>
+                        <Creator_Version>1.0</Creator_Version>
+			<Creation_Date>{creation}</Creation_Date>
+                </Source>
+        </Fixed_Header>
+        <Variable_Header/>
+</Earth_Explorer_Header>
