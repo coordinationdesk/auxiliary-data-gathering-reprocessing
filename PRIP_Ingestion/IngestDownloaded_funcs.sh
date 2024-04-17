@@ -5,7 +5,6 @@ function ingest_downloaded_files() {
   code=$2
   DWL_TEMP_FOLDER=$3
   LISTING_FOLDER=$4
-  JSONS_FOLDER=$5
   echo "Ingesting downloaded files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER, Folder for JSONS: $JSONS_FOLDER"
   master_code=$code
   if [ $code -eq 0 ]; then
@@ -33,10 +32,6 @@ function ingest_downloaded_files() {
       rm  -rf "${DWL_TEMP_FOLDER}"
       echo "Removed files downloaded from LTA"
   fi
-  # AUXIP Ingested Files: Generation of related JSONs to put in ReproBase
-   ingest_reprobase $MISSION $master_code $LISTING_FOLDER $JSONS_FOLDER
-   master_code_reprobase=$code
-    master_code=$master_code_reprobase
   return $master_code
 }
 function ingest_reprobase() {
@@ -99,7 +94,6 @@ function ingest_replace_downloaded_files() {
   code=$2
   DWL_TEMP_FOLDER=$3
   LISTING_FOLDER=$4
-  JSONS_FOLDER=$5
 # Try ingestion/ingestion
 # If error: 
 # Remove uploaded file
@@ -127,16 +121,12 @@ function ingest_replace_downloaded_files() {
        echo "AUXIP ingestion for mission ${MISSION} failed" >> ${ERROR_FILE_LOG}
     fi
     master_code=$master_code_auxip
-  fi
   if [ $master_code -eq 0 ]; then
       echo "AUXIP ingestion done"
       echo "Removing files downloaded from LTA (Ingested on AUXIP)..."
       rm  -rf "${DWL_TEMP_FOLDER}"
       echo "Removed files downloaded from LTA"
-      # AUXIP Ingested Files: Generation of related JSONs to put in ReproBase
-      ingest_reprobase $MISSION $master_code $LISTING_FOLDER $JSONS_FOLDER
-      master_code_reprobase=$code
-      master_code=$master_code_reprobase
+  fi
   fi
   return $master_code
 }

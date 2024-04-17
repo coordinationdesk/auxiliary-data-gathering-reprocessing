@@ -8,6 +8,7 @@ import PRIP_S2
 import time
 import os
 import requests
+from AuxFilesListUtils import get_aux_names_from_file
 
 #lta_baseurl = "https://aip.acri-st.fr/odata/v1/"
 
@@ -51,13 +52,6 @@ def get_command_arguments():
 # Check if date has only date part
 def only_date(date_str):
     return True
-
-def get_aux_names_from_file(filepath):
-    with open(filepath) as f:
-        names = f.readlines()
-    # you may also want to remove whitespace characters like `\n` at the end of each line
-    names = [x.strip() for x in names if len(x)] 
-    return names
 
 def main():
     args = get_command_arguments()

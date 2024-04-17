@@ -68,10 +68,15 @@ function ingest_aux_files_from_names() {
     echo "PRIP Retrieve failed"
     echo "PRIP Retrieve failed" >> ${ERROR_FILE_LOG}
   fi
-  ingest_downloaded_files $MISSION $code "$MISSION_TEMP_FOLDER" "${MISSION_TEMP_FOLDER_LISTING}" "${MISSION_TEMP_FOLDER_JSONS}"
+  ingest_downloaded_files $MISSION $code "$MISSION_TEMP_FOLDER" "${MISSION_TEMP_FOLDER_LISTING}" 
   ingestion_code=$?
+  # AUXIP Ingested Files: Generation of related JSONs to put in ReproBase
+   ingest_reprobase $MISSION $ingestion_code "${MISSION_TEMP_FOLDER_LISTING}"  "${MISSION_TEMP_FOLDER_JSONS}"
+   code=$?
+   master_code_reprobase=$code
+    master_code=$master_code_reprobase
   echo "Removing temporary folders"
-    if [ $ingestion_code -eq 0 ]; then
+  if [ $master_code -eq 0 ]; then
       echo "No errors for $MISSION ingestion"
       echo "Removing temporary folders"
       echo "Removing TEMP Folder ${MISSION_TEMP_FOLDER:?}"
@@ -92,7 +97,7 @@ function ingest_aux_files_from_names() {
     fi
     echo "[END] Completed Ingestion of Mission ${MISSION} , Aux Names file: : $AUX_LIST_FILE"
     echo "[END] Completed Ingestion of Mission ${MISSION} , Aux Names file: : $AUX_LIST_FILE" >> ${ERROR_FILE_LOG}
-  return $ingestion_code
+  return $master_code
 }
 
 
