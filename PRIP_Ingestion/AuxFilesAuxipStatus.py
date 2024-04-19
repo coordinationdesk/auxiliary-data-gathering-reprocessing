@@ -37,6 +37,12 @@ def get_command_arguments():
 def only_date(date_str):
     return True
 
+def write_records_to_file(out_file, records):
+    with open(out_file, "w") as of:
+        out_writer = csv.writer(of)
+        for rec in records:
+            out_writer.writerow(rec)
+
 def main():
     args = get_command_arguments()
     # Read file with Aux names list
@@ -48,20 +54,16 @@ def main():
                                                  aux_names, step=10,
                                                  mode="prod")
         auxip_file = f"{args.output_file}.auxip_avail"
-        with open(auxip_file, "w") as auxip_of:
-            aux_writer = csv.writer(auxip_of)
-            for au_rec in auxip_files_status:
-                aux_writer.writerow(au_rec)
+        write_records_to_file(auxip_file, auxip_files_status)
+
         auxip_names_status_list = [(os.path.splitext(file[0])[0], *(file[1:])) for file in auxip_files_status]
-        auxip_names_list = [file[0].strip() for file in auxip_names_status_list]
+        auxip_names_list = [file[0].strip() for file in auxip_files_status]
+        print("Names of files present in AXUIP", auxip_names_list)
         not_auxip_files = [(aux_name, "NotAvailable") for aux_name in aux_names if aux_name.strip() not in auxip_names_list]
+
         # combine the two lists and generate a single list; assign "NotAvailable" to files in second list
         overall_status = sorted(auxip_names_status_list + not_auxip_files, key=lambda x: x[0])
-        with open(args.output_file, "w") as of:
-            report_writer = csv.writer(of)
-
-            for record in overall_status:
-                report_writer.writerow(record)
+        write_records_to_file(args.output_file, overall_status)
 
     except Exception as e:
         print(e)
