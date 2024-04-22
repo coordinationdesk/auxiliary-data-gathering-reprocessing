@@ -71,6 +71,20 @@ def _get_EOF_file_attributes(eof_file_path):
     return attributes
 
 
+def _get_file_extension(file_path):
+    filename_zip = os.path.basename(file_path)
+
+    # TODO: modifiy in order to handle also non cmopressed files!
+    if '.zip' in filename_zip:
+        filename = filename_zip.split('.zip')[0]
+    elif '.TGZ' in filename_zip:
+        filename = filename_zip.split('.TGZ')[0]
+    else:
+        filename = filename_zip
+
+    extension = filename.split('.')[1]
+    return extension
+
 def _get_S1_file_attributes(file_path):
     filename_zip = os.path.basename(file_path)
 
@@ -192,6 +206,21 @@ def _extract_hdr_from_product(file_path):
         os.system(tar_command)
     return filename, hdr_filename
     
+def _get_MANPRE_file_attributes(manpre_file, mission, product_type):
+    # Extract attributes
+    # get start/end from filename
+    attributes = {
+        "productType": product_type,
+        "platformShortName": mission,
+        "platformSerialIdentifier": mission,
+        #"processingDate": getValueByName(source_node, 'Creation_Date').split('UTC=')[1],
+        #"beginningDateTime": getValueByName(validity_period, 'Validity_Start').split('UTC=')[1],
+        #"endingDateTime": getValueByName(validity_period, 'Validity_Stop').split('UTC=')[1],
+        "processingCenter": 'S2MPL',
+    }
+    return attributes
+
+
 def _get_hdr_file_attributes(hdr_file):
     tree = ET.parse(hdr_file)
     root = tree.getroot()
@@ -231,6 +260,23 @@ def _uncompress(compressed_filepath):
             print(e)
     return uncompressed_filename
 
+def _get_EOF_filename(file_path):
+    if '.zip' in file_path:
+        filename_zip = os.path.basename(file_path)
+        eof_filename = filename_zip.split('.zip')[0]
+        unzip_command = "unzip %s" % file_path
+        print("Uncompressed file name: ", eof_filename)
+        print("Zip command: ", unzip_command)
+        try:
+            os.system(unzip_command)
+        except Exception as e:
+            print(e)
+    else:
+        print("EOF file not compressed ")
+        # File not compressed, take as it is
+        eof_filename = file_path
+    return eof_filename
+
 def _get_S2_file_attributes(file_path):
     # PARSE extracted uncompressed file (XML File)
     basename = os.path.basename(file_path)
@@ -240,27 +286,14 @@ def _get_S2_file_attributes(file_path):
         print("Extracting attributes for EOF file")
         # TODO CHeck extension if EOF
         # 
-        if '.zip' in file_path:
-            filename_zip = os.path.basename(file_path)
-            eof_filename = filename_zip.split('.zip')[0]
-            unzip_command = "unzip %s" % file_path
-            print("Uncompressed file name: ", eof_filename)
-            print("Zip command: ", unzip_command)
-            try:
-                os.system(unzip_command)
-            except Exception as e:
-                print(e)
-        else:
-            print("EOF file not compressed ")
-            # File not compressed, take as it is
-            eof_filename = file_path
+        eof_filename = _get_EOF_filename(file_path)
         attributes = _get_EOF_file_attributes(eof_filename)
         if '.zip' in file_path:
             os.remove(eof_filename)
-    eilf product_type in ['MANPRE']:
+    elif product_type in ['MANPRE']:
         print("Extracting attributes for MANeuver file")
         prod_filename = _uncompress(file_path)
-        attributes = _get_MANPRE_file_attributes(prod_filename)
+        attributes = _get_MANPRE_file_attributes(prod_filename, 'Sentinel-2', product_type)
         os.remove(prod_filename)
     else:
         print("Extracting attributes from HDR file inside compress tar")
@@ -280,9 +313,7 @@ def _get_zip_manifest(file_path):
     os.system(unzip_command)
     return manifest_file
 
-def _get_S3_file_attributes(file_path):
-    filename_zip = os.path.basename(file_path)
-    filename = filename_zip.split('.zip')[0]
+def _get_S3_SAFE_file_attributes(file_path):
     # TODO: Put Parsing in a general SAFE_Maniferst Parser module
     manifest_file = _get_zip_manifest(file_path)
     tree = ET.parse(manifest_file)
@@ -305,9 +336,23 @@ def _get_S3_file_attributes(file_path):
         "processorName": getNodeByName(facility, 'software').get('name'),
         "processorVersion": getNodeByName(facility, 'software').get('version')
     }
+    return attributes
+
+def _get_S3_file_attributes(file_path):
+    filename_zip = os.path.basename(file_path)
+    extension = _get_file_extension(file_path)
+    if extension != 'EOF':
+        filename = filename_zip.split('.zip')[0]
+        attributes = _get_S3_SAFE_file_attributes(file_path)
+        shutil.rmtree(filename, ignore_errors=True)
+    else:
+        eof_filename = _get_EOF_filename(file_path)
+        attributes = _get_EOF_file_attributes(eof_filename)
+        if '.zip' in file_path:
+            os.remove(eof_filename)
+
     # with open(os.path.join(filename_zip + ".json"), 'w') as json_file:
     #     json.dump(attributes, json_file)
-    shutil.rmtree(filename, ignore_errors=True)
     return attributes
 
 mission_attributes_funcs = {
