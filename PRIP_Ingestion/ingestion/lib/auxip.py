@@ -7,6 +7,7 @@ from .attributes import get_attributes
 import os
 from datetime import datetime
 import datetime as dt
+import traceback
 
 odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -14,6 +15,8 @@ odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 def get_odata_datetime_format(datetime_string):
 
     odata_format = datetime_string
+    if datetime_string == "9999-99-99T99:99:99":
+        datetime_string = "9999-12-31T23:59:59"
 
     try:
         datetime.strptime(datetime_string, odata_datetime_format)
@@ -152,6 +155,7 @@ def _are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mod
     timer_start = time.time()
     token_info = get_token_info(auxip_user, auxip_password,mode=mode)
     access_token = token_info['access_token']
+    print("Checking availability on AUXIP of ", len(aux_data_files_names), " files")
     try:
 
         auxip_endpoint = get_auxip_base_endpoint(mode)
@@ -164,6 +168,8 @@ def _are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mod
                 timer_start = time.time()
                 token_info = get_token_info(auxip_user, auxip_password, mode=mode)
                 access_token = token_info['access_token']
+            sys.stdout.write("\rRequest for index from %s to %s" % (f, f+step-1))
+            sys.stdout.flush()
             headers = {'Content-Type': 'application/json', 
                        'Authorization': 'Bearer %s' % access_token}
             auxip_request = "{}/Products?$filter=contains(Name,'{}')".format(auxip_endpoint, 
@@ -181,27 +187,37 @@ def _are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mod
             json_resp = response.json()
             # print(json_resp)
         # Return Name, checksum
+            print("Received %d results" % len(json_resp["value"]))
             for g in json_resp["value"]:
-                # file_size = g["ContentLength"]
-                if "Checksum" in g:
+                file_id = g["Id"]
+                file_size = g["ContentLength"]
+                if "Checksum" in g and len(g["Checksum"]):
                     cksum_info = g["Checksum"][0]
                     file_cksum = cksum_info["Value"]
                     cksum_alg = cksum_info["Algorithm"]
+                    cksum_date = cksum_info["ChecksumDate"]
                 else:
                     file_cksum = ''
                     cksum_alg = ''
-                availables.append((g["Name"], file_cksum, cksum_alg))
+                    cksum_date = ''
+                availables.append((g["Name"], file_cksum, cksum_alg, cksum_date, file_size, file_id))
     except Exception as e:
         print("==> get ends with error ")
         print(e)
+        traceback.print_exc()
         raise e
-
+    print("Found ", len(availables), " files in Auxip from requested files")
     return availables
 
 def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode='dev'):
    auxip_availables = _are_file_availables(auxip_user, auxip_password, aux_data_files_names, step, mode)
    return [file[0] for file in auxip_availables]
     
+def available_files_status(auxip_user,auxip_password,aux_data_files_names,step,mode='dev'):
+   # Return a list of available files, among those passed in aux_data_files_names
+   # for each of them report also the checksum info
+   return _are_file_availables(auxip_user, auxip_password, aux_data_files_names, step, mode)
+
 def are_file_availables_w_checksum(auxip_user,auxip_password,aux_files_names_cksum,step,mode='dev'):
    print("Checking AUXIP availability for: ", "\n".join((str(a) for a in aux_files_names_cksum)))
    # input: list of tuples: filename + checksum, + chksum alg)
@@ -214,12 +230,12 @@ def are_file_availables_w_checksum(auxip_user,auxip_password,aux_files_names_cks
                                            aux_data_files_names, step, mode)
    print("Found Auxip Files: ", auxip_availables)
    auxip_cksum_availables = [file[0] for file in auxip_availables if file[1] == in_aux_checksums[file[0]]]
+   auxip_cksum_changed = [file for file in auxip_availables if file[1] != in_aux_checksums[file[0]]]
    print("Auxip Files with different Checksum: ", "\n".join([f"{file} - {in_aux_checksums[file[0]]}"
-                                                             for file in auxip_availables
-                                                             if file[1] != in_aux_checksums[file[0]]]))
+                                                             for file in auxip_cksum_changed]))
    # each availabel auxip file specifies the checksum (and the alog)
    # Select the files with the cksum = in both auxip and input
-   return auxip_cksum_availables
+   return auxip_cksum_availables, [file[0] for file in auxip_cksum_changed]
 
 def search_in_auxip(name,access_token,mode='dev'):
     try:
@@ -303,9 +319,8 @@ def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev'):
             return 0
         else:
             headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % access_token }
-            auxip_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc/Products"
-            if mode == 'prod':
-                auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products"
+            auxip_base_endpoint = get_auxip_base_endpoint(mode)
+            auxip_endpoint = f"{auxip_base_endpoint}/Products"
 
             response = requests.post(auxip_endpoint,data=json.dumps(product),
                                     headers=headers)
