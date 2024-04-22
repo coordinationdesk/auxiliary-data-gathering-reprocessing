@@ -66,6 +66,7 @@ def ingest(auxiliary_data_files, auxip_user, auxip_password, path_to_mc, output_
     print("Testing files in auxip or not ...")
     availables = are_file_availables(auxip_user,auxip_password,auxiliary_data_filenames,5,mode)
     print("Availables: "+str(len(availables)))
+    # not_yet_uploaded = [f for f in auxiliary_data_filenames if f not in availables]
     for i in auxiliary_data_filenames:
         if i not in availables:
             not_yet_uploaded.append(auxiliary_data_files[i])
@@ -109,8 +110,7 @@ if __name__ == "__main__":
                         default="dev",
                         required=False)
     parser.add_argument(
-            "-o",
-            "--output",
+            "-o", "--output",
             help="Output data directory (product directory). Default value: '.'",
             required=True)
     args = parser.parse_args()
@@ -129,4 +129,4 @@ if __name__ == "__main__":
         ingest(auxiliary_data_files, args.user, args.password, args.path_to_mc,args.output,args.mode, args.bucket)
     else:
         print("No auxiliary data files downloaded to ingest in folder ", args.input)
-
+    sys.exit(0)
