@@ -12,6 +12,7 @@ import subprocess
 import sys
 
 import xml.etree.ElementTree as ET
+from .time_formats import odata_datetime_format
 
 def getValueByName(root_node,attribute_name):
     if root_node is None:
@@ -49,7 +50,6 @@ def md5(fname):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
-odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 def _get_EOF_file_attributes(eof_file_path):
     # TODO: Check if xml file is reachable for parse command

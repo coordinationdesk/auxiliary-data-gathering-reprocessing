@@ -6,45 +6,12 @@ import json
 from .attributes import get_attributes
 import os
 from datetime import datetime
-import datetime as dt
+#import datetime as dt
 import traceback
 
-odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+from .time_formats import odata_datetime_format, get_odata_datetime_format
 
 
-def get_odata_datetime_format(datetime_string):
-
-    odata_format = datetime_string
-    if datetime_string == "9999-99-99T99:99:99":
-        datetime_string = "9999-12-31T23:59:59"
-
-    try:
-        datetime.strptime(datetime_string, odata_datetime_format)
-    except ValueError:
-       
-        # Try these following fomats 
-        # "%Y%m%dT%H%M%S"  20201013T065032
-        try:
-            date_time = datetime.strptime(datetime_string, "%Y%m%dT%H%M%S")
-            odata_format = datetime.strftime(date_time, odata_datetime_format)
-        except ValueError:
-            pass
-
-        # 2021-02-23T05:29:16 in S1 .EOF  and S2 files
-        try:
-            date_time = datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S")
-            odata_format = datetime.strftime(date_time, odata_datetime_format)
-        except ValueError:
-            pass
-
-        # 2020-10-06T00:00:00.000000   ( Z is missing )
-        try:
-            date_time = datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S.%f")
-            odata_format = datetime_string + 'Z'
-        except ValueError:
-            pass
-
-    return odata_format
 
 def _get_auth_base_endpoint(mode):
     base_endpoint = "https://dev.reprocessing-preparation.ml/auth"

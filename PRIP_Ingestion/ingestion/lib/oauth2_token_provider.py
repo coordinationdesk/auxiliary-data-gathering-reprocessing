@@ -9,40 +9,7 @@ from datetime import datetime
 import datetime as dt
 import traceback
 
-odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-
-
-def get_odata_datetime_format(datetime_string):
-
-    odata_format = datetime_string
-
-    try:
-        datetime.strptime(datetime_string, odata_datetime_format)
-    except ValueError:
-       
-        # Try these following fomats 
-        # "%Y%m%dT%H%M%S"  20201013T065032
-        try:
-            date_time = datetime.strptime(datetime_string, "%Y%m%dT%H%M%S")
-            odata_format = datetime.strftime(date_time, odata_datetime_format)
-        except ValueError:
-            pass
-
-        # 2021-02-23T05:29:16 in S1 .EOF  and S2 files
-        try:
-            date_time = datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S")
-            odata_format = datetime.strftime(date_time, odata_datetime_format)
-        except ValueError:
-            pass
-
-        # 2020-10-06T00:00:00.000000   ( Z is missing )
-        try:
-            date_time = datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S.%f")
-            odata_format = datetime_string + 'Z'
-        except ValueError:
-            pass
-
-    return odata_format
+from .time_formats import odata_datetime_format, get_odata_datetime_format
 
 class OAuth2TokenProvider:
     DEFAULT_EXPIRES = 0
@@ -50,6 +17,8 @@ class OAuth2TokenProvider:
         self._auth_endpoint = auth_endpoint
         self._client_id = client_id
         self._auth_secret = secret
+        if self._auth_secret is None:
+            print("Initialized OAuth2Token provider without specifying secret")
         self._access_token = None
         self.timer_start = None
         self._auth_timeout = self.DEFAULT_EXPIRES
@@ -111,8 +80,7 @@ class AuxipOauth2TokenPRovider(OAuth2TokenProvider):
 class AdgsOauth2TokenProvider(OAuth2TokenProvider):
     def __init__(self, secret):
         adgs_auth_endpoint = "https://adgs.copernicus.eu/getAuthToken"
-        OAuth2TokenProvider.__init__(self, adgs_auth_endpoint, "adgs-client")
-        self._auth_secret = secret
+        OAuth2TokenProvider.__init__(self, adgs_auth_endpoint, "adgs-client", secret)
 
 def refresh_token_info(token_info,timer,mode='dev'):
     # access_token expires_in 900 seconds (15 minutes) 
