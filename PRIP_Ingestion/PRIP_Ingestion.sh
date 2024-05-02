@@ -14,7 +14,9 @@ fi
 # Processes include: containing bash, bash, and grep
 if [ `ps ax | grep $0 | wc -l` -gt 3 ]; then  
   echo "$0 Already running"
-  exit 0
+  echo "ps returned $(ps ax | grep $0 | wc -l) items"
+  echo "ps returned $(ps ax | grep $0 ) items"
+  #exit 0
 fi
 
 WORK_FOLDER=$1
@@ -75,6 +77,7 @@ if [[ ! -z ${REQ_MISSION} ]]; then
   echo "Ingesting only Mission  $REQ_MISSION"
     MISSIONS="$REQ_MISSION"
 fi
+init_lta_variables
 init_variables
 
 create_folder $WORK_FOLDER
@@ -94,7 +97,7 @@ function ingest_downloaded_files() {
   echo "Ingesting downloaded files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER, Folder for JSONS: $JSONS_FOLDER"
   master_code=$code
   if [ $code -eq 0 ]; then
-    echo "PRIP download done"
+    echo "PRIP download completed succesfully"
 
     echo "Starting AUXIP ingestion $MISSION"
     python3 -u ${CUR_DIR}/ingestion/ingestion.py -i ${DWL_TEMP_FOLDER} -u ${AUXIP_USER} -pw ${AUXIP_PASS} -mc ${MCPATH} -b "wasabi-auxip-archives/"${S3_BUCKET} -o ${LISTING_FOLDER}/file_list_${MISSION}.txt -m ${MODE}

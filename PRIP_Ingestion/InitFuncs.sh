@@ -1,4 +1,4 @@
-function init_variables() {
+function init_lta_variables() {
 if [ -z ${PRIP_ENDPOINT+x} ]; then
   echo "PRIP_ENDPOINT not set"
   exit 1
@@ -14,6 +14,29 @@ if [ -z ${PRIP_PASS+x} ]; then
   exit 1
 fi
 #echo "PRIP_PASS: "${PRIP_PASS}
+if [ -z ${AUXIP_USER+x} ]; then
+  echo "AUXIP_USER not set"
+  exit 1
+fi
+}
+function init_adgs_variables() {
+if [ -z ${ADGS_ENDPOINT+x} ]; then
+  echo "ADGS_ENDPOINT not set"
+  exit 1
+fi
+echo "ADGS_ENDPOINT: "${ADGS_ENDPOINT}
+if [ -z ${ADGS_USER+x} ]; then
+  echo "ADGS_USER not set"
+  exit 1
+fi
+echo "ADGS_USER: "${ADGS_USER}
+if [ -z ${ADGS_PASS+x} ]; then
+  echo "ADGS_PASS not set"
+  exit 1
+fi
+#echo "ADGS_PASS: "${ADGS_PASS}
+}
+function init_variables() {
 if [ -z ${AUXIP_USER+x} ]; then
   echo "AUXIP_USER not set"
   exit 1

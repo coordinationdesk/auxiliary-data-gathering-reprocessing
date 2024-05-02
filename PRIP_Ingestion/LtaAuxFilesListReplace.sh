@@ -29,6 +29,7 @@ fi
 
 # OPTIONAL ARGUMENT: Reference DATE
 # IF NOT SPECIFIED; get it from AUXIP
+init_lta_variables
 init_variables
 
 create_folder $WORK_FOLDER

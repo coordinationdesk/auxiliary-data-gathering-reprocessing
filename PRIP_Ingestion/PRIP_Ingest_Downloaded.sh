@@ -13,7 +13,7 @@ fi
 # Processes include: containing bash, bash, and grep
 if [ `ps ax | grep $0 | wc -l` -gt 3 ]; then  
   echo "$0 Already running"
-  exit 0
+  #exit 0
 fi
 
 WORK_FOLDER=$1
@@ -24,6 +24,7 @@ MISSION=$3
 echo "MISSION : $MISSION"
 
 
+init_lta_variables
 init_variables
 
 create_folder $WORK_FOLDER
