@@ -3,7 +3,6 @@
 
 import sys
 import os
-#import numpy as np
 import argparse
 import uuid as UUID
 #import threading
@@ -98,8 +97,7 @@ if __name__ == "__main__":
                         default="dev",
                         required=False)
     parser.add_argument(
-            "-o",
-            "--output",
+            "-o", "--output",
             help="Output data directory (product directory). Default value: '.'",
             required=True)
     args = parser.parse_args()
