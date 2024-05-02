@@ -15,7 +15,7 @@ from .time_formats import odata_datetime_format, get_odata_datetime_format
 def _get_adg_domain(mode):
     base_domain = "https://dev.reprocessing-preparation.ml"
     if mode == 'prod':
-        base_domain = "https://reprocessing-auxiliary.copernicus.eu"
+        base_domain = "https://auxiliary.copernicus.eu"
     elif mode == 'dock':
         base_domain = "https://auxip"
     return base_domain
