@@ -22,11 +22,13 @@ services:
   database_auxip_olingo:
     image: postgres
     restart: always
-    shm_size: 256mb
+    shm_size: 356mb
     environment:
       POSTGRES_USER: "auxip"
       POSTGRES_PASSWORD: ${AUXIP_POSTGRES_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
+    command:
+      postgres -c max_connections=200 -c shared_buffers=256MB
     networks:
       - proxynet
     volumes:
@@ -73,6 +75,10 @@ services:
       DATASOURCE_PASSWORD: ${AUXIP_POSTGRES_PASSWORD}
       S3_ACCESS_KEY: ${AUXIP_S3_ACCESS_KEY}
       S3_SECRET_KEY: ${AUXIP_S3_SECRET_KEY}
+    logging:
+      options:
+        max-size: "300m"
+        max-file: "3"
     depends_on:
       - database_auxip_olingo
     networks:
@@ -233,6 +239,7 @@ services:
       TIME_TO_SLEEP: ${PRIPS2_TIME_TO_SLEEP}
       PRIP_USER: ${PRIPS2_USER}
       PRIP_PASS: ${PRIPS2_PASS}
+      PRIP_ENDPOINT: ${PRIPS2_LTA_ENDPOINT}
       AUXIP_USER: ${PRIPS2_AUXIP_USER}
       AUXIP_PASS: ${PRIPS2_AUXIP_PASS}
       MODE: ${PRIPS2_MODE}
@@ -302,6 +309,10 @@ services:
       - auxip
       - reprobase
       - database_reprocessing
+    logging:
+      options:
+        max-size: "300m"
+        max-file: "3"
     networks:
       - proxynet
     volumes:
