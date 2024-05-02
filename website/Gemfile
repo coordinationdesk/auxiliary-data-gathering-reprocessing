@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 # gem "rails"
 
+gem 'webrick'
 gem "jekyll", "4.2.2"
 gem 'jekyll-environment-variables'
 group :jekyll_plugins do

@@ -143,6 +143,11 @@ var formatForTableAuxFiles = function(result) {
     })
 }
 
+var formatAuxipLink = function(auxipFile) {
+//	return "<a href='"+auxipFile.AuxipLink+"' target='_blank'>"+auxipFile.Name+"</a><br/>"
+	return "<a href='#' onclick=onAuxipFileSelected('"+auxipFile.AuxipLink+"');>"+auxipFile.Name+"</a><br/>"
+}
+
 /**
  * Format link auxip
  * @param {*} array 
@@ -188,12 +193,16 @@ var formatForTableDataPagination = function(result) {
  * @param {*} result 
  * @returns 
  */
+ // TODO: just return a list of triplets or l0 + pair
+ // use map + reduce to build the result dataset
+ // resultDataset = result.response.value.map(level0 => { 
+ // }
 var formatForTableData = function(result) {
     return new Promise((successCallback, failureCallback) => {
         var resultDataset = []
         result.response.value.forEach( level0 => {
             level0.AuxDataFiles.forEach( auxDataFile => {
-                resultDataset.push([ level0.Level0, "<a href='"+auxDataFile.AuxipLink+"' target='_blank'>"+auxDataFile.Name+"</a>" ])
+                resultDataset.push([ level0.Level0, formatAuxipLink(auxDataFile) ])
             })
         })
         successCallback(resultDataset)
@@ -277,14 +286,14 @@ var updateProductType = function() {
  */
 var initDatePicker = function(page) {
     var currentDate = moment().format(datePattern)
-    var nextDate = moment(currentDate).add(1, 'J').format(datePattern)
+    var nextDate = moment(currentDate, datePattern).add(1, 'J').format(datePattern)
 
     $('#datepicker_application_from').val(currentDate)
     $('#datepicker_application_to').val(nextDate)
 
     // TODO TOREMOVE test for rdb
-    $('#datepicker_application_from').val(moment("2019-09-04T00:00:00",dateQueryPattern).format(datePattern))
-    $('#datepicker_application_to').val(moment("2019-09-05T00:00:00",dateQueryPattern).format(datePattern))
+    // $('#datepicker_application_from').val(moment("2019-09-04T00:00:00",dateQueryPattern).format(datePattern))
+    // $('#datepicker_application_to').val(moment("2019-09-05T00:00:00",dateQueryPattern).format(datePattern))
     // END TODO TOREMOVE
 
     new DateTime($('#datepicker_application_from'), {
@@ -305,6 +314,12 @@ var initDatePicker = function(page) {
     
         $('#chk_date_filter')[0].addEventListener('lcs-statuschange', updateDateFilter,page);
     }
+}
+
+var onAuxipFileSelected = function(auxipUrl) {
+    console.log("URL: ", auxipUrl);
+	getToken()
+		.then(result => downloadAuxipProduct(auxipUrl));
 }
 
 /**
@@ -338,6 +353,11 @@ var queryData = function() {
                     hideLoadingWheel()
                 })
         })        
+	// datatable.on('click', 'td', onAuxipFileSelected);
+	// $('#table_id tbody').on( 'click', 'td', function () {
+	// 	var cell = datatable.cell( this );
+	//	downloadAuxipProduct(cell.data());
+	//} );
 }
 
 /**

@@ -1,6 +1,7 @@
 var debug = true
-// var urlStart = "http://127.0.0.1" // Local 
-var urlStart = "" // "https://dev.reprocessing-preparation.ml" // Dev deployement
+// TODO: Read from configuration!!
+// var urlStart = "http://127.0.0.1:8080" // Local 
+var urlStart = "https://reprocessing-auxiliary.copernicus.eu" // "https://dev.reprocessing-preparation.ml" // Dev deployement
 
 var token = null
 var contextData = false
@@ -14,6 +15,7 @@ var urls = {
 }
 
 var auxiliaryTypes = []
+// TODO: Seems not used anymore (pagination is done automatically)
 var auxiliaryFilesCount = 341845
 var missionReference = []
 var productTypesReference = []
@@ -442,13 +444,13 @@ var getReprocessingAuxFiles = function(filter) {
  * @param {*} filter 
  * @returns 
  */
- var getReprocessingAuxTypes = function(filter) {
+ var getReprocessingAuxTypes	 = function(filter) {
     return new Promise((successCallback, failureCallback) => {
         var xhr = new XMLHttpRequest()
         xhr.open("GET", getUrlParamsInit(urls.reprocessingConfigBaseline.auxTypes,filter), true)
         var bearer="Bearer "+token
 
-        //xhr.setRequestHeader("Content-Type", "text/plain")
+        // xhr.setRequestHeader("Content-Type", "text/plain")
         xhr.setRequestHeader("Content-Type", "application/json")
 
         xhr.setRequestHeader("Authorization", bearer)
@@ -488,6 +490,41 @@ var getReprocessingData = function() {
                 var response = JSON.parse(xhr.responseText)
                 successCallback( { "filter" : null,
                                     "response" : response })
+            }
+            if ( (xhr.readyState === 4 ) && (xhr.status === 0)) {
+                failureCallback(xhr.status)
+            }
+            if ( (xhr.readyState === 4 ) && (xhr.status === 404)) {
+                failureCallback(xhr.status)
+            }
+        };
+        xhr.send()
+    })
+}
+
+/**
+ * Get list of data (promise function)
+ * @param {*} filter 
+ * @returns 
+ */
+var downloadAuxipProduct = function(auxipUri) {
+    return new Promise((successCallback, failureCallback) => {
+        var xhr = new XMLHttpRequest();
+        // var url = getUrlDataParams(urls.reprocessingDataBaseline)
+        xhr.open("GET", auxipUri, true);
+        var bearer="Bearer "+token;
+		xhr.responseType = "blob";
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+        xhr.setRequestHeader("Authorization", bearer);
+        xhr.onreadystatechange = function () {
+            if ( (xhr.readyState === 4 ) && (xhr.status === 200)) {
+                var downloadUrl = URL.createObjectURL(xhttp.response);
+				var a = document.createElement("a");
+				document.body.appendChild(a);
+				a.style = "display: none";
+				a.href = downloadUrl;
+				a.download = "";
+				a.click();
             }
             if ( (xhr.readyState === 4 ) && (xhr.status === 0)) {
                 failureCallback(xhr.status)
