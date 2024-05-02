@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+
+  #######################################
+  # ECMWF CAMSRE Ingestion
+ #######################################
+  camsre_ingestion:
+    extends: 
+      file: docker-compose.yml
+      service: ecmwf_ingestion_s2
+    container_name: camsre_ingestion
+    image: camsre_ingestion:1.0.0
+    restart: no
+
+
+
