@@ -12,12 +12,11 @@ from ingestion.lib.auxip import are_file_availables
 from AuxFilesListUtils import get_aux_names_from_file
 
 
-lta_baseurl = "https://aip.acri-st.fr/odata/v1/"
 
 def get_command_arguments():
     print("Called with command line: ", sys.argv)
-    parser = argparse.ArgumentParser(description="This script poll the PRIP all the files",  # main description for help
-                                     epilog='Usage samples : \n\tpython PRIP_Ingestion.py -u username -pw password \n\n',
+    parser = argparse.ArgumentParser(description="This script checks for the presence in ADG-RPP AUXIP Archive of the files specfied in an input list file",  # main description for help
+                                     epilog='Usage samples : \n\tpython CheckAuxFilesInAuxip.py -au username -apw password -f input-file \n\n',
                                      formatter_class=argparse.RawTextHelpFormatter)  # displayed after help
     parser.add_argument("-au", "--auxipuser",
                         help="Auxip user",

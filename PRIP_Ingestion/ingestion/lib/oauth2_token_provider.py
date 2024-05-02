@@ -63,6 +63,16 @@ class OAuth2TokenProvider:
         return { 'Authorization' : 'Bearer %s' % self._access_token }
         
 
+def _get_adg_domain(mode):
+    base_domain = "https://dev.reprocessing-preparation.ml"
+    if mode == 'prod':
+        base_domain = "https://reprocessing-auxiliary.copernicus.eu"
+    return base_domain
+
+def _get_adgs_domain(mode):
+    # TODO: Get from Env Var ADGS_URL or ADGS_ENDPOINT
+    return "https://adgs.copernicus.eu"
+
 class AuxipOauth2TokenPRovider(OAuth2TokenProvider):
     def __init__(self, mode):
         tk_realm = "reprocessing-preparation"
@@ -71,16 +81,18 @@ class AuxipOauth2TokenPRovider(OAuth2TokenProvider):
         OAuth2TokenProvider.__init__(self, auxip_auth_endpoint, "reprocessing-preparation")
 
     def _get_auth_base_endpoint(self, mode):
-        base_endpoint = "https://dev.reprocessing-preparation.ml/auth"
-        if mode == 'prod':
-            base_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auth"
+        endpoint_domain = _get_adg_domain(mode) 
+        service_endpoint = "auth"
+        base_endpoint = f"{endpoint_domain}/{service_endpoint}"
         return base_endpoint
 
 
 class AdgsOauth2TokenProvider(OAuth2TokenProvider):
     def __init__(self, secret):
-        adgs_auth_endpoint = "https://adgs.copernicus.eu/getAuthToken"
-        OAuth2TokenProvider.__init__(self, adgs_auth_endpoint, "adgs-client", secret)
+        # TODO: read endpoint and client id from configuration/environment
+        adgs_auth_endpoint = _get_adgs_domain('prod') + "/" + "getAuthToken"
+        client_id = "adgs-client"
+        OAuth2TokenProvider.__init__(self, adgs_auth_endpoint, client_id, secret)
 
 def refresh_token_info(token_info,timer,mode='dev'):
     # access_token expires_in 900 seconds (15 minutes) 

@@ -6,17 +6,22 @@ import json
 from .attributes import get_attributes
 import os
 from datetime import datetime
-#import datetime as dt
+import datetime as dt
 import traceback
 
 from .time_formats import odata_datetime_format, get_odata_datetime_format
 
 
+def _get_adg_domain(mode):
+    base_domain = "https://dev.reprocessing-preparation.ml"
+    if mode == 'prod':
+        base_domain = "https://reprocessing-auxiliary.copernicus.eu"
+    return base_domain
 
 def _get_auth_base_endpoint(mode):
-    base_endpoint = "https://dev.reprocessing-preparation.ml/auth"
-    if mode == 'prod':
-        base_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auth"
+    endpoint_domain = _get_adg_domain(mode) 
+    service_endpoint = "auth"
+    base_endpoint = f"{endpoint_domain}/{service_endpoint}"
     return base_endpoint
 
 def _get_token_info(json_data, mode='dev'):
@@ -60,9 +65,9 @@ def refresh_token_info(token_info,timer,mode='dev'):
             raise Exception("Error " + str(ex) +"when refreshing token")
 
 def get_auxip_base_endpoint(mode):
-    base_endpoint = "https://dev.reprocessing-preparation.ml/auxip.svc"
-    if mode == 'prod':
-        base_endpoint = "https://reprocessing-auxiliary.copernicus.eu/auxip.svc"
+    endpoint_domain = _get_adg_domain(mode) 
+    service_endpoint = "auxip.svc"
+    base_endpoint = f"{endpoint_domain}/{service_endpoint}"
     return base_endpoint
 
 # TODO: Move Auxip Endpoint baseurl to Function

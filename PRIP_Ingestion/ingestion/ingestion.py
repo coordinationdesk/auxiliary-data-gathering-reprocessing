@@ -118,7 +118,7 @@ if __name__ == "__main__":
     # =======================================================================
     #               CREATE AUXILIARY DATA FILES LISTING WITHOUT DUPLICATION
     # =======================================================================
-    print("Listing files ...")
+    print("Listing files to ingest from folder ", args.input, " ...")
     auxiliary_data_files = {}
     for root, folders, files in os.walk(args.input):
         for name in files:
