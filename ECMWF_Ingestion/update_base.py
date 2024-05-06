@@ -14,11 +14,11 @@ def send_request(jsonload, mode, access_token):
     if "Id" in jsonload:
         auxip_endpoint = "https://dev.reprocessing-preparation.ml/reprocessing.svc/AuxFiles(" + jsonload["Id"]+")"
         if mode == 'prod':
-            auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/reprocessing.svc/AuxFiles(" + jsonload["Id"]+")"
+            auxip_endpoint = "https://auxiliary.copernicus.eu/reprocessing.svc/AuxFiles(" + jsonload["Id"]+")"
     elif "LongName" in jsonload:
         auxip_endpoint = "https://dev.reprocessing-preparation.ml/reprocessing.svc/AuxTypes('" + jsonload["LongName"]+"')"
         if mode == 'prod':
-            auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/reprocessing.svc/AuxTypes('" + jsonload["LongName"]+"')"
+            auxip_endpoint = "https://auxiliary.copernicus.eu/reprocessing.svc/AuxTypes('" + jsonload["LongName"]+"')"
     resp = requests.put(auxip_endpoint,headers=headers, json=jsonload)
     if resp.status_code != 200:
         print(resp.status_code)
