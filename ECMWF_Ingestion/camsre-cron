@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+BASH_ENV=/container.env
+0 2 1,9,17,25 * * /ECMWF_Ingestion.sh /ecmwf > /proc/1/fd/1 2>/proc/1/fd/2
+
