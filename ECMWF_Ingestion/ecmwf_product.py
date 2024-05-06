@@ -14,7 +14,7 @@ def create_hdr(cams_header_xml,
     val_period_element.find("Validity_Start",cams_ns).text = valid_start_xml
     val_period_element.find("Validity_Stop", cams_ns).text = valid_stop_xml
     cams_header_xml.find("Source", cams_ns).find("Creation_Date", cams_ns).text = valid_stop_xml
-    print(fixed_header_hdr_cams.find("File_Name",cams_ns).text)
+    print(cams_header_xml.find("File_Name",cams_ns).text)
     print(val_period_element.find("Validity_Start",cams_ns).text)
 
 

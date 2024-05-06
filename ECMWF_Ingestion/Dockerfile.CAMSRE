@@ -17,10 +17,11 @@ ADD ingestion /ingestion
 ADD CAMSRE_Ingestion.py /
 ADD DownloadCamsreGrib.py /
 ADD request_generator.py /
+ADD ecmwf_product.py /
 ADD FileUtils.py /
 ADD CAMSRE_Ingestion.sh /
 ADD InitFuncs.sh /
-#ADD CAMSRE_Recover_Ingestion.sh /
+ADD Camsre_Recover.sh /
 ADD template.json /
 ADD hdr_template_camsre.xml /
 ADD update_base.py /
