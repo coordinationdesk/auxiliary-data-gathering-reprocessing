@@ -124,7 +124,7 @@ services:
       KC_LOG_LEVEL: DEBUG
       KEYCLOAK_LOG_LEVEL: DEBUG
       PROXY_ADDRESS_FORWARDING: "true"
-      KEYCLOAK_FRONTEND_URL: https://reprocessing-auxiliary.copernicus.eu/auth
+      KEYCLOAK_FRONTEND_URL: https://auxiliary.copernicus.eu/auth
     volumes:
       - ./data/keycloak/realms:/opt/jboss/keycloak/realm-config
 
