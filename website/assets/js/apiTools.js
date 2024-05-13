@@ -1,10 +1,11 @@
 var debug = true
 // TODO: Read from configuration!!
 // var urlStart = "http://127.0.0.1:8080" // Local 
-var urlStart = "https://reprocessing-auxiliary.copernicus.eu" // "https://dev.reprocessing-preparation.ml" // Dev deployement
+var urlStart = "https://auxiliary.copernicus.eu"; 
+// "https://dev.reprocessing-preparation.ml" // Dev deployement
 
-var token = null
-var contextData = false
+var token = null;
+var contextData = false;
 var urls = {
     "token" : urlStart+"/auth/realms/reprocessing-preparation/protocol/openid-connect/token",
     "reprocessingConfigBaseline" : {
@@ -371,7 +372,6 @@ var getToken = function() {
             if ( (xhr.readyState === 4 ) && (xhr.status === 200)) {
                 var json = JSON.parse(xhr.responseText)
                 token = json.access_token
-                display("token","Bearer "+token)
                 successCallback(token)
             }
             if ( (xhr.readyState === 4 ) && (xhr.status === 404)) {
@@ -509,16 +509,22 @@ var getReprocessingData = function() {
  */
 var downloadAuxipProduct = function(auxipUri) {
     return new Promise((successCallback, failureCallback) => {
+        display("Downloading from uri: ", auxipUri);
         var xhr = new XMLHttpRequest();
         // var url = getUrlDataParams(urls.reprocessingDataBaseline)
         xhr.open("GET", auxipUri, true);
         var bearer="Bearer "+token;
 		xhr.responseType = "blob";
+	xhr.crossDomain = true;
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
         xhr.setRequestHeader("Authorization", bearer);
         xhr.onreadystatechange = function () {
+		display("Received Response: ", xhr.status);
+		display("File to download : ", xhr.response);
+		display("ReadyState: : ", xhr.readyState);
             if ( (xhr.readyState === 4 ) && (xhr.status === 200)) {
-                var downloadUrl = URL.createObjectURL(xhttp.response);
+                var downloadUrl = URL.createObjectURL(xhr.response);
+	display("Starting download of ", downloadUrl);
 				var a = document.createElement("a");
 				document.body.appendChild(a);
 				a.style = "display: none";
@@ -527,10 +533,13 @@ var downloadAuxipProduct = function(auxipUri) {
 				a.click();
             }
             if ( (xhr.readyState === 4 ) && (xhr.status === 0)) {
-                failureCallback(xhr.status)
+                failureCallback(xhr.status);
             }
             if ( (xhr.readyState === 4 ) && (xhr.status === 404)) {
-                failureCallback(xhr.status)
+                failureCallback(xhr.status);
+            }
+            if ( (xhr.readyState === 4 ) && (xhr.status === 403)) {
+                failureCallback(xhr.status);
             }
         };
         xhr.send()
