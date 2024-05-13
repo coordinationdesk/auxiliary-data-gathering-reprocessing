@@ -224,7 +224,7 @@ Data Baseline API; it contains the following main instructions:</p>
 <p>As a part of the Reprocessing Preparation Package, Reprocessing Data
 Baseline API can be accessed via the following URL:</p>
 <p><a
-href="%20https://reprocessing-auxiliary.copernicus.eu/rdb.svc"><strong>https://reprocessing-auxiliary.copernicus.eu/rdb.svc</strong></a></p>
+href="%20https://auxiliary.copernicus.eu/rdb.svc"><strong>https://auxiliary.copernicus.eu/rdb.svc</strong></a></p>
 <h2 id="user-registration">User registration </h2>
 <p>New users of Reprocessing Data Baseline API should be registered
 first in order to be able to use the API and request for the
@@ -250,7 +250,7 @@ style="width:3.40299in;height:3.74335in" /></th>
 <p>To get the Reprocessing Data Baseline API token for a client, an HTTP
 POST request should be sent to the following Token resource:</p>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"><strong>https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token</strong></a></p>
+href="https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"><strong>https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token</strong></a></p>
 <p>In the post body, username and password are specified in JSON format,
 and the response body contains a token key with an actual API Token as
 the value. The token should be used in an HTTP Authorization header
@@ -299,7 +299,7 @@ developers </h2></li>
 <p>-d "password="$PASSWORD \</p>
 <p>-d 'grant_type=password' \</p>
 <p>-d "client_id=reprocessing-preparation" \</p>
-<p>https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token
+<p>https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token
 \</p>
 <p>|jq . )</p>
 <p>TOKEN=$(echo $RAWTKN | jq -r '.access_token')</p>
@@ -312,8 +312,8 @@ developers </h2></li>
 <p>headers = {'Content-Type': 'application/x-www-form-urlencoded'}</p>
 <p>data={"username":user, "password":password,"client_id":"
 reprocessing-preparation","grant_type":"password"}</p>
-<p>token_endpoint="https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
-<p>token_endpoint="https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
+<p>token_endpoint="https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
+<p>token_endpoint="https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
 <p>response =
 requests.post(token_endpoint,data=data,headers=headers)</p>
 <p>return response.json()</p>
@@ -328,14 +328,14 @@ is overloaded and can be called in the following two ways :</p>
 unit + product_type :</p>
 <ul>
 <li><p><a
-href="https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;L0_ProductName_1,%20L0_ProductName_2,L0_ProductName_3&#39;,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='L0_ProductName_1,
+href="https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;L0_ProductName_1,%20L0_ProductName_2,L0_ProductName_3&#39;,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='L0_ProductName_1,
 L0_ProductName_2,L0_ProductName_3',mission='mission',unit='unit',product_type='product_Type')</a></p></li>
 </ul></li>
 <li><p>With a sensing time interval (start and stop) + mission + unit +
 product_type :</p>
 <ul>
 <li><p><a
-href="https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=&#39;sensing_start_datetime&#39;,stop=&#39;sensing_stop_datetime&#39;,%20,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start='sensing_start_datetime',stop='sensing_stop_datetime',
+href="https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=&#39;sensing_start_datetime&#39;,stop=&#39;sensing_stop_datetime&#39;,%20,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start='sensing_start_datetime',stop='sensing_stop_datetime',
 ,mission='mission',unit='unit',product_type='product_Type')</a></p></li>
 </ul></li>
 </ul>
@@ -407,17 +407,17 @@ use cases:</p>
 <li><p>With only one level 0 product name :</p></li>
 </ul>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
+href="https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
 <ul>
 <li><p>With a list of level-0 product names :</p></li>
 </ul>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
+href="https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
 <ul>
 <li><p>With a sensing time interval :</p></li>
 </ul>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission=&#39;S3OLCI&#39;,unit=&#39;A&#39;,product_type=&#39;L1EFR&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission='S3OLCI',unit='A',product_type='L1EFR')</a></p>
+href="https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission=&#39;S3OLCI&#39;,unit=&#39;A&#39;,product_type=&#39;L1EFR&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission='S3OLCI',unit='A',product_type='L1EFR')</a></p>
 <p><strong>Example of the request response:</strong></p>
 <h1 id="limitations">Limitations</h1>
 <p>For all services, a GET request should not exceed 2000 characters and

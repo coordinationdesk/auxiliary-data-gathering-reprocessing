@@ -235,7 +235,7 @@ developers</h2>
 sending requests, a client should first request for the access token
 using its credentials (username and password) from the following
 Reprocessing token endpoint:</p>
-<p><em>https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprobase/protocol/openid-connect/token</em></p>
+<p><em>https://auxiliary.copernicus.eu/auth/realms/reprobase/protocol/openid-connect/token</em></p>
 <p>Example of getting the access token using curl tool:</p>
 <p><em>USER=username</em></p>
 <p><em>PASSWORD=password</em></p>
@@ -245,7 +245,7 @@ Reprocessing token endpoint:</p>
 <p><em>-d "password="$PASSWORD \</em></p>
 <p><em>-d 'grant_type=password' \</em></p>
 <p><em>-d "client_id=reprobase" \</em></p>
-<p><em>https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token
+<p><em>https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token
 \</em></p>
 <p><em>|jq . )</em></p>
 <p><em>TOKEN=$(echo $RAWTKN | jq -r '.access_token')</em></p>

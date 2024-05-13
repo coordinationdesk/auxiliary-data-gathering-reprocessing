@@ -201,7 +201,7 @@ services</td>
 <p>As a part of the Reprocessing Reference Preparation Package, AUXIP
 API can be accessed via the following URL:</p>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/auxip.svc"><strong>https://reprocessing-auxiliary.copernicus.eu/auxip.svc</strong></a></p>
+href="https://auxiliary.copernicus.eu/auxip.svc"><strong>https://auxiliary.copernicus.eu/auxip.svc</strong></a></p>
 <h2 id="user-registration"> User Registration </h2>
 <p>New users of AUXIP API should be registered first in order to be able
 to use the API and request for the accessToken. In a browser, the user
@@ -229,7 +229,7 @@ style="width:3.40299in;height:3.74335in" /></th>
 <p>To get the AUXIP API token for a client, an HTTP POST request should
 be sent to the following Token resource:</p>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"><strong>https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token</strong></a></p>
+href="https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"><strong>https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token</strong></a></p>
 <p>In the post body, username and password are specified in JSON format,
 and the response body contains a token key with an actual API Token as
 the value. The token should be used in an HTTP Authorization header
@@ -277,7 +277,7 @@ Developers </h3>
 <p>-d "password="$PASSWORD \</p>
 <p>-d 'grant_type=password' \</p>
 <p>-d "client_id=reprocessing-preparation" \</p>
-<p>https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token
+<p>https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token
 \</p>
 <p>|jq . )</p>
 <p>TOKEN=$(echo $RAWTKN | jq -r '.access_token')</p>
@@ -290,8 +290,8 @@ Developers </h3>
 <p>headers = {'Content-Type': 'application/x-www-form-urlencoded'}</p>
 <p>data={"username":user, "password":password,"client_id":"
 reprocessing-preparation","grant_type":"password"}</p>
-<p>token_endpoint="https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
-<p>token_endpoint="https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
+<p>token_endpoint="https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
+<p>token_endpoint="https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"</p>
 <p>response =
 requests.post(token_endpoint,data=data,headers=headers)</p>
 <p>return response.json()</p>
@@ -314,7 +314,7 @@ properties.</p>
 clients.</p>
 <p>Roles and Users can be managed via the AUXIP administration interface
 in <a
-href="https://reprocessing-auxiliary.copernicus.eu/auth">https://reprocessing-auxiliary.copernicus.eu/auth</a></p>
+href="https://auxiliary.copernicus.eu/auth">https://auxiliary.copernicus.eu/auth</a></p>
 <h2 id="quotas"> Quotas</h2>
 <p>AUXIP requests are limited by a quota mechanism applicable to all
 clients with the ‘Download’ role; this mechanism is configured as
@@ -847,7 +847,7 @@ necessary fields, see §2. Client Administration.</p>
 the user. By default, the role is “Download”; if the user needs to
 access metrics, its role should be modified in the admin page:</p>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/auth"><em>https://reprocessing-auxiliary.copernicus.eu/au</em>th</a></p>
+href="https://auxiliary.copernicus.eu/auth"><em>https://auxiliary.copernicus.eu/au</em>th</a></p>
 <h1 id="appendix-a-odata-metadata">Appendix A : ODATA metadata</h1>
 <table>
 <colgroup>

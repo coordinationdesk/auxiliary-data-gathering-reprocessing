@@ -283,7 +283,7 @@ style="width:1.75373in;height:1.19924in" /></p>
 <td>Yes</td>
 <td>The AUXIP retrieval link of the applicable auxiliary data
 product.</td>
-<td>https://reprocessing-auxiliary.copernicus.eu/auxip.svc/Products
+<td>https://auxiliary.copernicus.eu/auxip.svc/Products
 (88902515-05b0-401b-9a32-1a0eb408ddd1)/$value</td>
 </tr>
 </tbody>
@@ -303,14 +303,14 @@ function is overloaded and can be called as follows:</p>
 unit + product_type :</p></li>
 </ul>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;L0_ProductName_1,%20L0_ProductName_2,L0_ProductName_3&#39;,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='L0_ProductName_1,
+href="https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;L0_ProductName_1,%20L0_ProductName_2,L0_ProductName_3&#39;,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='L0_ProductName_1,
 L0_ProductName_2,L0_ProductName_3',mission='mission',unit='unit',product_type='product_Type')</a></p>
 <ul>
 <li><p>With sensing time interval (start and stop) + mission + unit +
 product_type :</p></li>
 </ul>
 <p><a
-href="https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=&#39;sensing_start_datetime&#39;,stop=&#39;sensing_stop_datetime&#39;,%20,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start='sensing_start_datetime',stop='sensing_stop_datetime',
+href="https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=&#39;sensing_start_datetime&#39;,stop=&#39;sensing_stop_datetime&#39;,%20,mission=&#39;mission&#39;,unit=&#39;unit&#39;,product_type=&#39;product_Type&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start='sensing_start_datetime',stop='sensing_stop_datetime',
 ,mission='mission',unit='unit',product_type='product_Type')</a></p>
 <table>
 <colgroup>
@@ -377,17 +377,17 @@ the applicable auxiliary data files needed for the reprocessing of
 product type 'L1SLC' of the mission S1SAR for the satellite unit A can
 be retrieved as follows:</p>
 <p><a
-href="https://dev.reprocessing-preparation.ml/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
+href="https://dev.reprocessing-preparation.ml/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
 <h3 id="query-with-a-list-of-level-0-product-names">Query with a list of
 level 0 product names</h3>
 <p>The same query as before but for two different level 0 products:</p>
 <p><a
-href="https://dev.reprocessing-preparation.ml/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
+href="https://dev.reprocessing-preparation.ml/rdb.svc/getReprocessingDataBaseline(l0_names=&#39;S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip&#39;,mission=&#39;S1SAR&#39;,unit=&#39;A&#39;,product_type=&#39;L1SLC&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip,S1A_IW_RAW__0SDV_20201124T101416_20201124T101448_035389_04229A_9816.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')</a></p>
 <h3 id="query-with-sensing-period">Query with sensing period</h3>
 <p>Instead of giving the names of the level 0 products, you can do a
 query based on an acquisition period:</p>
 <p><a
-href="https://dev.reprocessing-preparation.ml/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission=&#39;S3OLCI&#39;,unit=&#39;A&#39;,product_type=&#39;L1EFR&#39;)">https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission='S3OLCI',unit='A',product_type='L1EFR')</a></p>
+href="https://dev.reprocessing-preparation.ml/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission=&#39;S3OLCI&#39;,unit=&#39;A&#39;,product_type=&#39;L1EFR&#39;)">https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=2019-10-06T18:00:00Z,stop=2020-11-06T19:00:00Z,mission='S3OLCI',unit='A',product_type='L1EFR')</a></p>
 <h3 id="example-of-query-response">Example of query response</h3>
 <h2 id="query-reprocessing-data-baseline-response">Query Reprocessing
 Data Baseline Response</h2>
