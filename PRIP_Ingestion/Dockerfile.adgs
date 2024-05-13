@@ -1,0 +1,46 @@
+ARG DEBIAN_FRONTEND noninteractive
+FROM ubuntu:20.04
+
+MAINTAINER CS SI
+
+ENV TZ=UTC
+
+#    && RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get update \
+    && apt-get install -y  tzdata unzip \
+    && apt-get install -y  --no-install-recommends apt-utils rclone cron ca-certificates lsb-core wget gnupg2 \
+    && apt-get install -y  --no-install-recommends python3-requests python3-lxml python3-pip \
+    && apt-get clean
+
+    
+ADD ingest_s1files.py /
+ADD ingest_s2files.py /
+ADD ingest_s3files.py /
+ADD S1_ADGS_filetypes /
+ADD S2_ADGS_filetypes /
+ADD S3_ADGS_filetypes /
+ADD ingestion /ingestion
+ADD ADGS_Ingestion.py /
+ADD ADGS_Retrieval.py /
+ADD odata_request.py /
+ADD FileUtils.py /
+ADD mission_aux_types.py /
+ADD PRIP_S2.py /
+ADD InitFuncs.sh /
+ADD ADGS_Ingestion.sh /
+ADD IngestDownloaded_funcs.sh /
+ADD template.json /
+ADD mc /
+
+RUN chmod a+x /ADGS_Ingestion.sh
+RUN chmod a+x /mc
+ADD adgs-cron /etc/cron.d/
+ADD setenv.sh /setenv.sh
+RUN chmod a+x /setenv.sh \
+    && chmod a+x /etc/cron.d/adgs-cron \
+    && crontab /etc/cron.d/adgs-cron
+
+CMD ["/setenv.sh"]

@@ -3,7 +3,7 @@ title: 'Reprocessing reference package preparation'
 collections_dir: collections
 destination: /home/static
 description: Copernicus page to navigate through web reprocessing configuration/data baseline
-url: https://www.copernicus.eu/en
+url: https://auxiliary.copernicus.eu
 author: CS Group
 logo: images/logo-cs.png
 lang : en_UK
