@@ -4,7 +4,7 @@ order: 2
 prerequires: [ ["Having a authentification token","tutorials.html#1"], ["Having POSTMAN installed","https://learning.postman.com/docs/getting-started/installation-and-updates/"], ["Knowing POSTMAN","https://learning.postman.com/docs/getting-started/introduction/"] ]
 ---
 #### Endpoint
-The endpoint url for this service is [https://reprocessing-auxiliary.copernicus.eu/processing.svc](https://reprocessing-auxiliary.copernicus.eu/processing.svc)
+The endpoint url for this service is [https://auxiliary.copernicus.eu/processing.svc](https://auxiliary.copernicus.eu/processing.svc)
 
 #### Function
 We will use in this sample the function GetReproBaselineListForSensing :
@@ -13,7 +13,7 @@ We will use in this sample the function GetReproBaselineListForSensing :
 
     Query the list of aux file for these particular parameters.
 
-    Sample : `https://reprocessing-auxiliary.copernicus.eu/processing.svc/GetReproBaselineListForSensing(Mission='S2MSI',Unit='A',SensingTime='2018-05-02T12:00:30Z',ProductType='L1B')`
+    Sample : `https://auxiliary.copernicus.eu/processing.svc/GetReproBaselineListForSensing(Mission='S2MSI',Unit='A',SensingTime='2018-05-02T12:00:30Z',ProductType='L1B')`
 
 #### Steps
 First, into the authentication tab, select a Bearer Token and fill it with your token :

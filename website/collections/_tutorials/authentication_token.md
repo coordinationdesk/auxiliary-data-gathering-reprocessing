@@ -1,11 +1,11 @@
 ---
 title: 'How to get authentication token to use with API'
 order: 1
-prerequires: [ ["Having an account","https://reprocessing-auxiliary.copernicus.eu/rdb.svc"], ["Having POSTMAN installed","https://learning.postman.com/docs/getting-started/installation-and-updates/"], ["Knowing POSTMAN","https://learning.postman.com/docs/getting-started/introduction/"] ]
+prerequires: [ ["Having an account","https://auxiliary.copernicus.eu/rdb.svc"], ["Having POSTMAN installed","https://learning.postman.com/docs/getting-started/installation-and-updates/"], ["Knowing POSTMAN","https://learning.postman.com/docs/getting-started/introduction/"] ]
 ---
 #### Access Token
 
-To get the AUXIP API token for a client, an HTTP POST request should be sent to the following Token resource: [https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token](https://reprocessing-auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token)
+To get the AUXIP API token for a client, an HTTP POST request should be sent to the following Token resource: [https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token](https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token)
 
 In the post body, username and password are specified in JSON format, and the response body contains a token key with an actual API Token as the value. The token should be used in an HTTP Authorization header while communicating with the AUXIP service.
 

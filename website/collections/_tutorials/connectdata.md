@@ -5,7 +5,7 @@ prerequires: [ ["Having a authentification token","tutorials.html#1"], ["Having 
 ---
 #### Endpoint
 
-The endpoint url for this service is [https://reprocessing-auxiliary.copernicus.eu/rdb.svc](https://reprocessing-auxiliary.copernicus.eu/rdb.svc)
+The endpoint url for this service is [https://auxiliary.copernicus.eu/rdb.svc](https://auxiliary.copernicus.eu/rdb.svc)
 
 #### Function
 We will use in this sample the function getReprocessingDataBaseline :
@@ -14,7 +14,7 @@ We will use in this sample the function getReprocessingDataBaseline :
 
     Query only one level 0 product name.
     
-    Sample : `https://reprocessing-auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')`
+    Sample : `https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28.SAFE.zip',mission='S1SAR',unit='A',product_type='L1SLC')`
 
 #### Steps
 First, into the authentication tab, select a Bearer Token and fill it with your token :
