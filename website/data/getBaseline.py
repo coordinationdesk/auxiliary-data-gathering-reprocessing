@@ -9,10 +9,11 @@ import datetime
 import time
 import requests
 
+ADG_DOMAIN="auxiliary.copernicus.eu"
 def get_token_info(user,password):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {"username":user, "password":password,"client_id":"preparation","grant_type":"password"}
-    token_endpoint = "https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
+    token_endpoint = f"https://{ADG_DOMAIN}/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
 
     # print(token_endpoint)
     response = requests.post(token_endpoint,data=data,headers=headers)
@@ -27,7 +28,7 @@ def refresh_token_info(token_info,timer):
     else:
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         data = {"refresh_token":token_info['refresh_token'],"client_id":"preparation","grant_type":"refresh_token"}
-        token_endpoint = "https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token" 
+        token_endpoint = f"https://{ADG_DOMAIN}/auth/realms/reprocessing-preparation/protocol/openid-connect/token" 
         response = requests.post(token_endpoint,data=data,headers=headers)
         return response.json() 
 
@@ -35,7 +36,7 @@ def refresh_token_info(token_info,timer):
 def auxip_download(aux_name,access_token,output_folder,contains="*",exclude="none",download=False):
     try:
         headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % access_token }
-        auxip_endpoint = "https://auxiliary.copernicus.eu/auxip.svc/Products?$filter=contains(Name,'%s')" % aux_name
+        auxip_endpoint = f"https://{ADG_DOMAIN}/auxip.svc/Products?$filter=contains(Name,'%s')" % aux_name
 
         response = None
         if contains != "*":
@@ -59,7 +60,7 @@ def auxip_download(aux_name,access_token,output_folder,contains="*",exclude="non
                         print( "\nDownloading %s : %s" % (aux_name,slength) )
                         with open(output_folder +"/"+aux_name,"wb") as fid:
                             start = time.time()
-                            product_response = requests.get("https://auxiliary.copernicus.eu/auxip.svc/Products(%s)/$value" % ID ,headers=headers,stream=True)
+                            product_response = requests.get(f"https://{ADG_DOMAIN}/auxip.svc/Products(%s)/$value" % ID ,headers=headers,stream=True)
                             total_length = int(product_response.headers.get('content-length'))
                             if total_length is None: # no content length header
                                 fid.write(product_response.content)
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 
         # print( mission,unit,start,stop)
         headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % access_token }
-        reprobase_endpoint = "https://auxiliary.copernicus.eu/reprocessing.svc/GetReproBaselineNamesForPeriod(Mission='%s',Unit='%s',SensingTimeStart='%s',SensingTimeStop='%s')" % (mission,unit,start,stop)
+        reprobase_endpoint = f"https://{ADG_DOMAIN}/reprocessing.svc/GetReproBaselineNamesForPeriod(Mission='%s',Unit='%s',SensingTimeStart='%s',SensingTimeStop='%s')" % (mission,unit,start,stop)
         response = requests.get(reprobase_endpoint,headers=headers)
 
         if response.status_code == 200:

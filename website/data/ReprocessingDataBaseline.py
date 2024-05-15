@@ -15,10 +15,11 @@ import glob
 import csv
 
 
+ADG_DOMAIN="auxiliary.copernicus.eu"
 def get_token_info(user,password):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {"username":user, "password":password,"client_id":"preparation","grant_type":"password"}
-    token_endpoint = "https://auxiliary.copernicus.eu/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
+    token_endpoint = f"https://{ADG_DOMAIN}/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
 
     # print(token_endpoint)
     response = requests.post(token_endpoint,data=data,headers=headers)
@@ -30,9 +31,9 @@ def rdb_service(user,password,mission,unit,product_type,l0_names="",start="",sto
     reprobase_access_token = token_info['access_token']
 
     if l0_names:
-        request = "https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(l0_names='%s',mission='%s',unit='%s',product_type='%s')" % (l0_names,mission,unit,product_type)
+        request = f"https://{ADG_DOMAIN}/rdb.svc/getReprocessingDataBaseline(l0_names='%s',mission='%s',unit='%s',product_type='%s')" % (l0_names,mission,unit,product_type)
     else:
-        request = "https://auxiliary.copernicus.eu/rdb.svc/getReprocessingDataBaseline(start=%s,stop=%s,mission='%s',unit='%s',product_type='%s')" % (start,stop,mission,unit,product_type)
+        request = f"https://{ADG_DOMAIN}/rdb.svc/getReprocessingDataBaseline(start=%s,stop=%s,mission='%s',unit='%s',product_type='%s')" % (start,stop,mission,unit,product_type)
 
     headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % reprobase_access_token }
     response = requests.get(request,headers=headers)

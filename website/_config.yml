@@ -4,7 +4,7 @@ collections_dir: collections
 destination: /home/static
 description: Copernicus page to navigate through web reprocessing configuration/data baseline
 url: https://auxiliary.copernicus.eu
-author: CS Group
+author: CS Group / Telespazio
 logo: images/logo-cs.png
 lang : en_UK
 encoding: utf-8
@@ -44,6 +44,13 @@ sass:
   style: compact # possible values: nested expanded compact compressed
 
 google_analytics_id: null
+
+exclude:
+  - docker-compose.yml
+  - docker_build_compose.yml
+  - Dockerfile
+  - build_site.sh
+  - docker_build_site.bash
 
 plugins:
   - jekyll-environment-variables
