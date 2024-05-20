@@ -57,6 +57,7 @@ if __name__ == "__main__":
                                             args.url,
                                             args.key, args.user)
 
+    # TODO: Check if any files were downloaded in workingDir ; if not, skip fllowing steps
     output_dir = args.output
     # outputDir = os.path.join(workingDir, "Output_CAMSRE")
     # os.makedirs(outputDir, exist_ok=True)
@@ -75,6 +76,7 @@ if __name__ == "__main__":
     fixed_header_hdr_cams = root_hdr_cams.find("Fixed_Header",
                                                namespaces=hdr_namespace_table)
 
+    # CUt original Grib file based on Measure/Timestamp
     for file in os.listdir(workingDir):
         # Iterate over all files of the current directory
 
@@ -119,6 +121,7 @@ if __name__ == "__main__":
         #
         # Taking into account the timestamps that are wanted int the final DBL file
         #
+        # Rename file to files for Measure/Timestamp to be put into DBL
         for time_offset in timestampsToAddToDBL:
             # Adding the timestamp to the current date of grib to generate a new date
             # whose associated grib will be searched among the initially extracted grib files
@@ -127,19 +130,19 @@ if __name__ == "__main__":
             curr_date_str = cur_date_pyt.strftime("%Y%m%d")
             curr_hour_str = cur_date_pyt.strftime("%H")
             file_to_search = f"z_cams_c_ecmf_{curr_date_str}_prod_an_sfc_{curr_hour_str}*.grib"
-            req_cams_grib_file = glob.glob(os.path.join(initialGribExtractionDir, file_to_search))
-            if len(req_cams_grib_file) != num_measures:
+            req_cams_grib_files = glob.glob(os.path.join(initialGribExtractionDir, file_to_search))
+            if len(req_cams_grib_files) != num_measures:
                 # The grib file has not been found
                 print("Error on getting the requested cams file for date " + file_to_search)
-                print(req_cams_grib_file)
+                print(req_cams_grib_files)
                 sys.exit(1)
 
             # The file has been found
-            for c in req_cams_grib_file:
+            for cams_file in req_cams_grib_files:
                 # Generate the new grib file name to create the GRIB output files
-                grib_output_filename = f"z_cams_c_ecmf_{work_date_str}_prod_an_sfc_{time_offset:03d}"+c[str(c).rfind("_"):]
+                grib_output_filename = f"z_cams_c_ecmf_{work_date_str}_prod_an_sfc_{time_offset:03d}"+c[str(cams_file).rfind("_"):]
                 # Agglomerate both files
-                shutil.copyfile(c,os.path.join(CAMS_working_dir,grib_output_filename))
+                shutil.copyfile(cams_file,os.path.join(CAMS_working_dir,grib_output_filename))
                 # Add the file to the grib files that need to be part of the final DBL archive
                 files_to_tar.append(grib_output_filename)
 
@@ -154,6 +157,8 @@ if __name__ == "__main__":
         work_date_str = work_date_pyt.strftime("%Y%m%dT%H%M%S")
         base_filename = f"S2__OPER_AUX_CAMSRE_ADG__{work_date_str}_V{validity_start_time_str}_{validity_stop_time_str}"
         print(base_filename)
+
+        # Create HDR
         # File length was originally 36 hours, but it is in contrast with filename validity stop
         # we pass already set start/stop validity, as date/time
         # to be formatted with xml time format

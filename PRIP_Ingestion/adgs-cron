@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+BASH_ENV=/container.env
+MAILTO=""
+10 15 * * * /ADGS_Ingestion.sh /adgs > /proc/1/fd/1 2>/proc/1/fd/2
