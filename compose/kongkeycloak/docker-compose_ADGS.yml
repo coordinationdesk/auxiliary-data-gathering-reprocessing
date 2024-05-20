@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+
+
+
+  #######################################
+  # ADGS Ingestion
+ #######################################
+  adgs_ingestion:
+    extends: 
+      file: docker-compose.yml
+      service: prip_ingestion_s2
+    container_name: adgs_ingestion
+    image: adgs_ingestion:1.0.0
+    restart: no
+    environment:
+      ADGS_USER: ${ADGS_USER}
+      ADGS_PASS: ${ADGS_PASS}
+      ADGS_ENDPOINT: ${ADGS_ENDPOINT}
+      ADGS_SECRET: ${ADGS_SECRET}
+    volumes:
+      - /adg_data/grib2/adgs_ingestion:/adgs
+
+
+
