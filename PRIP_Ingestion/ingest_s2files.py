@@ -7,18 +7,22 @@ import json
 import os
 import re
 import uuid
+import sys
 
-from FileUtils import parse_all_as_dict
+from S2_FileNaming import parse_all_as_dict
 
 DEBUG=True
 
-def md5(fname):
-    hash_md5 = hashlib.md5()
-    with open(fname, "rb") as f:
-        for chunk in iter(lambda: f.read(524288), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
 
+def build_filetype_table(type_dir):
+    filetype_dict = []
+    for (dirpath, dirnames, filenames) in os.walk(type_dir):
+        for filename in filenames:
+            if os.path.splitext(filename)[1] == ".json":
+                with open(os.path.join(type_dir, filename)) as f:
+                    filetype = json.load(f)
+                    filetype_dict.append((filetype["LongName"], filetype["Mission"], filetype["ProductLevels@odata.bind"]))
+    return filetype_dict
 
 def main():
     parser = argparse.ArgumentParser(description="",  # main description for help
@@ -57,13 +61,8 @@ def main():
     #         with open(os.path.join(args.bands,filename)) as f:
     #             band = json.load(f)
     #             band_dict[band["Name"]] = band["Id"]
-    filetype_dict = []
-    for (dirpath, dirnames, filenames) in os.walk(args.filetypes):
-        for filename in filenames:
-            if os.path.splitext(filename)[1] == ".json":
-                with open(os.path.join(args.filetypes, filename)) as f:
-                    filetype = json.load(f)
-                    filetype_dict.append((filetype["LongName"], filetype["Mission"], filetype["ProductLevels@odata.bind"]))
+    filetype_dict = build_filetype_table(args.filetypes)
+
     print("FileType dict:")
     print(filetype_dict)
     if len(filetype_dict) == 0:
@@ -72,25 +71,36 @@ def main():
     odata_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
     list_of_files = {}
-    idx = 1
+    # File containing the list of Aux files to be ingested
     file1 = open(args.input, 'r')
     lines = file1.readlines()
-    for filenames in lines:
-        filename = os.path.basename(filenames)
+    total_lines = len(lines)
+
+    # FROM HERE put in a separate function!
+    idx = 1
+    # Use enumerate instead of idx!!
+    # for file_idx, auxfile_path in enumerate(lines, start=1):
+    for auxfile_path in lines:
+        filename = os.path.basename(auxfile_path)
         if DEBUG:
-            print("Treating "+filename+ " : " +str(idx)+ " / " + str(len(lines)))
+            print("Treating ",filename, " : " ,str(idx), " / " , total_lines)
         template = None
         update = False
-        if os.path.exists(os.path.join(args.output, os.path.splitext(filename)[0] + ".json")):
-            with open(os.path.join(args.output, os.path.splitext(filename)[0] + ".json")) as f:
+        # TBC Build Reprobase Json File filename
+        # TBC: If the file occurs again, add to existing out JSON one
+        auxfile_out_json_path = os.path.join(args.output, os.path.splitext(filename)[0] + ".json")
+        print("Loading/Creating JSON file: ", auxfile_out_json_path)
+        if os.path.exists(auxfile_out_json_path):
+            with open(auxfile_out_json_path) as f:
                 try:
                     template = json.load(f)
                 except Exception as e:
                     raise Exception(
-                        "Could not open : " + os.path.join(args.output, os.path.splitext(filename)[0] + ".json"))
+                        "Could not open : " + auxtype_path)
             update = True
         else:
             template = copy.copy(template_base)
+        # Extract metadta from filename
         s2dict =parse_all_as_dict(filename)
         template["@odata.context"] = "$metadata#AuxFiles"
         if not update:
@@ -109,6 +119,8 @@ def main():
                 product_levels = "ProductLevels('L1')"
             else:
                 print(s2dict['File_Semantic'])
+                # TOOD: Better: build a dict with key type[0] and lookup
+                #  for the type specified by File_Semantic
                 for type in filetype_dict:
                     if s2dict['File_Semantic'] in type[0]:
                         print(type[0])
@@ -174,3 +186,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    sys.exit(0)
