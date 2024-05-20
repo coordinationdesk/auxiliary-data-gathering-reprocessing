@@ -8,7 +8,8 @@ function ingest_downloaded_files() {
   echo "Ingesting downloaded files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER, Folder for JSONS: $JSONS_FOLDER"
   master_code=$code
   if [ $code -eq 0 ]; then
-    echo "PRIP download done"
+    echo "PRIP download completed succesfully"
+    ls $DWL_TEMP_FOLDER/${MISSION}
 
     echo "Starting AUXIP ingestion $MISSION"
     #python3 -u ${CUR_DIR}/ingestion/ingestion.py -f -i ${DWL_TEMP_FOLDER} -u ${AUXIP_USER} -pw ${AUXIP_PASS} -mc ${MCPATH} -b "wasabi-auxip-archives/"${S3_BUCKET} -o ${LISTING_FOLDER}/file_list_${MISSION}.txt -m ${MODE}

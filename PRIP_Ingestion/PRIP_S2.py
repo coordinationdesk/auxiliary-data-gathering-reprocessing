@@ -2,6 +2,13 @@ import requests
 from requests.auth import HTTPBasicAuth
 import time,sys,os
 from ingestion.lib.auxip import get_latest_of_type,are_file_availables,get_token_info,are_file_availables_w_checksum
+from odata_request import build_paginated_request
+
+# MAXIMUM RESULTS to retrieve 
+# in a single session
+# defined to limit the number of files downloaded 
+# within a single session
+MAX_SESSION_RESULTS = 350
 
 # TODO: Define class to hold AUXIP, LTA credentials, lta_base_url
 #  type_list, satellite, mode
@@ -14,14 +21,8 @@ def get_latest_pub_date(auxip_user, auxip_password, type_list, sat, mode):
                               aux_type_list=type_list,
                               sat=sat,mode=mode)
 
-def _add_odata_top(odata_request, top_num_result):
-    return odata_request + "&$top="+str(top_num_result)
-
-def _add_odata_skip(odata_request, skip_results):
-    return odata_request + "&$skip="+str(skip_results)
-
 def _build_lta_simple_base_request(base_url):
-    lta_request = base_url + "Products?orderby=PublicationDate asc"
+    lta_request = base_url + "Products?$orderby=PublicationDate asc"
     return lta_request
 
 def _build_lta_names_base_request(base_url,
@@ -38,11 +39,12 @@ def _build_lta_names_base_request(base_url,
 
 def _build_lta_base_request(base_url,
                            type_list, sat,
-                           from_date, to_date):
+                           from_date, to_date,
+                           date_parameter='PublicationDate'):
     lta_request = _build_lta_simple_base_request(base_url) + \
-                "&$filter=PublicationDate gt " + from_date
+                "&$filter="+ date_parameter + " gt " + from_date
     if to_date and len(to_date):
-        lta_request = lta_request + " and PublicationDate lt " + to_date
+        lta_request = lta_request + " and " + date_parameter + " lt " + to_date
     lta_request = lta_request + " and "
     if len(type_list) > 1:
         lta_request += "("
@@ -54,12 +56,6 @@ def _build_lta_base_request(base_url,
     lta_request += " and startswith(Name,'"+sat+"')"
     return lta_request
     
-def _build_paginated_request(lta_request, start, step):
-    stop = start + step
-    request_top = _add_odata_top(lta_request, step)
-    request_top = _add_odata_skip(request_top, start)
-    return request_top
-
 def _get_lta_aux_files(response):
     aux_files = []
     resp_json = response.json()
@@ -78,46 +74,59 @@ def _get_lta_file_results(user, password, lta_request, max_results, req_timeout=
     file_list = []
     headers = {'Content-type': 'application/json'}
     step=min(200, max_results)
+    max_retry = 3
+    auth_data = HTTPBasicAuth(user, password)
     for i in range(0, max_results, step):
-        request_top = _build_paginated_request(lta_request, i, step)
-        print("LTA Request : ", request_top)
-        try:
-            response = requests.get(request_top, auth=HTTPBasicAuth(user, password),
-                                    headers=headers,
-                                    timeout=req_timeout,
-                                    verify=False)
-        except requests.Timeout as to_exc:
-            print("Request from ", i, " failed after timeout (", req_timeout,"): ", str(to_exc))
-            response = None
-            time.sleep(next_trial_time)
+        request_top = build_paginated_request(lta_request, i, step)
+        print("[BEGIN] LTA Request : ", request_top)
+        ntrials = 0
+        while ntrials < max_retry:
+            if ntrials > 0:
+                time.sleep(ntrials * next_trial_time)
+            try:
+                response = requests.get(request_top, auth=auth_data,
+                                        headers=headers,
+                                        timeout=req_timeout,
+                                        verify=False)
+                break
+            except requests.Timeout as to_exc:
+                print("Request from ", i, " failed after timeout (", req_timeout,"): ", str(to_exc))
+                response = None
+                # Make another try, until max_retry reached
+                ntrials += 1
+                print("Waiting for next retry ", ntrials * next_trial_time, " secs")
+            if ntrials == max_retry:
+                print("[END] Failed LTA Request after ", ntrials, " retries")
         if response is not None:
             if response.status_code == 200:
                 resp_json = response.json()
                 print("Number of element found with curr request: ", len(resp_json["value"]))
-                if len(resp_json["value"]) == 0:
-                    break
+                 # if len(resp_json["value"]) == 0:
+                 #   break
                 #print(resp_json["value"][0])
                 for aux_file in resp_json["value"]:
-                    # print(aux_file)
+                    print(aux_file)
                     ID = aux_file["Id"]
                     file_size = aux_file["ContentLength"]
                     cksum_info = aux_file["Checksum"][0]
                     file_cksum = cksum_info["Value"]
                     cksum_alg = cksum_info["Algorithm"]
-                    file_list.append((ID, aux_file["Name"], file_size, file_cksum, cksum_alg))
+                    cksum_date = cksum_info["ChecksumDate"]
+                    file_list.append((ID, aux_file["Name"], file_cksum, cksum_alg, cksum_date, file_size))
                 if len(resp_json["value"]) < step:
                     break
             else:
-                raise Exception("Error on request code : "+str(response.status_code))
+                raise Exception(f"Error on request - code : {response.status_code}, text: {response.text}")
     return file_list
 
 def get_lta_files_from_names(user, password, lta_base_url,
                   names_list,
-                  max_results=100000):
+                  batch_size,
+                  max_results=MAX_SESSION_RESULTS):
     print("Querying LTA (", lta_base_url, "), for Names ")
     retrieved_results = []
     # NUmber of names to be included in each single request
-    req_num_names = 4
+    req_num_names = batch_size
     # Retrieve List of files from LTA
     # get results on small subsets of names list
     for i in range(0, len(names_list), req_num_names): 
@@ -132,34 +141,12 @@ def get_lta_files_from_names(user, password, lta_base_url,
 def get_lta_files(user, password, lta_base_url,
                   type_list, sat,
                   from_date, to_date="",
-                  max_results=100000):
+                  date_parameter='PublicationDate',
+                  max_results=MAX_SESSION_RESULTS):
     print("Querying LTA (", lta_base_url, "), for Sat ", sat, ", from date ", from_date)
     # Retrieve List of files from LTA
-    file_list = []
-    headers = {'Content-type': 'application/json'}
     lta_request = _build_lta_base_request(lta_base_url, type_list, sat, from_date, to_date)
-    step=min(200, max_results)
-    # return _get_lta_file_results(user, password, lta_request, max_results, step)
-    for i in range(0, max_results, step):
-        request_top = _build_paginated_request(lta_request, i, step)
-        print("LTA Request : ", request_top)
-        response = requests.get(request_top, auth=HTTPBasicAuth(user, password),
-                                headers=headers,
-                                verify=False)
-        if response is not None:
-            if response.status_code == 200:
-                resp_json = response.json()
-                print("Number of element found with curr request: ", len(resp_json["value"]))
-                if len(resp_json["value"]) == 0:
-                    break
-                #print(resp_json["value"][0])
-                for aux_file in resp_json["value"]:
-                    ID = aux_file["Id"]
-                    file_size = aux_file["ContentLength"]
-                    file_list.append((ID, aux_file["Name"], file_size))
-            else:
-                raise Exception("Error on request code : "+str(response.status_code))
-    return file_list
+    return _get_lta_file_results(user, password, lta_request, max_results)
 
 def prip_list_from_names(user, password, auxip_user, auxip_password,
                          lta_base_url,aux_names, mode="prod"):
@@ -168,13 +155,14 @@ def prip_list_from_names(user, password, auxip_user, auxip_password,
                               aux_names)
     # lta_files is a list of pairs: first item is ID, secondi item is filename, third is size,
     # fourth is checksum, fifth is checksum algorithm
-    filename_checksum_list = [(f_rec[1],f_rec[3],f_rec[4]) for f_rec in lta_files]
+    filename_checksum_list = [(f_rec[1],f_rec[2],f_rec[3],f_rec[4]) for f_rec in lta_files]
     # Get list of files that are present in AUZIP, with same checksum
-    availables = are_file_availables_w_checksum(auxip_user, auxip_password,
+    availables, cksum_changed = are_file_availables_w_checksum(auxip_user, auxip_password,
                                      filename_checksum_list,
                                      step=10, mode=mode)
-    print("Of ", len(aux_names), " requested Aux Names, ", len(availables), " Files are already present in AUXIP")
-    #print("Files already present in AUXIP: ", availables)
+    print("Of ", len(aux_names), " requested Aux Names, ",
+          len(availables), " Files are already present in AUXIP",
+          len(cksum_changed), " Files have different Cksum")
     auxip_missing_files = [f for f in lta_files if f[1] not in availables]
     return  auxip_missing_files
 
@@ -214,42 +202,94 @@ def prip_list(user, password, auxip_user, auxip_password,
     return auxip_missing_files
 
 
-def prip_download(id, name,user, password,base_url,output_folder):
+def prip_sensing_list(user, password, auxip_user, auxip_password,
+              lta_base_url, type_list,
+              sat, mode="prod", from_date=None, to_date=None):
+    file_list = []
+    if len(type_list) == 0:
+        return file_list
+    print("Querying LTA for types ", type_list, ", Sat: ", sat,
+          ", From date: ", from_date, ", to ", to_date)
+    latest_pub_date = from_date
+    if latest_pub_date is None:
+        # TODO: get TOken and use for are_file_available
+        latest_pub_date = get_latest_pub_date(auxip_user, auxip_password,
+                                              type_list,
+                                              sat, mode)
+        to_date = None
+        if latest_pub_date is None:
+            print("No file available in auxip for types : ", type_list)
+            return file_list
+        print("Publication date to query on LTA retrieved from AUXIP: ", latest_pub_date)
+    lta_files = get_lta_files(user, password, lta_base_url,
+                              type_list,
+                              sat, latest_pub_date, to_date,
+                              date_parameter='ContentDate/Start')
+    # lta_files is a list of pairs: first item is ID, secondi item is filename
+    filename_list = [f_rec[1] for f_rec in lta_files]
+    # Get list of files that are present in AUZIP
+    availables = are_file_availables(auxip_user, auxip_password, filename_list,
+                                     step=10, mode=mode)
+    #print("Files already present in AUXIP: ", availables)
+    auxip_missing_files = [f for f in lta_files if f[1] not in availables]
+    return auxip_missing_files
+def prip_download(id, name,user, password,base_url,output_folder, req_timeout=30):
+    next_trial_time = 60 # seconds
     try:
         headers = {'Content-type': 'application/json'}
-        # get ID and size of the product
+        # Get output file path
         id_folder = output_folder
         os.makedirs(id_folder,exist_ok=True)
         file_path = os.path.join(id_folder, name)
         if os.path.exists(file_path) and os.path.getsize(file_path) != 0:
             print("\nFile already exists and is not empty %s " % (name))
             return
-        print("\nDownloading %s " % (name))
-        with open(file_path,"wb") as fid:
-            start = time.perf_counter()
-            product_response = requests.get(base_url+"Products(%s)/$value" % id,
-                                            auth=HTTPBasicAuth(user, password),
-                                            headers=headers,
-                                            stream=True, verify=False)
-            if product_response.status_code == 404:
-                raise Exception("Not found on the server : "+base_url+"/Products(%s)/$value" % id)
-            total_length = int(product_response.headers.get('content-length'))
-            if not total_length: # no content length header
-                 fid.write(product_response.content)
-            else:
-                print("Starting download")
-                downloaded_bytes = 0
-                for data in product_response.iter_content(chunk_size=4096):
-                    downloaded_bytes += len(data)
-                    # print("...Downloaded ", downloaded_bytes,"/", total_length," bytes")
-                    fid.write(data)
-                    done = int(50 * downloaded_bytes / total_length)
-                    #sys.stdout.write("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), downloaded_bytes//(time.perf_counter() - start)))
-                    #sys.stdout.flush()
-                    # fid.write(product_response.content)
-                print("Download Done\n")
-            # No need to close if using "with"
-            fid.close()
+        print("\n[BEGIN] Downloading %s " % (name))
+        # get ID and size of the product
+        ntrials = 0
+        max_retry = 3
+        while ntrials < max_retry:
+            time.sleep(ntrials * next_trial_time)
+            try:
+                product_response = requests.get(base_url+"Products(%s)/$value" % id,
+                                                auth=HTTPBasicAuth(user, password),
+                                                headers=headers,
+                                                timeout=req_timeout,
+                                                stream=True, verify=False)
+                if product_response.status_code == 404:
+                    raise Exception("Not found on the server : "+base_url+"/Products(%s)/$value" % id)
+                total_length = int(product_response.headers.get('content-length'))
+                if not total_length: # no content length header
+                     fid.write(product_response.content)
+                else:
+                    with open(file_path,"wb") as fid:
+                        print("Starting download")
+                        start = time.perf_counter()
+                        downloaded_bytes = 0
+                        for data in product_response.iter_content(chunk_size=4096):
+                            downloaded_bytes += len(data)
+                            fid.write(data)
+                            sys.stdout.write("\r...Downloaded %s/%s bytes" %( downloaded_bytes,total_length))
+                            sys.stdout.flush()
+                            # done = int(50 * downloaded_bytes / total_length)
+                            # sys.stdout.write("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), downloaded_bytes//(time.perf_counter() - start)))
+                            # sys.stdout.flush()
+                            # fid.write(product_response.content)
+                        dwl_time = time.perf_counter() - start
+                        print("Download took ", dwl_time, " [s] - ", downloaded_bytes/dwl_time/1024/1024, " [Mb/s]")
+                print("[END] Download Done\n")
+                break
+            except requests.Timeout as to_exc:
+                print("Request For product  ", id, " info and download failed after timeout (", req_timeout,"): ", str(to_exc))
+                response = None
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                # Make another try, until max_retry reached
+                ntrials += 1
+                print("Waiting for next retry ", ntrials * next_trial_time, " secs")
+            if ntrials == max_retry:
+                print("[END] Failed download of product ", id, " after ", ntrials, " retries")
+                raise Exception("Failed download of product {} after {} retries".format(id, ntrials))
     except Exception as e:
         print(e)
         raise e

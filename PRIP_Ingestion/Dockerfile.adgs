@@ -2,7 +2,7 @@ ARG DEBIAN_FRONTEND noninteractive
 FROM ubuntu:20.04
 
 MAINTAINER CS SI
-
+# Docker file to create image for ADGS Service
 ENV TZ=UTC
 
 #    && RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections

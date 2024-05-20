@@ -10,6 +10,7 @@ import os
 import requests
 
 from mission_aux_types import retrieve_aux_type_names
+from FileUtils import save_tuples_to_file, save_list_to_file
 
 #lta_baseurl = "https://aip.acri-st.fr/odata/v1/"
 
@@ -119,11 +120,15 @@ def main():
                 print(e)
                 # Try again after 5 secs
                 time.sleep(5)
-                prip_list = PRIP_S2.prip_list(args.user, args.password,
-                                              args.auxipuser, args.auxippassword,
-                                              lta_baseurl, [t],
-                                              sat=satellite_platform, mode="prod",
-                                              from_date=from_date, to_date=to_date)
+                try:
+                    prip_list = PRIP_S2.prip_list(args.user, args.password,
+                                                  args.auxipuser, args.auxippassword,
+                                                  lta_baseurl, [t],
+                                                  sat=satellite_platform, mode="prod",
+                                                  from_date=from_date, to_date=to_date)
+                except Exception as ex:
+                    print("Failed getting list of Aux files of type {}".format(t))
+                    prip_list = []
 
             print("Mission ", satellite_platform, ", Type ", t, ": Number of PRIP File : ", len(prip_list))
             if not args.list_only:
@@ -131,16 +136,25 @@ def main():
                 if not os.path.exists(working_dir):
                     os.makedirs(working_dir)
                 print("{} files to download from LTA".format(len(prip_list)))
-                for file_id, file_name, file_size in prip_list:
+                dwl_counter = 0
+                for file_id, file_name, *_ in prip_list:
                     print("File ", file_id, ", name: ", file_name)
                     PRIP_S2.prip_download(file_id, file_name,
                                           args.user, args.password,
                                           lta_baseurl, working_dir)
-                    print("Downloaded")
+                    dwl_counter += 1
+                    print("Downloaded ", dwl_counter, "/", len(prip_list))
             else:
-                print("Found files for Type ", t, ": \n", "\n".join((str(prip_item) for prip_item in prip_list)))
+                print("Found ", len(prip_list), " files for Type ", t, ": \n", "\n".join((str(prip_item) for prip_item in prip_list)))
                 print("End List")
-        print("Ingested files for mission ", satellite_platform)
+                today_timestamp = datetime.strftime(datetime.utcnow(), "%Y-%m-%d_%H%M")
+                # Save list files to parent folder, to avoid mixing files to ingest and support fiels
+                o_file = os.path.join(args.working, f"LTA_Files_{t}_{today_timestamp}.lst")
+                save_list_to_file(prip_list, o_file)
+                avail_files = [(prip_file[1], "Available" if prip_file[2] else "Missing") for prip_file in prip_list]
+                save_tuples_to_file(avail_files, o_file)
+        print("Acquired files for mission ", satellite_platform)
+        sys.exit(0)
 
 
 if __name__ == "__main__":

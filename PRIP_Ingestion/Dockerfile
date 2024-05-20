@@ -21,11 +21,17 @@ ADD ingest_s2files.py /
 ADD ingest_s3files.py /
 ADD ingestion /ingestion
 ADD PRIP_Ingestion.py /
+
 ADD FileUtils.py /
+ADD S2_FileNaming.py /
 ADD mission_aux_types.py /
 ADD PRIP_S2.py /
+ADD odata_request.py /
 ADD InitFuncs.sh /
 ADD PRIP_Ingestion.sh /
+ADD IngestDownloaded_funcs.sh /
+ADD LtaAuxFilesListIngest.sh /
+ADD PRIP_Ingest_Downloaded.sh /
 ADD PRIP_Ingestion_list.sh /
 ADD template.json /
 ADD update_base.py /
@@ -34,6 +40,7 @@ ADD file_types.tgz /
 
 RUN chmod a+x /PRIP_Ingestion.sh
 RUN chmod a+x /PRIP_Ingestion_list.sh
+RUN chmod a+x /PRIP_Ingest_Downloaded.sh
 RUN chmod a+x /mc
 ADD prip-cron /etc/cron.d/
 ADD setenv.sh /setenv.sh
