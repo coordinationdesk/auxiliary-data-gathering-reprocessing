@@ -65,6 +65,10 @@ public class AuxType {
     private TimeValidity Validity;
 	
 	@ODataJPAProperty
+    @EdmProperty(name = "InProduction", nullable = false)
+    private Boolean InProduction;
+	
+	@ODataJPAProperty
     @EdmProperty(name = "Rule", precision = 3, nullable = false)
     private Rule Rule;
     
@@ -98,6 +102,14 @@ public class AuxType {
 
 	public void setFormat(String format) {
 		Format = format;
+	}
+		
+	public Boolean getInProduction() {
+		return InProduction;
+	}
+
+	public void setInProduction(Boolean inProduction) {
+		InProduction = inProduction;
 	}
 		
 	

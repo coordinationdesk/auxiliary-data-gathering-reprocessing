@@ -108,6 +108,7 @@ var formatAuxFileName = function (name) {
  * @returns 
  */
 var formatForTableAuxFiles = function(result) {
+    display("Formatting for table: ", result);
     return new Promise((successCallback, failureCallback) => {
 
         var out = []
@@ -128,7 +129,10 @@ var formatForTableAuxFiles = function(result) {
                     record.IpfVersion] );
                 }
         }
-        var recordCount = auxiliaryFilesCount
+        var recordCount = auxiliaryFilesCount;
+        // var recordCount = result.response.value.length;
+        display("Loading on table : ", recordCount, " records");
+        display("Num Records in result:  ", result.response.value.length );
         if (result.filter.search.length>0) {
             recordCount = 1000
             showDiv("table_message_id")
@@ -145,7 +149,7 @@ var formatForTableAuxFiles = function(result) {
 
 var formatAuxipLink = function(auxipFile) {
 //	return "<a href='"+auxipFile.AuxipLink+"' target='_blank'>"+auxipFile.Name+"</a><br/>"
-	return "<a href='#' onclick=onAuxipFileSelected('"+auxipFile.AuxipLink+"');>"+auxipFile.Name+"</a><br/>"
+	return "<a href='#' onclick=onAuxipFileSelected('"+auxipFile.AuxipLink+"');>"+auxipFile.Name+"</a><br/>";
 }
 
 /**
@@ -154,11 +158,12 @@ var formatAuxipLink = function(auxipFile) {
  * @returns 
  */
 var formatAuxIpLinks = function (array) {
-    res = ""
+    res = "";
     array.forEach(element => {
-        res += "<a href='"+element.AuxipLink+"' target='_blank'>"+element.Name+"</a><br/>"
-    })
-    return res
+        // res += "<a href='"+element.AuxipLink+"' target='_blank'>"+element.Name+"</a><br/>"
+        res += formatAuxipLink(element);
+    });
+    return res;
 }
 
 /**

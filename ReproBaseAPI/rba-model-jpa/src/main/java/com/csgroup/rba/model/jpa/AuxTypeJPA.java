@@ -28,10 +28,19 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 
 
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 /**
  * @author besquis
  */
 @Entity(name = "AuxFileTypes")
+/*
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name="isProduction", 
+  discriminatorType = DiscriminatorType.INTEGER)
+*/
 public class AuxTypeJPA {
 
     @Id
@@ -44,6 +53,7 @@ public class AuxTypeJPA {
     private String Origin;
     
     private String Mission;
+    private Boolean InProduction;
     
     @ManyToMany
     private List<ProductLevelJPA> ProductLevels;
@@ -100,6 +110,14 @@ public class AuxTypeJPA {
 	}
 	
 
+	public Boolean getInProduction() {
+		return InProduction;
+	}
+
+	public void setInProduction(Boolean inProduction) {
+		InProduction = inProduction;
+	}
+	
 	public VariabilityJPA getVariability() {
 		return Variability;
 	}

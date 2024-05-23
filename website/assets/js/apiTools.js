@@ -12,6 +12,10 @@ var urls = {
         "auxTypes" : urlStart+"/reprocessing.svc/AuxTypes",
         "auxFiles" : urlStart+"/reprocessing.svc/AuxFiles"
     },
+//    "productionConfigBaseline" : {
+//        "auxTypes" : urlStart+"/reprocessing.svc/AuxTypes",
+//        "auxFiles" : urlStart+"/reprocessing.svc/AuxFiles"
+//    },
     "reprocessingDataBaseline" : urlStart+"/rdb.svc"
 }
 
@@ -151,6 +155,26 @@ var createDefaultFilter = function () {
 }
 
 /**
+ * Create a filter for Production AUx Types
+ * by adding the field for In Production property 
+ * @param {*} start 
+ * @param {*} offset 
+ * @param {*} search 
+ * @param {*} orderCol 
+ * @param {*} orderDir 
+ * @param {*} expand 
+ * @param {*} from dateTime.min.js
+ * @param {*} to 
+ * @returns 
+ */
+var createProductionFilter = function(start, offset, search, orderCol, orderDir,expand,from,to) {
+   console.log("Creating filter to retrieve Aux Types in Production");
+   reproFilter = createFilter(start, offset, search, orderCol, orderDir, expand, from, to);
+   reproFilter.inProduction = true;
+   return reproFilter;
+}
+
+/**
  * Add a parameter to url
  * @param {*} data 
  * @param {*} name 
@@ -205,6 +229,10 @@ var getColumnName = function(id) {
     }
     if (filter.expand != null) {
         data = addParam(data,"$expand",filter.expand)
+    }
+    if (filter.inProduction != null) {
+        inprodFilterExpr = "InProduction eq true"
+        data = addParam(data,"$filter", inprodFilterExpr)
     }
    
     var completeUrl = url+data
@@ -439,12 +467,47 @@ var getReprocessingAuxFiles = function(filter) {
     })
 }
 
+
 /**
  * Get list of aux types (promise function)
  * @param {*} filter 
  * @returns 
  */
  var getReprocessingAuxTypes	 = function(filter) {
+    return new Promise((successCallback, failureCallback) => {
+        var xhr = new XMLHttpRequest()
+        xhr.open("GET", getUrlParamsInit(urls.reprocessingConfigBaseline.auxTypes,filter), true)
+        var bearer="Bearer "+token
+
+        // xhr.setRequestHeader("Content-Type", "text/plain")
+        xhr.setRequestHeader("Content-Type", "application/json")
+
+        xhr.setRequestHeader("Authorization", bearer)
+        xhr.onreadystatechange = function () {
+            if ( (xhr.readyState === 4 ) && (xhr.status === 200)) {
+                var response = JSON.parse(xhr.responseText)
+                successCallback( { 
+                    "filter" : filter,
+                    "response" : response })
+            }
+            if ( (xhr.readyState === 4 ) && (xhr.status === 400)) {
+                failureCallback(xhr.status)
+            }
+            if ( (xhr.readyState === 4 ) && (xhr.status === 404)) {
+                failureCallback(xhr.status)
+            }
+        };
+        xhr.send()
+    })
+}
+
+
+/**
+ * Get list of aux types (promise function)
+ * @param {*} filter 
+ * @returns 
+ */
+ var getProductionAuxTypes	 = function(filter) {
     return new Promise((successCallback, failureCallback) => {
         var xhr = new XMLHttpRequest()
         xhr.open("GET", getUrlParamsInit(urls.reprocessingConfigBaseline.auxTypes,filter), true)
@@ -597,6 +660,26 @@ var prefetchReprocessingConfigurationBaseline = function() {
         .then(result => getReprocessingAuxTypes(createFilter(null,null,null,null,null,"ProductLevels")))
         .then(result => updateAuxTypes(result))
         .then(result => getReprocessingAuxTypes(createFilter(null,null,null,null,null,"ProductTypes")))
+        .then(result => updateAuxTypes(result))
+        .then(result => populateSelects(false))
+        //TODO REMOVE.then(result => getCountReprocessingAuxFiles())
+        .then(result => initTableReprocessingConfigurationBaseline('table_id') )
+        .then(successCallback())
+    })
+}
+
+/**
+ * Prefetch all informations needed prior to navigation (promise function)
+ * @returns 
+ */
+var prefetchProductionConfigurationBaseline = function() {
+    console.log("Prefetching Configuration Production Types");
+    return new Promise((successCallback, failureCallback) => {
+        getToken()
+        .then(result => prepareAuxTables())
+        .then(result => getProductionAuxTypes(createProductionFilter(null,null,null,null,null,"ProductLevels")))
+        .then(result => updateAuxTypes(result))
+        .then(result => getProductionAuxTypes(createProductionFilter(null,null,null,null,null,"ProductTypes")))
         .then(result => updateAuxTypes(result))
         .then(result => populateSelects(false))
         //TODO REMOVE.then(result => getCountReprocessingAuxFiles())

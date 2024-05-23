@@ -1,0 +1,177 @@
+---
+title: Web reprocessing configuration baseline
+layout: layout-datatable
+bodyClass: confbaseline
+datatable: true
+---
+
+<script>
+	$(document).ready( function () {
+		initDatePicker()
+		prefetchProductionConfigurationBaseline()
+		//prepareAuxTables()
+	} )
+</script>
+
+<div class="container pt-5 pt-md-5">
+	<div class="row justify-content-center">
+	  <div class="col-12">
+		  <h1 class="title-1">Web production configuration baseline</h1>
+	  </div>
+	  <div class="col-12">
+		<p>The following table presents the list of Auxiliary Data which are required for the generation of Level 1/2 for a period of time.</p>
+	  </div>
+	</div>
+</div>
+<div class="container pt-5 pt-md-5">
+	<div id="table_message_id" style="display:none" class="row justify-content-right">
+		<img src="{{site.baseurl}}/images/sign-304093_40.png">Search restricted to 1,000 records
+	</div>
+	<div id="filter_mission" class="row justify-content-center font-weight-bold">
+		<p>Mission : <select id="select_mission"></select></p>
+		<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+		<p>Product type : <select id="select_product_type"></select></p>
+	</div>
+	<!--<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>-->
+	<div id="filter_date" class="row justify-content-center font-weight-bold border-div">
+		<p>Application from : <input type="text" id="datepicker_application_from"></p>
+		<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+		<p>to : <input type="text" id="datepicker_application_to"></p>
+		<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+		<p><input type="checkbox" id="chk_date_filter" value="Filter"></p>
+	</div>
+	<div><hr></div>
+	<div class="row justify-content-center">
+		<div id="loading" class="row justify-content-center" style="z-index:999;left:0px;height: 100%;width:100%;background-color: black;opacity: 0.3;position: absolute;display:none">
+			<center><img src="{{site.baseurl}}/images/loadingwheel.gif"></center>
+		</div>
+		<table id="table_id" class="display">
+			<thead>
+				<tr>
+					<th>Unit</th>
+					<th>Application From</th>
+					<th>Application To</th>
+					<th>Product Level</th>
+					<th>Product Type</th>
+					<th>Auxiliary Type</th>
+					<th>Auxiliary File</th>
+					<th>IPF Version</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<div class="container pt-5 pt-md-5">
+	<div class="row justify-content-center font-weight-bold">
+		<h1>Aux Files Type List</h1>
+	</div>
+	<div class="col-12">
+		<p>The following table presents the list of Auxiliary Data Types and their definition by Sentinel.</p>
+	</div>
+</div>
+
+<div id="div_allaux_s1_table_id" style="display:none" class="container pt-5 pt-md-5">
+	<div class="row justify-content-center">
+		<table id="allaux_s1_table_id" class="display">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Origin</th>
+					<th>Static/dynamic</th>
+					<th>Usage</th>
+					<th>Unit dependency</th>
+					<th>Comments</th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<th>Name</th>
+					<th>Origin</th>
+					<th>Static/dynamic</th>
+					<th>Usage</th>
+					<th>Unit dependency</th>
+					<th>Comments</th>
+				</tr>
+			</tfoot>			
+		</table>
+	</div>
+</div>
+<div id="div_allaux_s2_table_id" style="display:none" class="container pt-5 pt-md-5">
+	<div class="row justify-content-center">
+		<table id="allaux_s2_table_id" class="display">
+			<thead>
+				<tr>
+					<th>Type</th>
+					<th>Origin</th>
+					<th>Static/dynamic</th>
+					<th>Usage</th>
+					<th>Comments</th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<th>Type</th>
+					<th>Origin</th>
+					<th>Static/dynamic</th>
+					<th>Usage</th>
+					<th>Comments</th>
+				</tr>
+			</tfoot>			
+		</table>
+	</div>
+</div>
+<div id="div_allaux_s3a_table_id" style="display:none" class="container pt-5 pt-md-5">
+	<div class="row justify-content-center">
+		<table id="allaux_s3a_table_id" class="display">
+			<thead>
+				<tr>
+					<th>Type</th>
+					<th>Static/dynamic</th>
+					<th>Mission</th>
+					<th>Usage</th>
+					<th>Unite dependency</th>
+					<th>Comments</th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<th>Type</th>
+					<th>Static/dynamic</th>
+					<th>Mission</th>
+					<th>Usage</th>
+					<th>Unite dependency</th>
+					<th>Comments</th>
+				</tr>
+			</tfoot>			
+		</table>
+	</div>
+</div>
+<div id="div_allaux_s3b_table_id" style="display:none" class="container pt-5 pt-md-5">
+	<div class="row justify-content-center">
+		<table id="allaux_s3b_table_id" class="display">
+			<thead>
+				<tr>
+					<th>Type</th>
+					<th>Origin</th>
+					<th>Static/dynamic</th>
+					<th>Mission</th>
+					<th>Usage</th>
+					<th>Unite dependency</th>
+					<th>Comments</th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<th>Type</th>
+					<th>Origin</th>
+					<th>Static/dynamic</th>
+					<th>Mission</th>
+					<th>Usage</th>
+					<th>Unite dependency</th>
+					<th>Comments</th>
+				</tr>
+			</tfoot>			
+		</table>
+	</div>
+</div>
