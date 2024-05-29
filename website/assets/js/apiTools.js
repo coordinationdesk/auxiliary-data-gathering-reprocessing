@@ -676,7 +676,7 @@ var prefetchProductionConfigurationBaseline = function() {
     console.log("Prefetching Configuration Production Types");
     return new Promise((successCallback, failureCallback) => {
         getToken()
-        .then(result => prepareAuxTables())
+        .then(result => prepareProdAuxTables())
         .then(result => getProductionAuxTypes(createProductionFilter(null,null,null,null,null,"ProductLevels")))
         .then(result => updateAuxTypes(result))
         .then(result => getProductionAuxTypes(createProductionFilter(null,null,null,null,null,"ProductTypes")))
@@ -706,6 +706,58 @@ var getProductTypesByMission = function (mission) {
     })
     return arrayKey
 }
+
+/**
+ * Preload all Prod aux tables (promise function)
+ * @returns 
+ */
+var prepareProdAuxTables = function() {
+    if ($("#div_allaux_s1_table_id").length == 0) {
+        return;
+    }
+    return new Promise((successCallback, failureCallback) => {
+        showDiv("div_allaux_s1_table_id")
+        showDiv("div_allaux_s2_table_id")
+        showDiv("div_allaux_s3a_table_id")
+        showDiv("div_allaux_s3b_table_id")
+        
+        $("#allaux_s1_table_id").DataTable( {
+            dom: '<"toolbar">lBfrtip',
+            ajax: 'data/allProdAuxTableS1.txt',
+            buttons: [ 'csv' , 'excel' , 'pdf' , 'print' ],
+            bLengthChange: false,
+            /*oLanguage: {
+                sLengthMenu: "Display _MENU_ records&nbsp;&nbsp;"
+            }*/
+        } )
+        
+        $("#allaux_s2_table_id").DataTable( {
+            dom: '<"toolbar">lBfrtip',
+            ajax: "data/allProdAuxTableS2.txt",
+            buttons: [ 'csv' , 'excel' , 'pdf' , 'print' ],
+            bLengthChange: false,
+        } )
+
+        $("#allaux_s3a_table_id").DataTable( {
+            dom: '<"toolbar">lBfrtip',
+            ajax: "data/allProdAuxTableS3_MWR_SRAL.txt",
+            buttons: [ 'csv' , 'excel' , 'pdf' , 'print' ],
+            bLengthChange: false,
+        } )
+
+        $("#allaux_s3b_table_id").DataTable( {
+            dom: '<"toolbar">lBfrtip',
+            ajax: "data/allProdAuxTableS3_SLSTR_OLCI_SYN.txt",
+            buttons: [ 'csv' , 'excel' , 'pdf' , 'print' ],
+            bLengthChange: false,
+        } )
+
+        $("div.toolbar").html('Export &nbsp;:&nbsp;');
+
+        successCallback()
+    })
+}
+
 
 /**
  * Preload all aux tables (promise function)
