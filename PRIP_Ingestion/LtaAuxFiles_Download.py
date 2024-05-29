@@ -14,8 +14,8 @@ from AuxFilesListUtils import get_aux_names_from_file
 
 def get_command_arguments():
     print("Called with command line: ", sys.argv)
-    parser = argparse.ArgumentParser(description="This script poll the PRIP all the files",  # main description for help
-                                     epilog='Usage samples : \n\tpython PRIP_Ingestion.py -u username -pw password \n\n',
+    parser = argparse.ArgumentParser(description="This script queries the LTA for all the files in the input file, and downloads them",  # main description for help
+                                     epilog='Usage samples : \n\tpython PRIP_Ingestion.py -u LTA username -pw LTA password -au Auxip user -apw Auxip passw -i input_file\n\n',
                                      formatter_class=argparse.RawTextHelpFormatter)  # displayed after help
     parser.add_argument("-lu", "--ltaurl",
                         help="Prip/Lta Endpoint Url",
@@ -97,7 +97,7 @@ def main():
     else:
        print("Found files to be ingested: \n ", "\n".join((str(prip_item[1]) for prip_item in prip_list)))
     print("End List")
-    print("Ingested files for mission ", 'S2')
+    print("Acquired files for mission ", 'S2')
 
 
 if __name__ == "__main__":

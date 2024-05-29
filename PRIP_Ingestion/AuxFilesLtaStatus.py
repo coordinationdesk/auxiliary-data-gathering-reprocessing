@@ -14,7 +14,7 @@ import csv
 
 def get_command_arguments():
     print("Called with command line: ", sys.argv)
-    parser = argparse.ArgumentParser(description="This script extract the status of availability on AUXIP for all the files",  # main description for help
+    parser = argparse.ArgumentParser(description="This script extract the status of availability on LTA for all the files listed in the input file",  # main description for help
                                      epilog='Usage samples : \n\tpython PRIP_Ingestion.py -au auxip_username -apw password \n\n',
                                      formatter_class=argparse.RawTextHelpFormatter)  # displayed after help
     parser.add_argument("-lu", "--ltaurl",
