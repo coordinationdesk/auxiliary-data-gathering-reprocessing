@@ -14,7 +14,7 @@ odata_datetime_nosec_format = "%Y-%m-%dT%H:%MZ[GMT]"
 def get_reprobase_base_endpoint(mode):
     base_endpoint = "https://dev.reprocessing-preparation.ml/reprocessing.svc"
     if mode == 'prod':
-        base_endpoint = "https://reprocessing-auxiliary.copernicus.eu/reprocessing.svc"
+        base_endpoint = "https://auxiliary.copernicus.eu/reprocessing.svc"
     return base_endpoint
 
 def send_request(request, jsonload, access_token):

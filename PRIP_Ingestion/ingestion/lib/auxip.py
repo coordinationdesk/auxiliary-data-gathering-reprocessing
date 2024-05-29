@@ -15,16 +15,18 @@ from .time_formats import odata_datetime_format, get_odata_datetime_format
 def _get_adg_domain(mode):
     base_domain = "https://dev.reprocessing-preparation.ml"
     if mode == 'prod':
-        base_domain = "https://reprocessing-auxiliary.copernicus.eu"
+        base_domain = "https://auxiliary.copernicus.eu"
     return base_domain
 
 def _get_auth_base_endpoint(mode):
     endpoint_domain = _get_adg_domain(mode) 
+    # endpoint_domain = _get_adg_domain(mode) if mode != "dock" else "https://keycloack"
     service_endpoint = "auth"
     base_endpoint = f"{endpoint_domain}/{service_endpoint}"
     return base_endpoint
 
 def _get_token_info(json_data, mode='dev'):
+    print("Getting token for mode: ", mode)
     auth_endpoint = _get_auth_base_endpoint(mode)
     tk_realm = "reprocessing-preparation"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -65,7 +67,8 @@ def refresh_token_info(token_info,timer,mode='dev'):
             raise Exception("Error " + str(ex) +"when refreshing token")
 
 def get_auxip_base_endpoint(mode):
-    endpoint_domain = _get_adg_domain(mode) 
+    endpoint_domain = _get_adg_domain(mode)
+    # endpoint_domain = _get_adg_domain(mode) if mode != "dock" else "https://auxip"
     service_endpoint = "auxip.svc"
     base_endpoint = f"{endpoint_domain}/{service_endpoint}"
     return base_endpoint
