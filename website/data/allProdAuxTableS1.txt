@@ -1,0 +1,15 @@
+{
+    "data": [
+        [ "AUX_PP1","ESA","static","L1 SLC/GRD","Y","IPF L1 processing parameters" ],
+        [ "AUX_PP2","ESA","static","L2 OCN","Y","IPF L2 processing parameters" ],
+        [ "AUX_CAL","ESA","static","L1 SLC/GRD","Y","IPF calibration parameters" ],
+        [ "AUX_INS","ESA","static","L1 SLC/GRD","Y","Instrument parameters for IPF" ],
+        [ "AUX_POEORB","CPOD","dynamic","L1 SLC/GRD","Y","Precise Orbit Ephemeris from Copernicus POD service"],
+        [ "S1__AUX_SCS","ESA","static","L2 OCN","N","Look-up table for OSW processing algorithm to predict the modulation transfer function and to remove nonlinear effects from the crossspectra"],
+        [ "S1__AUX_WND","ECMWF","dynamic","L2 OCN","N","ECMWF wind speed and direction at 10m ASL"],
+        [ "S1__AUX_WAV","IFREMER","dynamic","L2 OCN","N","WaveWatchIII surface stockes drift velocity and direction for the interpretation of the RVL component of the L2 OCN product"],
+        [ "S1__AUX_ICE","OSISAF","dynamic","L2 OCN","N","Sea ice percentage to process the OWI component of the L2 OCN product"],
+        [ "AMH_ERRMAT_MPC","ESA","dynamic","L2 OCN","Y","antenna model error matrices"],
+        [ "AMV_ERRMAT_MPC","ESA","dynamic","L2 OCN","Y","antenna model error matrices"]
+    ]
+}

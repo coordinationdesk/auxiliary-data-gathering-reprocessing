@@ -1,0 +1,12 @@
+{
+    "data": [
+        ["AX___FRO_AX","ESA","dynamic","S3ALL","L1+L2","Y","Restituted orbit from FOS"],
+        ["AX___FPO_AX","ESA","dynamic","S3ALL","L1+L2","Y","Predicted orbit from FOS"],
+        ["AX___MA1_AX","ECMWF","dynamic","S3ALL","L1+L2","N","ECMWF analysis at surface SFC and at pressure levels PL"],
+        ["AX___MA2_AX","ECMWF","dynamic","S3ALL","L1+L2","N","ECMWF analysis at model levels ML"],
+        ["AX___MF1_AX","ECMWF","dynamic","S3ALL","L1+L2","N","ECMWF analysis at model levels ML"],
+        ["AX___MF2_AX","ECMWF","dynamic","S3ALL","L2","N","ECMWF analysis at model levels ML"],
+        ["AX___MFA_AX","ECMWF","dynamic","S3ALL","L1+L2","N","ECMWF data such as surface pressure, mean sea level pressure, specific humidity, temperature and orography"],
+        ["AUX_POEORB","ESA","dynamic","S3ALL","L1+L2","Y","Precise Orbit Ephemerides (POE)"]
+    ]
+}
