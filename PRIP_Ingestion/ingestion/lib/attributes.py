@@ -230,7 +230,7 @@ def _get_hdr_file_attributes(hdr_file):
     if product_type in ['GIP_VIEDIR', 'GIP_R2EQOG', 'GIP_R2DEFI', 'GIP_R2WAFI', 'GIP_R2L2NC', 'GIP_R2DENT',
                         'GIP_R2DECT', 'GIP_R2EOB2']:
         # add band to product_type
-        band = filename.split('_')[-1].split('.')[0]
+        band = hdr_file.split('_')[-1].split('.')[0]
         product_type = product_type + '_' + band
     source_node = getNodeByName(root[0], 'Source')
     validity_period = getNodeByName(root[0], 'Validity_Period')
