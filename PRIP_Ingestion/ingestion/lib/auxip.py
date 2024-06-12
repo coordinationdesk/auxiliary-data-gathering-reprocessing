@@ -232,10 +232,52 @@ def search_in_auxip(name,access_token,mode='dev'):
         raise e
 
 
+def _create_auxip_record(aux_data_file_path, uuid, file_attributes):
+    aux_data_file_name = os.path.basename(aux_data_file_path)
+    # TODO: It should read "PublicationDate" from attributes, and set now
+    #      only if attribute is not set
+    publicationdate = datetime.strftime(datetime.utcnow(), odata_datetime_format)
+    # convert attributes to an array of dicts 
+    attributes_list = []
+    for attr_name, attr_value in file_attributes.items():
+        if attr_name not in ['uuid','md5','length']:
+            if "Date" in attr_name:
+                value_type = "DateTimeOffset"
+                attr_value = get_odata_datetime_format(attr_value)
+            else:
+                value_type = "String"
+
+            attributes_list.append({
+                "ValueType":value_type,
+                "Value":attr_value,
+                "Name":attr_name
+            })
+    product_record = {
+        "Id" : uuid,
+        "ContentLength": int(file_attributes['length']),
+        "ContentType": "application/octet-stream",
+        "EvictionDate": datetime.strftime(datetime.utcnow() + dt.timedelta(weeks=5346), odata_datetime_format),
+        "Name": aux_data_file_name,
+        "OriginDate": get_odata_datetime_format(file_attributes['processingDate']),
+        "PublicationDate": publicationdate,
+        "ContentDate" : {
+            "Start": get_odata_datetime_format(file_attributes['beginningDateTime']),
+            "End": get_odata_datetime_format(file_attributes['endingDateTime']),
+        },
+        "Checksum":[
+            {
+                "Algorithm":"MD5",
+                "Value": file_attributes['md5'],
+                "ChecksumDate": publicationdate
+            }
+        ],
+        "Attributes" : attributes_list
+    }
+    return product_record
+
 # post auxdata file to the auxip.svc
 def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev'):
     try:
-        aux_data_file_name = os.path.basename(path_to_auxiliary_data_file)
 
         # Get attributes for this aux data file
         attributes = get_attributes(path_to_auxiliary_data_file)
@@ -244,47 +286,7 @@ def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev'):
             print("%s ==> Error occured while getting attributes " % path_to_auxiliary_data_file )
             return 2
         # Preparing the json to be posted 
-
-        # convert attributes to an array of dicts 
-        attributes_list = []
-        for attr_name, attr_value in attributes.items():
-            if attr_name not in ['uuid','md5','length']:
-                if "Date" in attr_name:
-                    value_type = "DateTimeOffset"
-                    attr_value = get_odata_datetime_format(attr_value)
-                else:
-                    value_type = "String"
-
-                attributes_list.append({
-                    "ValueType":value_type,
-                    "Value":attr_value,
-                    "Name":attr_name
-                })
-        # TODO: It should read "PublicationDate" from attributes, and set now
-        #      only if attribute is not set
-        publicationdate = datetime.strftime(datetime.utcnow(), odata_datetime_format)
-    
-        product = {
-            "Id" : uuid,
-            "ContentLength": int(attributes['length']),
-            "ContentType": "application/octet-stream",
-            "EvictionDate": datetime.strftime(datetime.utcnow() + dt.timedelta(weeks=5346), odata_datetime_format),
-            "Name": aux_data_file_name,
-            "OriginDate": get_odata_datetime_format(attributes['processingDate']),
-            "PublicationDate": publicationdate,
-            "ContentDate" : {
-                "Start": get_odata_datetime_format(attributes['beginningDateTime']),
-                "End": get_odata_datetime_format(attributes['endingDateTime']),
-            },
-            "Checksum":[
-                {
-                    "Algorithm":"MD5",
-                    "Value": attributes['md5'],
-                    "ChecksumDate": publicationdate
-                }
-            ],
-            "Attributes" : attributes_list
-        }
+        product = _create_auxip_record(path_to_auxiliary_data_file, uuid, attributes)
 
         # =================================================================
         # Post to auxip.svc
