@@ -83,7 +83,8 @@ else
    exit 1
   fi
   echo "S3_BUCKET: "${S3_BUCKET}
-  ${MCPATH} alias set "wasabi-auxip-archives" ${S3_ENDPOINT} ${S3_ACCESS_KEY} ${S3_SECRET_KEY} --api S3v4
+  STORAGE_ALIAS="wasabi-auxip-archives"
+  ${MCPATH} alias set $STORAGE_ALIAS ${S3_ENDPOINT} ${S3_ACCESS_KEY} ${S3_SECRET_KEY} --api S3v4
 fi
 }
 
