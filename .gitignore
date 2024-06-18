@@ -25,6 +25,8 @@ hs_err_pid*
 
 **/certbot/conf/
 
+# Temp directories
+tmp_dir
 
 #eclipse project stuf
 *.classpath
