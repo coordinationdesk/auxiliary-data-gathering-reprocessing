@@ -15,7 +15,7 @@ def send_request(mode, access_token):
     auxip_endpoint = "https://dev.reprocessing-preparation.ml/reprocessing.svc/AuxTypes?$expand=ProductLevels"
     res = None
     if mode == 'prod':
-        auxip_endpoint = "https://reprocessing-auxiliary.copernicus.eu/reprocessing.svc/AuxTypes?$expand=ProductLevels"
+        auxip_endpoint = "https://auxiliary.copernicus.eu/reprocessing.svc/AuxTypes?$expand=ProductLevels"
     resp = requests.get(auxip_endpoint,headers=headers,verify=verify_cert)
     if resp.status_code != 200:
         print(resp.status_code)
@@ -43,7 +43,8 @@ def main():
                         default="dev",
                         required=False)
     args = parser.parse_args()
-    token_info = get_token_info(args.user, args.password)
+    print("Called with user ", args.user, " mode: ", args.mode)
+    token_info = get_token_info(args.user, args.password, args.mode)
     access_token = token_info['access_token']
     result = send_request(args.mode,access_token)
     print(result)
