@@ -230,7 +230,7 @@ services:
  #######################################
   prip_ingestion_s2:
     container_name: prip_ingestion
-    image: prip_ingestion:1.1.1
+    image: prip_ingestion:1.1.2
     restart: always
     environment:
       S3_ACCESS_KEY: ${PRIPS2_S3_ACCESS_KEY}
