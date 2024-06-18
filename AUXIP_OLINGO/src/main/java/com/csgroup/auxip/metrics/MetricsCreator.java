@@ -96,6 +96,7 @@ public class MetricsCreator {
 		for (Map.Entry<String, String> entry : SATS.entrySet()) {
 			LOG.debug("Treating: "+entry.getKey());
 			EntityManager entityManager = this.entityManagerFactory.createEntityManager();
+			LOG.debug("Creating general Connection  ");
 			try {			
 				EntityTransaction transaction = entityManager.getTransaction();
 				Map<String, Object> queryParams_m = new HashMap<String,Object>();						
@@ -134,6 +135,7 @@ public class MetricsCreator {
 					transaction.rollback();
 				}				
 			} finally {                    
+				LOG.debug("Closing general Connection  ");
 				entityManager.close();
 			}
 		}
@@ -142,6 +144,7 @@ public class MetricsCreator {
 		//Query
 		String queryStringUser = "SELECT entity FROM com.csgroup.auxip.model.jpa.User entity" ;
 		EntityManager entityManagerUser = this.entityManagerFactory.createEntityManager();
+		LOG.debug("Creating User Connection  ");
 		List<Metric> listMetricsUsers = new ArrayList<Metric>(); 
 		try {			
 			EntityTransaction transaction = entityManagerUser.getTransaction();
@@ -200,6 +203,7 @@ public class MetricsCreator {
 			LOG.warn("Query coudn't be executed on metrics : "+queryStringUser);
 			LOG.warn(e.getLocalizedMessage());
 		} finally {                    
+		        LOG.debug("Closing User Connection  ");
 			entityManagerUser.close();
 		}
 		
