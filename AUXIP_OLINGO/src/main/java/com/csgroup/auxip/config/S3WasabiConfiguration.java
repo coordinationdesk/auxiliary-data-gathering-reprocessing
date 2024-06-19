@@ -27,9 +27,13 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+/*
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
+*/
 import software.amazon.awssdk.regions.Region;
+/*
 import software.amazon.awssdk.services.s3.S3Client;
+*/
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -39,6 +43,9 @@ import java.net.URI;
 /**
  * The S3 Wasabi configuration.
  * @author Naceur MESKINI
+ * Modified 2024 February 
+ *  Added reading storage endpoint from configuration
+ * @author Stefano Barone
  */
 @Configuration
 @ComponentScan
