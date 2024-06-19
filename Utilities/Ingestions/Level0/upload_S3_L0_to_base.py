@@ -3,6 +3,8 @@
 
 import psycopg2
 import argparse
+from L0_Fields_parse import parse_start_stop_fields
+
 
 if __name__ == "__main__": 
 
@@ -40,16 +42,13 @@ if __name__ == "__main__":
 
         s3_l0=args.inputFile
 
+        # S3A_SR_0_CAL____20220403T135114_20220403T135129_20220403T143818_0014_083_366______PS1_O_NR_004.SEN3.zip
         with open(s3_l0,"r") as fid:
             lines = fid.readlines()
             for line in lines:
-            
                 l0_name = line.replace('\n','').strip()
-                start = l0_name[16:16+15]
-                stop = l0_name[16+16:16+16+15]
-                print(l0_name)
-                
-                # S3A_SR_0_CAL____20220403T135114_20220403T135129_20220403T143818_0014_083_366______PS1_O_NR_004.SEN3.zip
+                start, stop = parse_start_stop_fields(l0_name, start_field=16, field_len=15)
+            
 
                 cursor = conn.cursor()
                 sql = """INSERT INTO l0_products(name,validitystart,validitystop) VALUES(%s,%s,%s);"""
