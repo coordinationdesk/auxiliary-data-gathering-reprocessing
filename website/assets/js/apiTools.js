@@ -12,10 +12,6 @@ var urls = {
         "auxTypes" : urlStart+"/reprocessing.svc/AuxTypes",
         "auxFiles" : urlStart+"/reprocessing.svc/AuxFiles"
     },
-//    "productionConfigBaseline" : {
-//        "auxTypes" : urlStart+"/reprocessing.svc/AuxTypes",
-//        "auxFiles" : urlStart+"/reprocessing.svc/AuxFiles"
-//    },
     "reprocessingDataBaseline" : urlStart+"/rdb.svc"
 }
 
@@ -294,6 +290,7 @@ var getUrlParams = function(url,filter) {
     if (filter.expand != null) {
         data = addParam(data,"$expand",filter.expand)
     }
+    //data = addParam(data, "$count", "true");
     // Make search param
     var filterParam = ""
     if (isDateFilterChecked()) {
