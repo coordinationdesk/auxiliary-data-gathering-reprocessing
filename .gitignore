@@ -27,6 +27,8 @@ hs_err_pid*
 
 # Temp directories
 tmp_dir
+# Website delivery directory
+3-deliveries
 
 #eclipse project stuf
 *.classpath
