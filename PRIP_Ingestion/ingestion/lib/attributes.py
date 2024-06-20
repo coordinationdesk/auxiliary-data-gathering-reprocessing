@@ -86,6 +86,7 @@ def _get_file_extension(file_path):
     return extension
 
 def _get_S1_file_attributes(file_path):
+    # extension = _get_file_extension(file_path)
     filename_zip = os.path.basename(file_path)
 
     # TODO: modifiy in order to handle also non cmopressed files!
@@ -100,6 +101,8 @@ def _get_S1_file_attributes(file_path):
     #                      S1 .SAFE FILES
     # ==========================================================================================
     if extension == 'SAFE':
+        # manifest_file = _get_zip_manifest(file_path)
+        # the function is not considering TGZ files
         xml_file = "%s/manifest.safe" % filename
         unzip_command = "unzip -qq %s %s" % (file_path, xml_file)
         if '.TGZ' in filename_zip:
@@ -110,6 +113,7 @@ def _get_S1_file_attributes(file_path):
         except Exception as e:
             print(e)
 
+        # From Here: _get_S1_SAFE_Attributes(xml_file)
         print("Extracting metadata attributes for ", filename_zip)
         tree = ET.parse(xml_file)
         root = tree.getroot()
