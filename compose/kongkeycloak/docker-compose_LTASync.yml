@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+
+
+
+  #######################################
+  # PRIP LTA Synchronization
+ #######################################
+  lta_synchronization:
+    extends: 
+      file: docker-compose.yml
+      service: prip_ingestion_s2
+    container_name: lta_sync
+    image: lta_sync:1.0.0
+    restart: no
+    volumes:
+      - /data/auxip_lta_sync:/LTA_Info
+
+
+
