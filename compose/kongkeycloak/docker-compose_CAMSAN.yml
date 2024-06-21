@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+
+  #######################################
+  # ECMWF CAMSAN Ingestion Replacement
+ #######################################
+  camsan_ingestion:
+    extends: 
+      file: docker-compose.yml
+      service: ecmwf_ingestion_s2
+    container_name: camsan_ingestion
+    image: camsan_ingestion_replace:1.0.0
+    restart: no
+
+
+
