@@ -33,7 +33,16 @@ def downloadCamsreGribForSmallPeriod(start, stop, outputFilePathName,
               '18:00', '21:00',
           ],
       }
-   cdsclient.retrieve(dataset, request_dict, outputFilePathName)
+   # TODO Catch exception for data not found
+   # cdsinf.exceptions.BadRequestException
+   # message/reason: There is no data matching your request.
+   try:
+       cdsclient.retrieve(dataset, request_dict, outputFilePathName)
+   except cdsinf.exceptions.BadRequestException as reqEx:
+       print("Error retrieving data from ECMWF (Data not found): ", reqEx)
+       raise reqEx
+   except Exception as ex:
+       raise ex
 
 
 def determine_parallel_periods(startDate, stopDate):
