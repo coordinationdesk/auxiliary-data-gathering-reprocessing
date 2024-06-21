@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+
+  #######################################
+  # ECMWF CAMSRE Ingestion
+ #######################################
+  camsre_recover_2023:
+    extends: 
+      file: docker-compose.yml
+      service: ecmwf_ingestion_s2
+    container_name: camsre_recover_2023
+    image: camsre_recover_2023:1.0.0
+    restart: no
+
+
+
