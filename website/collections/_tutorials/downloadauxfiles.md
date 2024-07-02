@@ -5,7 +5,7 @@ prerequires: [ ["Having a authentification token","tutorials.html#1"], ["Having 
 ---
 #### Endpoint
 
-The endpoint url for this service is [https://auxiliary.copernicus.eu/auxip.svc](https://auxiliary.copernicus.eu/auxip.svc)
+The endpoint url for this service is [{{site.url}}/auxip.svc]({{site.url}}/auxip.svc)
 
 #### Function
 
