@@ -10,15 +10,9 @@ image_5_d: 5_AuxFileDownloadRequest.jpg
 ---
 #### Introduction
 
-This is an example for a workflow to retrieve the auxiliary files for a reprocessing activity is outlined hereafter.
+This is an example for a workflow to retrieve the auxiliary files for a reprocessing activity is outlined hereafter. <br>
 The workflow is described with the accesses to the Service APIs executed from a Rest API Test application like Postman, using the services showed in the previous tutorials.
 A code example is given at the end, with a Python script.
-
-##NOTE: Point to the Already described actions ##
-
-#### Access Token
-Get and configure on Postman the access Token as in [Authentication Token]({{ site.baseurl }}tutorials.html#1)
-Code example in script () (CITE CODE)
 
 #### Endpoints
 
@@ -28,19 +22,14 @@ The endpoint urls for the accessed services are:
 
 #### Workflow Description
 The activity is composed of two main steps:
-1. the list of aux files to be used is retrieved using the function **getReprocessingDataBaseline** of the rdb.svc service
-2. the distinct aux files are downloaded from auxip.svc service using the links contained in the response from getReprocessingDataBaseline (that specify the internal ID of the Aux FIles)
-
-For S3 Reprocessing activity, the Data Baseline must be requested both for the instrument and for the platform.
-For example, if requesting products for L2LFR processing of OLCI, two requests for the data baseline shall be made:
- - one for S3OLCI, product type L2LFR
- - one for S3ALL, product type L2
+1. The list of aux files to be used is retrieved using the function **getReprocessingDataBaseline** of the rdb.svc service
+2. The distinct aux files are downloaded from auxip.svc service using the links contained in the response from getReprocessingDataBaseline (that specify the internal ID of the Aux FIles)
 
 The getReprocessingDataBaseline function could be invoked both by passing a list of L0 products to be processed, or by passing a start/stop time interval:
 - **getReprocessingDataBaseline**(l0_names, mission, unit, product_type)
-    Query only one level 0 product name. 
-	
+    Query only one level 0 product name. 	
     Sample : `{{site.url}}/rdb.svc/getReprocessingDataBaseline(l0_names='S3A_OL_0_EFR____20240301T010412_20240301T010610_20240301T025430_0118_109_302______PS1_O_NR_002.SEN3.zip',mission='S3OLCI',unit='A',product_type='L2LFR')`
+	
 - **getReprocessingDataBaseline**(start_time, stop_time, mission, unit, product_type)
     Query level 0 products included in the specified time interval
 	
@@ -58,25 +47,20 @@ You can now send the query.
 The result is shown in the dedicated window.
 
 The Result will be a Json, listing, for each L0 file in the specified Time interval, a list of the applicable Aux Files, together with the link for retrieval.
-![Function Call Result]({{"/assets/images/tutorials" | relative_url }}{{page.image_5_r}}){:style="border:1px black solid"}
+![Function Call Result]({{"/assets/images/tutorials" | relative_url }}/{{page.image_5_r}}){:style="border:1px black solid"}
 Save it to a file.
 
-Select from the response the link for one of the Aux Files in the result.
-A new tab, for a new GET request will be opened.
+Select from the response the link for one of the Aux Files in the result.<br>
+A new tab, for a new GET request will be opened.<br>
 Configure again in the authentication tab the OAuth2 authentication method, and select the already retrieved bearer Token
-Add the link in the GET field: 
-![Download Request] ({{"/assets/images/tutorials" | relative_url }}/{{page.image_5_d}}) {:style="border:1px black solid"}
+
+Add the link in the GET field:
+
+![Download Request]({{"/assets/images/tutorials" | relative_url }}/{{page.image_5_d}}){:style="border:1px black solid"}
+
 Send the query, selecting "Send and Download".
 Upon receiving the answer from the remote service, you are requested to specify the destination of the file being downloaded.
 
-#### Workflow Steps using Python
-
-#### Python example script
-An example of a script to implement the described workflow is attached.
-<p>Download file <a href="{{site.baseurl}}data/ReprocessingDataBaselineWithDownload.py" target="_blank">ReprocessingDataBaselineWithDownload.py</a></p>
-
-Example call:
-python 
 
 
 

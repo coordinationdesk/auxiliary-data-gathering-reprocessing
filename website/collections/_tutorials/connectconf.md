@@ -16,8 +16,8 @@ We will use in this sample the function GetReproBaselineListForSensing :
     Query the list of aux file for these particular parameters.
 
     Samples : 
-	- `{{site.url}}/processing.svc/GetReproBaselineListForPeriod(Mission='S2MSI',Unit='A',SensingTime='2018-05-02T12:00:30Z',ProductType='L1B')`
-	- `{{site.url}}/processing.svc/GetReproBaselineListForPeriod(Mission='S3OLCI',Unit='B',SensingTime='2024-03-01T12:00:30Z',ProductType='L2LFR')`
+	- `{{site.url}}/reprocessing.svc/GetReproBaselineListForPeriod(Mission='S2MSI',Unit='A',SensingTime='2018-05-02T12:00:30Z',ProductType='L1B')`
+	- `{{site.url}}/reprocessing.svc/GetReproBaselineListForPeriod(Mission='S3OLCI',Unit='B',SensingTime='2024-03-01T12:00:30Z',ProductType='L2LFR')`
 
 #### Steps
 First, into the authentication tab, select a Bearer Token and fill it with your token :
