@@ -16,9 +16,10 @@ import csv
 
 
 ADG_DOMAIN="auxiliary.copernicus.eu"
+client_id="reprocessing-preparation"
 def get_token_info(user,password):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    data = {"username":user, "password":password,"client_id":"preparation","grant_type":"password"}
+    data = {"username":user, "password":password,"client_id":client_id,"grant_type":"password"}
     token_endpoint = f"https://{ADG_DOMAIN}/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
 
     # print(token_endpoint)
@@ -38,7 +39,9 @@ def rdb_service(user,password,mission,unit,product_type,l0_names="",start="",sto
     headers = {'Content-Type': 'application/json','Authorization' : 'Bearer %s' % reprobase_access_token }
     response = requests.get(request,headers=headers)
 
+    aux_file_links = {}
     try:
+        print("Aux Files for each L0 to be processed:")
         for l0_aux in response.json()["value"]:
 
             print("Level0 :%s " % l0_aux["Level0"] )
@@ -46,7 +49,13 @@ def rdb_service(user,password,mission,unit,product_type,l0_names="",start="",sto
             for aux in l0_aux["AuxDataFiles"]:
                 print("\tName :%s " % aux["Name"])
                 print("\tAuxipLink :%s " % aux["AuxipLink"])
+                aux_file_links[aux["Name"]] = aux["AuxipLink"]
 
+        print("==========================")
+        print("All the Aux files to be downloaded:")
+        for aux_file, aux_link in aux_file_links.items():
+            print("Aux File Name: %s" %aux_file)
+            print("\tDownload Link:  %s" %aux_link)
     except Exception as e:
         print(response.json())
         print(e)

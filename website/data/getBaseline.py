@@ -12,7 +12,7 @@ import requests
 ADG_DOMAIN="auxiliary.copernicus.eu"
 def get_token_info(user,password):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    data = {"username":user, "password":password,"client_id":"preparation","grant_type":"password"}
+    data = {"username":user, "password":password,"client_id":"reprocessing-preparation","grant_type":"password"}
     token_endpoint = f"https://{ADG_DOMAIN}/auth/realms/reprocessing-preparation/protocol/openid-connect/token"
 
     # print(token_endpoint)
@@ -27,7 +27,7 @@ def refresh_token_info(token_info,timer):
         return token_info
     else:
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        data = {"refresh_token":token_info['refresh_token'],"client_id":"preparation","grant_type":"refresh_token"}
+        data = {"refresh_token":token_info['refresh_token'],"client_id":"reprocessing-preparation","grant_type":"refresh_token"}
         token_endpoint = f"https://{ADG_DOMAIN}/auth/realms/reprocessing-preparation/protocol/openid-connect/token" 
         response = requests.post(token_endpoint,data=data,headers=headers)
         return response.json() 
