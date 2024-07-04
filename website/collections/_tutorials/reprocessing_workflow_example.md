@@ -5,8 +5,8 @@ prerequires: [ ["Having an account","{{site.url}}/rdb.svc"], ["Having a authenti
 image_1: "1_accesstoken.png"
 image_b: 2_bearer.png
 image_5_f: 3_function.png
-image_5_r: 5_DataBaseline_response.jpg
-image_5_d: 5_AuxFileDownloadRequest.jpg
+image_5_r: 5_DataBaseline_response.JPG
+image_5_d: 5_AuxFileDownloadRequest.JPG
 ---
 #### Introduction
 
