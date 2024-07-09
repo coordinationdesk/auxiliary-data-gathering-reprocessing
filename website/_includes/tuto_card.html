@@ -18,7 +18,7 @@
 				{% for prerequire in tuto.prerequires %}
 				<tr>
 					<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-					<td>- {{ prerequire[0] }} &nbsp;&nbsp;&nbsp;&nbsp;<i>(See <a href="{{ prerequire[1] }}" target="_blank">here)</a></i></td>
+					<td>- {{ prerequire[0] }} &nbsp;&nbsp;&nbsp;&nbsp;<i>(See <a href="{{ prerequire[1] | expand_variable }}" target="_blank">here)</a></i></td>
 				</tr>
 				{% endfor %}
 			</table>

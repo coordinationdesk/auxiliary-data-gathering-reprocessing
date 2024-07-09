@@ -1,7 +1,7 @@
 ---
 title: 'How to get authentication token to use with API'
 order: 1
-prerequires: [ ["Having an account","https://{{site.url}}rdb.svc"], ["Having POSTMAN installed","https://learning.postman.com/docs/getting-started/installation-and-updates/"], ["Knowing POSTMAN","https://learning.postman.com/docs/getting-started/introduction/"] ]
+prerequires: [ ["Having an account","{{site.url}}/rdb.svc"], ["Having POSTMAN installed","https://learning.postman.com/docs/getting-started/installation-and-updates/"], ["Knowing POSTMAN","https://learning.postman.com/docs/getting-started/introduction/"] ]
 image: "1_accesstoken.png"
 ---
 #### Access Token
