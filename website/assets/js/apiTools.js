@@ -542,20 +542,21 @@ var getReprocessingData = function() {
         var xhr = new XMLHttpRequest()
         var url = getUrlDataParams(urls.reprocessingDataBaseline)
         xhr.open("GET", url, true)
-        var bearer="Bearer "+token
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-        xhr.setRequestHeader("Authorization", bearer)
+        var bearer="Bearer "+token;
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.setRequestHeader("Authorization", bearer);;
         xhr.onreadystatechange = function () {
+            display("Received Response: ", xhr.responseText);
             if ( (xhr.readyState === 4 ) && (xhr.status === 200)) {
-                var response = JSON.parse(xhr.responseText)
+                var response = JSON.parse(xhr.responseText);
                 successCallback( { "filter" : null,
-                                    "response" : response })
+                                    "response" : response });
             }
             if ( (xhr.readyState === 4 ) && (xhr.status === 0)) {
-                failureCallback(xhr.status)
+                failureCallback(xhr.status);
             }
             if ( (xhr.readyState === 4 ) && (xhr.status === 404)) {
-                failureCallback(xhr.status)
+                failureCallback(xhr.status);
             }
         };
         xhr.send()
