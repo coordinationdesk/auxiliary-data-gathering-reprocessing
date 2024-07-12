@@ -40,29 +40,31 @@ if __name__ == "__main__":
     try:
         conn = psycopg2.connect(host=host,port=port,database=database,user=user,password=password)
 
-        s1_l0=args.inputFile
+        l0_list_file = args.inputFile
 
-        with open(s1_l0,"r") as fid:
+        with open(l0_list_file, "r") as fid:
             lines = fid.readlines()
             for line in lines:
             
-                l0_name = line.replace('\n','').strip()
-                #start = l0_name[17:17+15]
-                #stop = l0_name[17+16:17+16+15]
-                #print(l0_name)
+                l0_name = line.rstrip('\n')
                 # S1B_IW_RAW__0SDV_20190822T145111_20190822T145143_017700_0214CF_EBA5.SAFE.zip
-                start, stop = parse_start_stop_fields(l0_name, start=17, field_len=15)
+                start, stop = parse_start_stop_fields(l0_name, start_pos=17, field_len=15)
 
                 cursor = conn.cursor()
-                sql = """INSERT INTO l0_products(name,validitystart,validitystop) VALUES(%s,%s,%s);"""
+                sql = """INSERT INTO l0_products(name, validitystart, validitystop) VALUES(%s, %s, %s);"""
                 try:
-                    cursor.execute(sql, (l0_name,start,stop))
+                    cursor.execute(sql, (l0_name, start, stop))
                 except Exception as e:
                     print(e)
-                    cursor.execute("ROLLBACK")
+                    conn.rollback()
+                cursor.close()
 
             conn.commit()
     except Exception as e:
         print(e)
+        if conn:
+            conn.rollback()
+    finally:
+        conn.close()
 
 

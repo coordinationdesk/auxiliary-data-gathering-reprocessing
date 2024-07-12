@@ -38,28 +38,23 @@ if __name__ == "__main__":
     password=args.password
 
     try:
-        conn = psycopg2.connect(host=host,port=port,database=database,user=user,password=password)
+        l0_list_file = args.inputFile
+        sql = """INSERT INTO l0_products(name,validitystart,validitystop) VALUES(%s,%s,%s);"""
+        with psycopg2.connect(host=host,port=port,database=database,user=user,password=password) as conn:
 
-        s3_l0=args.inputFile
-
-        # S3A_SR_0_CAL____20220403T135114_20220403T135129_20220403T143818_0014_083_366______PS1_O_NR_004.SEN3.zip
-        with open(s3_l0,"r") as fid:
-            lines = fid.readlines()
-            for line in lines:
-                l0_name = line.replace('\n','').strip()
-                start, stop = parse_start_stop_fields(l0_name, start_field=16, field_len=15)
-            
-
-                cursor = conn.cursor()
-                sql = """INSERT INTO l0_products(name,validitystart,validitystop) VALUES(%s,%s,%s);"""
-                try:
-                    cursor.execute(sql, (l0_name,start,stop))
-                except Exception as e:
-                    print(e)
-                    cursor.execute("ROLLBACK")
-
-            conn.commit()
-    except Exception as e:
-        print(e)
+            with open(l0_list_file, "r") as fid:
+                lines = fid.readlines()
+                for line in lines:
+                    l0_name = line.rstrip('\n')
+                    # S3A_SR_0_CAL____20220403T135114_20220403T135129_20220403T143818_0014_083_366______PS1_O_NR_004.SEN3.zip
+                    start, stop = parse_start_stop_fields(l0_name, start_pos=16, field_len=15)
+                
+                    with conn.cursor() as cursor:
+                        try:
+                            cursor.execute(sql, (l0_name,start,stop))
+                        except Exception as e:
+                            print(e)
+                            conn.rollback()
+                        conn.commit()
 
 
