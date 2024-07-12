@@ -9,7 +9,9 @@ from requests.auth import HTTPBasicAuth
 from calendar import monthrange
 
 S3_L0_Types = ["MW_0_MWR___", "OL_0_EFR___", "SL_0_SLT___", "SR_0_SRA___"]
-coreURL = "https://lta.cloudferro.copernicus.eu/odata/v1/Products?$filter=ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'%s')&$top=200"
+#lta_baseurl = "lta.cloudferro.copernicus.eu"
+lta_baseurl = "aip.acri-st.fr"
+coreURL = f"https://{lta_baseurl}/odata/v1/Products?$filter=ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'%s')&$top=200"
 
 nbRequestsMaxTries = 5
 
