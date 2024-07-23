@@ -11,11 +11,11 @@ from calendar import monthrange
 S3_L0_Types = ["MW_0_MWR___", "OL_0_EFR___", "SL_0_SLT___", "SR_0_SRA___"]
 #lta_baseurl = "lta.cloudferro.copernicus.eu"
 lta_baseurl = "aip.acri-st.fr"
-coreURL = f"https://{lta_baseurl}/odata/v1/Products?$filter=ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'%s')&$top=200"
+coreURL = f"%s/Products?$filter=ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'%s')&$top=200"
 
 nbRequestsMaxTries = 5
 
-def getL0(year, month, product_type, ltaUsr, ltaPwd):
+def getL0(year, month, product_type, ltaUrl, ltaUsr, ltaPwd):
 
     headers = {'Content-type': 'application/json'}
     days_in_month = monthrange(year,month)[1]
@@ -30,7 +30,7 @@ def getL0(year, month, product_type, ltaUsr, ltaPwd):
             previousNbDays = nb_days
 
             #Construction de la requête
-            request = (coreURL + "&$count=true") % (year,month,start_day,year,month,nb_days,product_type)
+            request = (coreURL + "&$count=true") % (ltaUrl, year,month,start_day,year,month,nb_days,product_type)
             print(request)
 
             resp = None
@@ -53,7 +53,7 @@ def getL0(year, month, product_type, ltaUsr, ltaPwd):
                     # On boucle sur toutes les pages de 200 fichiers L0
 
                     # Mise à jour de la requete
-                    request = (coreURL + "&$skip=%d") % (year,month,start_day,year,month,nb_days,product_type,(step+1)*200)
+                    request = (coreURL + "&$skip=%d") % (ltaUrl, year,month,start_day,year,month,nb_days,product_type,(step+1)*200)
                     print(request)
 
                     resp = None
@@ -78,14 +78,14 @@ def getL0(year, month, product_type, ltaUsr, ltaPwd):
             print(aux)
             l0_names.write(str(aux) + '\n')
 
-def launchGetL0ForType(year, month, type, ltaUsr, ltaPwd):
+def launchGetL0ForType(year, month, type, ltaUrl, ltaUsr, ltaPwd):
     print(type)
 
     if args.month == "all":
         # On doit boucler sur tous les mois
         for m in range(12):
             try:
-                getL0(year, m + 1, type, ltaUsr, ltaPwd)
+                getL0(year, m + 1, type, ltaUrl, ltaUsr, ltaPwd)
             except Exception as e:
                 print(e)
                 exc_type, exc_tb = sys.exc_info()
@@ -96,7 +96,7 @@ def launchGetL0ForType(year, month, type, ltaUsr, ltaPwd):
         month_cast = int(month)
 
         try:
-            getL0(year, month_cast, type, ltaUsr, ltaPwd)
+            getL0(year, month_cast, type, ltaUrl, ltaUsr, ltaPwd)
         except Exception as e:
             print(e)
             exc_type, exc_tb = sys.exc_info()
@@ -118,6 +118,9 @@ if __name__ == "__main__":
                         help="Month",
                         default="all",
                         required=False)
+    parser.add_argument("-lu", "--ltaurl",
+                        help="Lta Endpoint Url",
+                        required=True)
     parser.add_argument("-u", "--user",
                         help="LTA user",
                         required=True)
@@ -132,7 +135,7 @@ if __name__ == "__main__":
     if product_type == "all":
         # On doit boucler sur tous les types S3
         for type in S3_L0_Types:
-            launchGetL0ForType(year, args.month, type, args.user, args.password)
+            launchGetL0ForType(year, args.month, type, args.ltaurl, args.user, args.password)
     else:
         # On ne traite qu'un seul type
-        launchGetL0ForType(year, args.month, product_type, args.user, args.password)
+        launchGetL0ForType(year, args.month, product_type, args.ltaurl, args.user, args.password)

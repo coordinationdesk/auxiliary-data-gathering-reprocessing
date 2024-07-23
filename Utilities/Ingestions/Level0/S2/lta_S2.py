@@ -7,7 +7,7 @@ from calendar import monthrange
 
 #lta_baseurl = "lta.cloudferro.copernicus.eu"
 lta_baseurl = "aip.acri-st.fr"
-coreURL = f"https://{lta_baseurl}odata/v1/Products?$filter=startswith(Name,'S2') and ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'_L0__DS_')&$top=200&$expand=Attributes"
+coreURL = f"%s/Products?$filter=startswith(Name,'S2') and ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'_L0__DS_')&$top=200&$expand=Attributes"
 
 nbRequestsMaxTries = 5
 
@@ -22,7 +22,7 @@ def getValidityFromAttributes(attributes):
     
     return validityDate
 
-def getL0(year,month, ltaUsr, ltaPwd):
+def getL0(year,month, ltaUrl, ltaUsr, ltaPwd):
 
     headers = {'Content-type': 'application/json'}
     days_in_month = monthrange(year,month)[1]
@@ -37,7 +37,7 @@ def getL0(year,month, ltaUsr, ltaPwd):
             previousNbDays = nb_days
 
             #Construction de la requête
-            request = (coreURL + "&$count=true") % (year,month,start_day,year,month,nb_days)
+            request = (coreURL + "&$count=true") % (ltaUrl, year,month,start_day,year,month,nb_days)
             print(request)
 
             resp = None
@@ -60,7 +60,7 @@ def getL0(year,month, ltaUsr, ltaPwd):
                     # On boucle sur toutes les pages de 200 fichiers L0
 
                     # Mise à jour de la requete
-                    request = (coreURL + "&$skip=%d") % (year,month,start_day,year,month,nb_days,(step+1)*200)
+                    request = (coreURL + "&$skip=%d") % (ltaUrl, year,month,start_day,year,month,nb_days,(step+1)*200)
                     print(request)
 
                     resp = None
@@ -98,6 +98,9 @@ if __name__ == "__main__":
                         help="Month",
                         default="all",
                         required=False)
+    parser.add_argument("-lu", "--ltaurl",
+                        help="Lta Endpoint Url",
+                        required=True)
     parser.add_argument("-u", "--user",
                         help="LTA user",
                         required=True)
@@ -110,7 +113,7 @@ if __name__ == "__main__":
 
     if args.month == "all":
         for m in range(12):
-            getL0(year, int(m+1), args.user, args.password)
+            getL0(year, int(m+1), args.ltaurl, args.user, args.password)
     else :
         month = int(args.month)
-        getL0(year, month, args.user, args.password)
+        getL0(year, month, args.ltaurl, args.user, args.password)
