@@ -5,7 +5,9 @@ import argparse, requests, collections
 from requests.auth import HTTPBasicAuth
 from calendar import monthrange
 
-coreURL = "https://lta.cloudferro.copernicus.eu/odata/v1/Products?$filter=startswith(Name,'S2') and ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'_L0__DS_')&$top=200&$expand=Attributes"
+#lta_baseurl = "lta.cloudferro.copernicus.eu"
+lta_baseurl = "aip.acri-st.fr"
+coreURL = f"https://{lta_baseurl}odata/v1/Products?$filter=startswith(Name,'S2') and ContentDate/Start gt %04d-%02d-%02dT00:00:00.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'_L0__DS_')&$top=200&$expand=Attributes"
 
 nbRequestsMaxTries = 5
 

@@ -18,7 +18,7 @@ def getL0(year, month, ltaUsr, ltaPwd):
     names = set()
     authentification = HTTPBasicAuth(ltaUsr, ltaPwd)
     with open("S1_L0_names_%02d_%04d.txt" % (month,year) ,"w") as l0_names:
-    
+
         previousNbDays = 0
         for nb_days in [10,20,days_in_month]:
             # On découpe le mois en plusieurs sections pour éviter un traitement trop long pour LTA
