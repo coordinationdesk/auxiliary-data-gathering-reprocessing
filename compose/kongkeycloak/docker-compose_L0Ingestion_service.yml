@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+
+
+
+  #######################################
+  # L0 Names Ingestion 
+ #######################################
+  l0_ingestion:
+    extends: 
+      file: docker-compose.yml
+      service: prip_ingestion_s2
+    container_name: l0_ingestion
+    image: l0_ingestion:1.0.0
+    restart: no
+    volumes:
+      - /adg_data/l0_ingestion:/L0_Ingestion
+
+
+
