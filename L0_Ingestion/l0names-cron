@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+BASH_ENV=/container.env
+MAILTO=""
+30 18  * * * /L0_Ingestion.sh /L0_ingestion > /proc/1/fd/1 2>/proc/1/fd/2

@@ -16,16 +16,16 @@ RUN apt-get update -y \
     && apt-get clean
 
     
-ADD baseline_l0.py /
+ADD baseline_l0.py time_formats.py L0_Fields_parse.py /
 
-#ADD L0_names_Ingestion.sh /
+ADD InitFuncs.sh L0_Ingestion.sh /
 
-#RUN chmod a+x /L0_names_Ingestion.sh
-#ADD l0names-cron /etc/cron.d/
+RUN chmod a+x /L0_Ingestion.sh
+ADD l0names-cron /etc/cron.d/
 ADD setenv.sh /setenv.sh
-RUN chmod a+x /setenv.sh 
+RUN chmod a+x /setenv.sh \
+    && chmod a+x /etc/cron.d/l0names-cron 
 #\
-#    && chmod a+x /etc/cron.d/l0names-cron \
 #    && crontab /etc/cron.d/l0names-cron
 
 CMD ["/setenv.sh"]

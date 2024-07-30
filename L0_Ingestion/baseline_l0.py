@@ -16,15 +16,15 @@ lta_baseurl = "aip.acri-st.fr"
 # S1_L0_types = ["RAW__0S"]
 # S3_L0_Types = ["MW_0_MWR___", "OL_0_EFR___", "SL_0_SLT___", "SR_0_SRA___"]
 class lta_l0_retriever:
-    #coreURL = f"{lta_baseurl}/odata/v1/Products?$filter=ContentDate/Start ge %04d-%02d-%02dT%02d:%02d:%02d.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'_RAW__0S')&$top=200"
-    #coreURL = f"{lta_baseurl}/odata/v1/Products?$filter=ContentDate/Start ge %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200&$expand=Attributes"
+    #coreURL = f"{lta_baseurl}/odata/v1/Products?$filter=ContentDate/Start gt %04d-%02d-%02dT%02d:%02d:%02d.000000Z and ContentDate/Start lt %04d-%02d-%02dT23:59:59.999999Z and contains(Name,'_RAW__0S')&$top=200"
+    #coreURL = f"{lta_baseurl}/odata/v1/Products?$filter=ContentDate/Start gt %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200&$expand=Attributes"
     nbRequestsMaxTries = 5
     headers = {'Content-type': 'application/json'}
     def __init__(self, lta_url, lta_user, lta_passw, num_days):
         self._authentication = HTTPBasicAuth(lta_user, lta_passw)
-        self._num_days = num_days
+        self._num_days = int(num_days)
         self._now_time = dt.datetime.utcnow()
-        self.coreURL = f"{lta_url}/Products?$filter=ContentDate/Start ge %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200"
+        self.coreURL = f"{lta_url}/Products?$filter=ContentDate/Start gt %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200"
 
 
     # TODO: do we get from a time, or from the start of a day?
@@ -224,6 +224,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    print("arguments: ", args)
     host=args.host
     port=args.port
     database=args.dbName
@@ -234,7 +235,7 @@ if __name__ == "__main__":
          parser.error("LTA arguments shall be all specified, if you are not using input File")
 
     _default_num_days = 15
-    num_days = args.numdays if args.numdays is not None else _default_num_days
+    num_days = args.numDays if args.numDays is not None else _default_num_days
     mission_l0_types = {
         'S1': ["RAW__0S"],
         'S2': ["L0__DS_"],

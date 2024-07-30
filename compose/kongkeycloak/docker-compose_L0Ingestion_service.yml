@@ -8,12 +8,22 @@ services:
   # L0 Names Ingestion 
  #######################################
   l0_ingestion:
-    extends: 
-      file: docker-compose.yml
-      service: prip_ingestion_s2
     container_name: l0_ingestion
     image: l0_ingestion:1.0.0
+    environment:
+      PRIP_USER: ${PRIPS2_USER}
+      PRIP_PASS: ${PRIPS2_PASS}
+      PRIP_ENDPOINT: ${PRIPS2_LTA_ENDPOINT}
+      NUM_DAYS: 5
+      DATABASELINE_POSTGRES_PASS: ${REPROCESSINGDATABASELINE_POSTGRES_PASSWORD}
+      DATABASELINE_POSTGRES_USER: "reprocessingdatabaseline"
+      DATABASELINE_POSTGRES_HOST: "database_reprocessing"
+      DATABASELINE_POSTGRES_DB:   reprocessingdatabaseline
     restart: no
+    depends_on:
+      - database_reprocessing
+    networks:
+      - proxynet
     volumes:
       - /adg_data/l0_ingestion:/L0_Ingestion
 
