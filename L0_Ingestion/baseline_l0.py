@@ -20,11 +20,18 @@ class lta_l0_retriever:
     #coreURL = f"{lta_baseurl}/odata/v1/Products?$filter=ContentDate/Start gt %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200&$expand=Attributes"
     nbRequestsMaxTries = 5
     headers = {'Content-type': 'application/json'}
-    def __init__(self, lta_url, lta_user, lta_passw, num_days):
+    NO_EXP_CORE_URL = "{baseurl}/Products?$filter=ContentDate/Start gt %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200"
+    _core_urls = {
+      'S1': NO_EXP_CORE_URL,
+      'S2': NO_EXP_CORE_URL + '&$expand=Attributes',
+      'S3': NO_EXP_CORE_URL
+    }
+    def __init__(self, mission, lta_url, lta_user, lta_passw, num_days):
         self._authentication = HTTPBasicAuth(lta_user, lta_passw)
         self._num_days = int(num_days)
         self._now_time = dt.datetime.utcnow()
-        self.coreURL = f"{lta_url}/Products?$filter=ContentDate/Start gt %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200"
+        self.coreURL = self._core_urls.get(mission).format(baseurl= lta_url)
+        self._l0_name_parser = L0_name_parser_factory.get_l0_name_parser(mission)
 
 
     # TODO: do we get from a time, or from the start of a day?
@@ -258,7 +265,7 @@ if __name__ == "__main__":
             for l0_type in mission_l0_types[mission]:
                 last_l0_type_table = l0_loader.get_l0_latest_validity() 
                 print("Last L0 validity for each Type for mission ", mission, ": ", last_l0_type_table)
-                lta_retriever = lta_l0_retriever(args.ltaurl, args.ltauser, args.ltapassword, num_days)
+                lta_retriever = lta_l0_retriever(mission, args.ltaurl, args.ltauser, args.ltapassword, num_days)
                 # for each satellite, or satellite_sensoor:
                 for unit, val_time in last_l0_type_table.items():
                     # Get from LTA a list of L0 names, for N days (or up to today),
