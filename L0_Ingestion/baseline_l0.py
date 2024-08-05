@@ -6,6 +6,7 @@ import datetime as dt
 import time
 import sys
 import psycopg2
+from psycopg2 import IntegrityError
 import requests
 from requests.auth import HTTPBasicAuth
 from time_formats import odata_datetime_format
@@ -214,7 +215,7 @@ class L0_NamesLoader:
     _query_sql = """SELECT SUBSTRING(name, 0, %d) unit, MAX(validitystart) FROM l0_products where SUBSTRING(name, 0, 3) = '%s' group by unit;"""
     def __init__(self, mission, dbconn):
         print("Initializing L0 Loader for mission", mission)
-        self._db_conn = dbconn 
+        self._db_conn = dbconn
         self._l0_validity_extractor = L0_validity_factory.get_l0_validity_extractor(mission)
         self._mission = mission
 
@@ -235,18 +236,22 @@ class L0_NamesLoader:
 
     def _get_lta_l0_validities(self, l0_products):
         # Appliy validity extractor to LTA query results
-        return [self._l0_validity_extractor.get_product_validity(l0_product)
-                for l0_product in l0_products]
+        return sorted((self._l0_validity_extractor.get_product_validity(l0_product)
+                for l0_product in l0_products))
 
     def add_l0_name_validities(self, l0_validities):
         with self._db_conn as conn:
-            with conn.cursor() as cursor:
-                for l0_record in l0_validities:
-                    l0_name, start, stop = l0_record
+            for l0_record in l0_validities:
+                l0_name, start, stop = l0_record
+                with conn.cursor() as cursor:
                     try:
                         print("Executing ", self._insert_sql % (l0_name, start, stop))
                         cursor.execute(self._insert_sql, (l0_name, start, stop))
                         conn.commit()
+                    except IntegrityError as ie:
+                        print("Record already existing, not inserted")
+                        print(ie)
+                        conn.rollback()
                     except Exception as e:
                         print(e)
                         conn.rollback()
@@ -306,7 +311,7 @@ def get_command_arguments():
     arg_values = parser.parse_args()
     print("Command line arguments: ", arg_values)
     if arg_values.inputFile is None and (arg_values.ltaurl is  None or arg_values.ltauser is None or arg_values.ltapassword is None):
-         parser.error("LTA arguments shall be all specified, if you are not using input File")
+        parser.error("LTA arguments shall be all specified, if you are not using input File")
     return arg_values
 
 
