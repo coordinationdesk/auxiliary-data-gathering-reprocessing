@@ -24,8 +24,7 @@ RUN chmod a+x /L0_Ingestion.sh
 ADD l0names-cron /etc/cron.d/
 ADD setenv.sh /setenv.sh
 RUN chmod a+x /setenv.sh \
-    && chmod a+x /etc/cron.d/l0names-cron 
-#\
-#    && crontab /etc/cron.d/l0names-cron
+    && chmod a+x /etc/cron.d/l0names-cron \
+    && crontab /etc/cron.d/l0names-cron
 
 CMD ["/setenv.sh"]
