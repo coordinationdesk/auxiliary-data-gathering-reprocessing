@@ -327,9 +327,17 @@ def get_command_arguments():
     print("Command line arguments: ", arg_values)
     if arg_values.inputFile is None and (arg_values.ltaurl is  None or arg_values.ltauser is None or arg_values.ltapassword is None):
         parser.error("LTA arguments shall be all specified, if you are not using input File")
-    date_pattern = re.compile("([0-9]{8}T[0-9]{6})")
-    if arg_values.fromdate is not None and not date_pattern.match(arg_values.fromdate):
-        parser.error("From Date format:  YYYYMMDD")
+    #date_pattern = re.compile("([0-9]{8}T[0-9]{6})")
+    date_pattern = re.compile("([0-9]{8}})")
+    print(arg_values.fromdate)
+    if arg_values.fromdate is not None:
+        from_date_str = arg_values.fromdate + '000000'
+        # TODO put under try/except to print error if format wrong
+        from_datetime = dt.datetime.strptime(from_date_str, '%Y%m%d%H%M%S')
+        arg_values.from_datetime = from_datetime
+    # if arg_values.fromdate is not None and not date_pattern.match(arg_values.fromdate):
+    #     print(date_pattern.match(arg_values.fromdate))
+    #     parser.error("From Date format:  YYYYMMDD")
     # check that date is in correct format
     return arg_values
 
@@ -377,15 +385,22 @@ if __name__ == "__main__":
                     l0_loader.add_l0_name(l0_name, start, stop)
 
         else:
-            fromdate = None
-            if args.fromdate:
-                # set time to 00:00:00
-                from_datetime_str = args.fromdate+"000000"
-                from_date = datetime.strptime(from_datetime_strfrom_date, '%Y%m%d%H%M%S')
-                # TODO: set the same from date for all types
+            #if args.fromdate:
+            #    # set time to 00:00:00
+            #    from_datetime_str = args.fromdate+"000000"
+            #    from_date = dt.datetime.strptime(from_datetime_str, '%Y%m%d%H%M%S')
+            #    # TODO: set the same from date for all types
             # Get Max validity for all types related to mission
             lta_retriever = LtaL0Retriever(mission, args.ltaurl, args.ltauser, args.ltapassword, num_days)
-            last_l0_type_table = l0_loader.get_l0_latest_validity()
+            if 'from_datetime' in vars(args):
+                from_date = args.from_datetime
+                last_l0_type_table = {}
+                for l0_type in mission_l0_types[mission]:
+                    last_l0_type_table[l0_type] = {}
+                    for unit in mission_units.get(mission):
+                        last_l0_type_table[l0_type].update({unit: from_date})
+            else:
+                last_l0_type_table = l0_loader.get_l0_latest_validity()
             print("Last L0 validity for each Type for mission ", mission, ": ", last_l0_type_table)
             print("Loop")
             for l0_type in mission_l0_types[mission]:
@@ -397,7 +412,7 @@ if __name__ == "__main__":
                     print("Retrieved L0 names for unit: ", unit, ": ", (prod['Name'] for prod in l0_products))
                     # With N from command line, with default if not specified (or default got from config file)
                     # Add the l0 names to db
-                    #l0_loader.add_l0_products(l0_products)
+                    l0_loader.add_l0_products(l0_products)
 
     except Exception as e:
         print(e)
