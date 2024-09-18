@@ -4,6 +4,7 @@ source ${PWD}/InitFuncs.sh
 
 if [ $# -lt 1 ]  ; then
   echo "$0 tmp_dir [NUM_DAYS [MISSION]]"
+  echo "$0 tmp_dir FROM_DATE NUM_DAYS MISSION"
     exit 0
 fi
 # CHECK IF ANOTHER INSTANCE IS RUNNING
@@ -21,23 +22,42 @@ WORK_FOLDER=$1
 echo "WORK_FOLDER : "$WORK_FOLDER
 
 REQ_MISSION=""
+REFERENCE_DATE=""
 if [[ $# -gt 1 ]]; then
-  NUM_DAYS=$2
-  echo "Ingesting $NUM_DAYS days of product names"
-  if [[ $# -gt 2 ]]; then
-    # CHeck Mission is valid
-    REQ_MISSION=$3
-	case $REQ_MISSION in
-	    S1|S2|S3)
-		# do nothing
-		;;
-	    *)
-		# error
-		echo ' MISSION ($REQ_MISSION) not valid  ' >&2
-		exit 1
-	esac
-
+  echo "$# Arguments"
+  if [[ $# -eq 4 ]]; then
+     
+    REFERENCE_DATE=$2
+    echo "Ingesting from Date $REFERENCE_DATE"
+  # Check if Start Date in  '+%Y-%m-%d'
+    if [[ ! $REFERENCE_DATE =~ ^([0-9]{4})\-(0[0-9]|1[0-2])\-(0[1-9]|[1-2][0-9]|3[0-1])$ ]]
+    then
+      echo "Second argument (Reference date) should be in the format: YYYY-mm-DD ($REFERENCE_DATE)"
+      exit 1
+    else
+      echo "Ingesting from Reference date $REFERENCE_DATE"
+    fi
+    NUM_DAYS=$3
+    REQ_MISSION=$4
+  else
+    NUM_DAYS=$2
+    echo "Ingesting $NUM_DAYS days of product names"
+    if [[ $# -gt 2 ]]; then
+        REQ_MISSION=$3
+    fi
   fi
+fi
+if [[ ! -z $REQ_MISSION ]]; then
+   # CHeck Mission is valid
+   case $REQ_MISSION in
+      S1|S2|S3)
+  	# do nothing
+  	;;
+      *)
+  	# error
+  	echo ' MISSION ($REQ_MISSION) not valid  ' >&2
+  	exit 1
+  esac
 fi
 
 if [[ -z ${NUM_DAYS} ]]; then
@@ -57,10 +77,17 @@ init_lta_variables
 
 create_folder $WORK_FOLDER
 #EXECUTION DATE
-START_DATE=$(date '+%Y-%m-%d')
+EXEC_DATE=$(date '+%Y-%m-%d')
 # MOVE Folders creation inside ingest mission, to be done for each mission!
-init_folders $START_DATE
+init_folders $EXEC_DATE
 
+if [[ -z ${REFERENCE_DATE} ]]; then
+  FROM_DATE_ARG=""
+else
+  # IF a REFERENCE DATE WAS SPECIFIED, ingest 1 DAY of data
+  FROM_DATE_ARG="-fd ${REFERENCE_DATE}"
+  echo " TO DATE: $TO_DATE"
+fi
 function ingest_mission() {
   # Expecting argument for MISSION to be ingested
   #  From/TO date arguments (with option included) are defined
@@ -74,7 +101,7 @@ function ingest_mission() {
   python3 -u ${CUR_DIR}/baseline_l0.py -m ${MISSION} \
         -dbh ${DATABASELINE_POSTGRES_HOST} -p 5432 -dbn ${DATABASELINE_POSTGRES_DB}  -dbu ${DATABASELINE_POSTGRES_USER} -dbp ${DATABASELINE_POSTGRES_PASS}    \
         -lu ${PRIP_ENDPOINT} -u ${PRIP_USER} -pw ${PRIP_PASS} \
-        ${NUM_DAYS_ARG} 
+        ${FROM_DATE_ARG} ${NUM_DAYS_ARG} 
   code=$?
    if [ $code -ne 0 ]; then
     echo "L0 Retrieve failed"

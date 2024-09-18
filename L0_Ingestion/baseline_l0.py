@@ -328,12 +328,13 @@ def get_command_arguments():
     if arg_values.inputFile is None and (arg_values.ltaurl is  None or arg_values.ltauser is None or arg_values.ltapassword is None):
         parser.error("LTA arguments shall be all specified, if you are not using input File")
     #date_pattern = re.compile("([0-9]{8}T[0-9]{6})")
-    date_pattern = re.compile("([0-9]{8}})")
+    #date_pattern = re.compile("([0-9]{8}})")
+    date_pattern = re.compile("([0-9]{4}})-([0-1][0-2])-([0-3][0-9])")
     print(arg_values.fromdate)
     if arg_values.fromdate is not None:
-        from_date_str = arg_values.fromdate + '000000'
+        from_date_str = arg_values.fromdate +  '000000'
         # TODO put under try/except to print error if format wrong
-        from_datetime = dt.datetime.strptime(from_date_str, '%Y%m%d%H%M%S')
+        from_datetime = dt.datetime.strptime(from_date_str, '%Y-%m-%d%H%M%S')
         arg_values.from_datetime = from_datetime
     # if arg_values.fromdate is not None and not date_pattern.match(arg_values.fromdate):
     #     print(date_pattern.match(arg_values.fromdate))
@@ -409,7 +410,7 @@ if __name__ == "__main__":
                 for unit, val_time in last_l0_type_table[l0_type].items():
                     # Get from LTA a list of L0 names, for N days (or up to today),
                     l0_products = lta_retriever.get_lta_l0_products(unit, l0_type, val_time)
-                    print("Retrieved L0 names for unit: ", unit, ": ", (prod['Name'] for prod in l0_products))
+                    print("Retrieved L0 names for unit: ", unit, ": ", [prod['Name'] for prod in l0_products])
                     # With N from command line, with default if not specified (or default got from config file)
                     # Add the l0 names to db
                     l0_loader.add_l0_products(l0_products)
