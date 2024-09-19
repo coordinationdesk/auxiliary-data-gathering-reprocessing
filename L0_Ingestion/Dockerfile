@@ -16,7 +16,8 @@ RUN apt-get update -y \
     && apt-get clean
 
     
-ADD baseline_l0.py time_formats.py L0_Fields_parse.py /
+ADD baseline_l0.py time_formats.py /
+ADD L0_Fields_parse.py L0_lta_retriever.py /
 
 ADD InitFuncs.sh L0_Ingestion.sh /
 

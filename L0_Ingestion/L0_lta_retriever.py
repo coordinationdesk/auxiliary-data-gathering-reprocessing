@@ -110,5 +110,6 @@ class LtaL0Retriever:
 
     def get_lta_l0_names(self, unit_name, l0_type, from_date):
         lta_results = self.get_lta_l0_products(unit_name, l0_type, from_date)
+        print("Found ", len(lta_results), " on LTA")
         return [rec['Name'] for rec in lta_results]
 
