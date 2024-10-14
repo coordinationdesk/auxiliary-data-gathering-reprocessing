@@ -105,7 +105,7 @@ class LtaL0Retriever:
         # TBD: do we pass date objects, or strings? Better to leave to query function the format of the date string
         end_time_str =  dt.datetime.strftime(end_time, odata_datetime_format)
         from_date_str =  dt.datetime.strftime(from_date, odata_datetime_format)
-        lta_results = self._get_names(unit_name, l0_type, from_date_str, end_time_str)
+        lta_results = self._get_names(unit_name, l0_type, from_date_str, end_time_str, 60)
         return lta_results
 
     def get_lta_l0_names(self, unit_name, l0_type, from_date):
