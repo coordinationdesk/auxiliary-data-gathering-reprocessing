@@ -266,7 +266,7 @@ function ingest_mission_type_by_type() {
       exit 1
   fi
   MISSION=$1
-  echo "Function ingest_mission_type_by_type: Ingesting Mission ${MISSION} with arg ${FROM_DATE_ARG} and ${TO_DATE_ARG}"
+  echo "[BEGIN] Ingesting Mission ${MISSION} types with arg ${FROM_DATE_ARG} and ${TO_DATE_ARG}"
   # FOr S2, specify types to downldao, instead of specifying the type folder
   set -a MISSION_AUX_TYPES
   MISSION_AUX_TYPES=$(python3 -u ${CUR_DIR}/mission_aux_types.py -m $MISSION -fd ${CUR_DIR}/file_types)
@@ -286,7 +286,7 @@ function ingest_mission_type_by_type() {
     (( tt_ingestion_code=$t_result||$tt_ingestion_code ))
     echo "[END] Completed Ingestion of  aux type $aux_t for mission $MISSION from $FROM_DATE_ARG to $TO_DATE_ARG"
   done
-  echo "Completed Ingesting aux files for mission $MISSION"
+  echo "[END] Completed Ingesting aux files for mission $MISSION types"
   #ingest_mission_types S2 "_UT1UTC_ _ECMWFD_ADG_
   return $tt_ingestion_code
 }
