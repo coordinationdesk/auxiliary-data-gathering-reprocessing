@@ -93,6 +93,11 @@ function ingest_mission() {
     echo "Ingesting mission $MISSION from INput Folder $INPUT_FOLDER"
     ingest_mission ${MISSION} ${INPUT_FOLDER}
     result=$?
+  if [ $result -eq 0 ]; then
+      echo "Removing Downloaded ingested folder  ${INPUT_FOLDER}"
+      rm -rf ${INPUT_FOLDER}
+  fi
+    
 
 echo "Done"
 

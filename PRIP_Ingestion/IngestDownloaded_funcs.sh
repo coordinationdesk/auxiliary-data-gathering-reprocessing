@@ -30,8 +30,17 @@ function ingest_downloaded_files() {
   if [ $master_code -eq 0 ]; then
       echo "AUXIP ingestion done"
       echo "Removing files downloaded from LTA (Ingested on AUXIP)..."
-      rm  -rf "${DWL_TEMP_FOLDER}"
-      echo "Removed files downloaded from LTA"
+      while read ingested_file ; do
+          rm   "${DWL_TEMP_FOLDER}/$ingested_file"
+      done < ${LISTING_FOLDER}/file_list_${MISSION}.txt 
+      echo "Removed files downloaded from LTA and ingested on AUXIP"
+  else
+      
+      echo "AUXIP ingestion done with some errors"
+      echo "Removing files downloaded from LTA ( only those ingested on AUXIP)..."
+  fi
+  if [ ! -z ${LISTING_FOLDER}/file_list_${MISSION}.txt ]; then
+     master_code=0
   fi
   return $master_code
 }
