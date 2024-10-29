@@ -53,7 +53,8 @@ function ingest_reprobase() {
   master_code=$code
   if [ $master_code -eq 0 ]; then
       if [ -s "${LISTING_FOLDER}/file_list_${MISSION}.txt" ]; then
-        echo "Starting Reprobase jsons generation for $MISSION"
+        echo "[BEG] Starting Reprobase jsons generation for $MISSION"
+        echo "[BEG] Starting Reprobase jsons generation for $MISSION" >> ${ERROR_FILE_LOG}
         MISSION_LOWER=${MISSION,,}
         python3 -u ${CUR_DIR}/ingest_${MISSION_LOWER}files.py -i ${LISTING_FOLDER}/file_list_${MISSION}.txt -f ${CUR_DIR}/file_types -t ${CUR_DIR}/template.json -o ${JSONS_FOLDER}
         code=$?
@@ -70,6 +71,8 @@ function ingest_reprobase() {
         echo "Reprobase jsons generation failed"
         echo "Reprobase jsons generation failed" >> ${ERROR_FILE_LOG}
       fi
+      echo "[END] Completed Reprobase jsons generation for $MISSION"
+      echo "[END] Completed Reprobase jsons generation for $MISSION" >> ${ERROR_FILE_LOG}
       master_code=$master_code_reprobase
   fi
   # Adding auxip related JSONS into ReproBase 
@@ -77,6 +80,8 @@ function ingest_reprobase() {
       echo "Reprobase json generation done"
       master_code=0
       if [ -s "${LISTING_FOLDER}/file_list_${MISSION}.txt" ]; then
+        echo "[BEG] Starting Pushing jsons for $MISSION to Reprobase"
+        echo "[BEG] Starting Pushing jsons for $MISSION to Reprobase" >> ${ERROR_FILE_LOG}
         for f in $(find ${JSONS_FOLDER} -name '*.json'); do
           echo "Pushing "$f" to reprobase"
           python3 -u ${CUR_DIR}/update_base.py -i $f -u ${AUXIP_USER} -pw ${AUXIP_PASS} -m ${MODE}
@@ -95,6 +100,8 @@ function ingest_reprobase() {
         echo "Reprobase ingestion for mission ${MISSION} failed at least one JSON"
         echo "Reprobase ingestion for mission ${MISSION} failed at least one JSON" >> ${ERROR_FILE_LOG}
       fi
+      echo "[END] Completed Pushing jsons for $MISSION to Reprobase"
+      echo "[END] Completed Pushing jsons for $MISSION to Reprobase"  >> ${ERROR_FILE_LOG}
   fi
   return $master_code
 }
