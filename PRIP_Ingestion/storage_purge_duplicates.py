@@ -66,6 +66,7 @@ def get_duplicate_ids_from_file(input_file):
 
 
 def remove_from_archive_product_instances(path_to_mc, bucket, filename, id_list, mode):
+    removal_result = {}
     for uuid in id_list:
         wasabi_res = remove_from_wasabi(path_to_mc,bucket,filename,uuid,mode) 
         if wasabi_res == OK:
@@ -73,6 +74,8 @@ def remove_from_archive_product_instances(path_to_mc, bucket, filename, id_list,
         else:
             global_status = KO
             print("%s ==> Failed remove from Wasabi with : %s " % (filename,uuid) )
+        removal_result[uuid] = wasabi_res
+    return removal_result
 
 
 def purge_product_instances(name, avail_config, auxip_connection, mcpath, bucket, mode):
@@ -94,31 +97,42 @@ def purge_product_instances(name, avail_config, auxip_connection, mcpath, bucket
     print("Num catalogued products: ", len(avail_config['catalogued']))
     print("At least one catalogued product: ", "Yes" if len(avail_config['catalogued']) else "No")
     # Remove from archive uncatalogued products, if at least 1
+    archive_purge_result = {}
+    auxip_purge_result = {}
     if len(avail_config['uncatalogued']) > 1:
         # Print: each Id being deleted from storage
         print("Calling Remove_from archive_product instances: ", avail_config['uncatalogued'][:-1])
-        remove_from_archive_product_instances(mcpath, bucket, name, avail_config['uncatalogued'][:-1], mode)
+        archive_purge_result = remove_from_archive_product_instances(mcpath,
+                                                                     bucket, name,
+                                                                     avail_config['uncatalogued'][:-1], mode)
 
     # Last copy on Archive should be kept always: it should be the same kept on AUXIP
     # Print: if deleteing last id from storage (if any)
     if avail_config['available'] and len(avail_config['uncatalogued']) > 0:
         print("At least one catalogued item for file ", name)
         print("Removing also last id from Wasabi: ", avail_config['uncatalogued'][-1])
-        remove_from_archive_product_instances(mcpath, bucket, name, [avail_config['uncatalogued'][-1]], mode)
+        archive_purge_result.update(remove_from_archive_product_instances(mcpath,
+                                                                          bucket, name,
+                                                                          [avail_config['uncatalogued'][-1]], mode))
 
     # print : if deleting from auxip/storage
     if len(avail_config['catalogued']) > 1:
         print("Filename ", name, ", Removing catalogued items : ", avail_config['catalogued'][:-1])
-        result = remove_aux_product_instances(name, avail_config['catalogued'][:-1],
+        auxip_global, auxip_purge_result = remove_aux_product_instances(name, avail_config['catalogued'][:-1],
                                               auxip_connection,
                                               mcpath, bucket)
 
+        print(name, " - Global Auxip result: ", auxip_global)
+    kept_copy = {}
     # print last object remaining after purge
     if avail_config['available']:
         print("Kept Auxip and Wasabi product: ", avail_config['catalogued'][-1])
+        kept_copy[avail_config['catalogued'][-1]] = 'auxip'
     else:
         print("Kept Wasabi product: ", avail_config['uncatalogued'][-1])
         print(name, " Product to be catalogued on Auxip: ", avail_config['uncatalogued'][-1])
+        kept_copy[avail_config['uncatalogued'][-1]] = 'archive'
+    return {'archive_deleted': archive_purge_result, 'auxip_deleted': auxip_purge_result, 'kept': kept_copy}
 
 OK = 0
 KO = 1
@@ -134,6 +148,7 @@ def remove_aux_product_instances(filename, id_list,
     print("Removeing from Storage and Auxip  aux file ", filename, " with uuid's ", id_list)
      
     global_status = OK
+    removal_result = {}
     for uuid in id_list:
         print("Removing from Auxip file ", filename, ", id: ", uuid)
         auxip_res = auxip_connection.remove_auxip_file(filename, uuid) 
@@ -150,7 +165,8 @@ def remove_aux_product_instances(filename, id_list,
             print("%s ==> Failed remove from Wasabi with : %s " % (filename,uuid) )
         
         print ( "%s : %s\tremove_from_wasabi : %s; remove_from_auxip : %s\n" % (filename,uuid, code_result[wasabi_res], code_result[auxip_res]))
-    return global_status
+        removal_result.update({id: {'archive': wasabi_res, 'auxip': auxip_res}})
+    return global_status, removal_result
 
 def main():
     args = get_command_arguments()
@@ -182,18 +198,23 @@ def main():
         print(name_dupl_avail_table)
         archive_deleted = []
         archive_auxip_deleted = []
+        operation_results = {}
         #  Purge files from storage (NOTE: it would be bettere if each ID had associated a publication date, and a Checksum)
         # get list of files/ids deleted from archive, list of files/ids deleted from archive and auxip
         # files not deleted (either from archive or from auxip)
+        # avail config specifies a list of IDs for each status of the product: already catalogued, not catalogued
         for name, avail_config in name_dupl_avail_table.items():
-             purge_product_instances(name, avail_config, auxip_connection,
-                                     args.path_to_mc, args.bucket, args.mode)
+             # TODO: as a result, receive for each deleted file ID, if archive successful, if catalogue successful
+             purge_results = purge_product_instances(name, avail_config, auxip_connection,
+                                                     args.path_to_mc, args.bucket, args.mode)
+             operation_results[name] = purge_results
 
         # Write operations performed: files deleted only from archive,
         # files deleted from archive and auxip, files retained
         # any erorr?
-        #out_file = f"{args.output_file}.removed"
-        #with open(out_file, "w") as of:
+        out_file = f"{args.output_file}.removed"
+        with open(out_file, "w") as of:
+             print(operation_results, file=of)
         #    report_writer = csv.writer(of)
         ##    for fileid in removed:
         #        report_writer.writerow(fileid)
