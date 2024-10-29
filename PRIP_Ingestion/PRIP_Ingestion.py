@@ -135,7 +135,7 @@ def main():
                 working_dir = os.path.join(args.working, satellite_platform)
                 if not os.path.exists(working_dir):
                     os.makedirs(working_dir)
-                print("{} files to download from LTA".format(len(prip_list)))
+                print("{}: {} files to download from LTA".format(from_date, len(prip_list)))
                 dwl_counter = 0
                 for file_id, file_name, *_ in prip_list:
                     print("File ", file_id, ", name: ", file_name)
