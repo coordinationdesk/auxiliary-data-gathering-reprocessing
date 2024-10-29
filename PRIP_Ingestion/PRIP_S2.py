@@ -211,6 +211,8 @@ def prip_sensing_list(user, password, auxip_user, auxip_password,
     print("Querying LTA for types ", type_list, ", Sat: ", sat,
           ", From date: ", from_date, ", to ", to_date)
     latest_pub_date = from_date
+    # NOTE: we are retrieving from LTA based on sensing,
+    # but we are checking last publication date on AUXIP
     if latest_pub_date is None:
         # TODO: get TOken and use for are_file_available
         latest_pub_date = get_latest_pub_date(auxip_user, auxip_password,
@@ -266,11 +268,16 @@ def prip_download(id, name,user, password,base_url,output_folder, req_timeout=30
                         print("Starting download")
                         start = time.perf_counter()
                         downloaded_bytes = 0
+                        max_chunk_size = 4096
+                        num_batches = 0 
+                        progress_period = total_length / max_chunk_size / 10 + 1
                         for data in product_response.iter_content(chunk_size=4096):
                             downloaded_bytes += len(data)
                             fid.write(data)
-                            sys.stdout.write("\r...Downloaded %s/%s bytes" %( downloaded_bytes,total_length))
-                            sys.stdout.flush()
+                            if (num_batches % progress_period) == 0:
+                                sys.stdout.write("\r...Downloaded %s/%s bytes" %( downloaded_bytes,total_length))
+                                sys.stdout.flush()
+                            num_batches += 1
                             # done = int(50 * downloaded_bytes / total_length)
                             # sys.stdout.write("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), downloaded_bytes//(time.perf_counter() - start)))
                             # sys.stdout.flush()

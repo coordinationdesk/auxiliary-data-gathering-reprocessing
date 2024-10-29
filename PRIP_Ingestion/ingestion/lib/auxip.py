@@ -232,11 +232,11 @@ def search_in_auxip(name,access_token,mode='dev'):
         raise e
 
 
-def _create_auxip_record(aux_data_file_path, uuid, file_attributes):
+def _create_auxip_record(aux_data_file_path, uuid, file_attributes, pub_date=None):
     aux_data_file_name = os.path.basename(aux_data_file_path)
     # TODO: It should read "PublicationDate" from attributes, and set now
     #      only if attribute is not set
-    publicationdate = datetime.strftime(datetime.utcnow(), odata_datetime_format)
+    publicationdate = pub_date if pub_date is not None else datetime.strftime(datetime.utcnow(), odata_datetime_format)
     # convert attributes to an array of dicts 
     attributes_list = []
     for attr_name, attr_value in file_attributes.items():
