@@ -5,7 +5,6 @@ MAINTAINER CS SI
 ENV TZ=UTC
 RUN apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get update \
     && apt-get install -y  tzdata \
     && apt-get install -y  --no-install-recommends apt-utils rclone cron ca-certificates lsb-core wget gnupg2 \
     && apt-get install -y  --no-install-recommends python3-requests python3-lxml python3-pip libeccodes-tools \
