@@ -14,8 +14,8 @@ if [ -z ${PRIP_PASS+x} ]; then
   exit 1
 fi
 #echo "PRIP_PASS: "${PRIP_PASS}
-if [ -z ${AUXIP_USER+x} ]; then
-  echo "AUXIP_USER not set"
+if [ -z ${PRIP_PASS+x} ]; then
+  echo "PRIP_PASS not set"
   exit 1
 fi
 }
@@ -91,13 +91,13 @@ fi
 function create_folder() {
   NEW_FOLDER=$1
 
-	if [[ ! -d $NEW_FOLDER ]]; then
-	  mkdir -p $NEW_FOLDER
-	  if [[ ! -d $NEW_FOLDER ]]; then
-	    echo $NEW_FOLDER" folder can't be created and doesnt exists"
-	    exit 1
-	  fi
-	fi
+  if [[ ! -d $NEW_FOLDER ]]; then
+    mkdir -p $NEW_FOLDER
+    if [[ ! -d $NEW_FOLDER ]]; then
+      echo $NEW_FOLDER" folder can't be created and doesnt exists"
+      exit 1
+    fi
+  fi
 }
 
 
@@ -115,6 +115,18 @@ function init_folders() {
   create_folder $TEMP_FOLDER_LISTING
   create_folder $TEMP_FOLDER_JSONS
   echo "Temporary folder : "$TEMP_FOLDER
+}
+
+# Verify if other copies of this shell are running
+function test_single_exec() {
+  # Processes include: containing bash, bash
+  if [ $(ps ax | grep $0 | grep -v grep | wc -l) -gt 3 ]; then  
+    echo "$0 Already running"
+    # echo "ps returned $(ps ax | grep $0 | wc -l) items"
+    # echo "ps returned $(ps ax | grep $0 ) items"
+    return 1
+  fi
+  return 0
 }
 
 CUR_DIR="$(
