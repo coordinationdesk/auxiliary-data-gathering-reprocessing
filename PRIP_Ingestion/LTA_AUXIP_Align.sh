@@ -25,8 +25,19 @@ source ${PWD}/InitFuncs.sh
 # if mission not specified, all missions
 
 DATE_FORMAT="%Y-%m-%d"
-DATE_FILE=${CUR_DIR}/AlignLastDate.txt
+#DATE_FILE=${CUR_DIR}/AlignLastDate.txt
+function get_date_file_name() {
+MISS=$1
+ROOT_F=$2
+if [[ -z ${ROOT_F} ]]; then
+   ROOT_F=${CUR_DIR}
+fi
+echo "${ROOT_F}/${MISS}_AlignLastDate.txt"
+}
 function read_start_date() {
+MISSION=$1
+ROOT_F=$2
+  DATE_FILE=$(get_date_file_name $MISSION ${ROOT_F})
   if [ -f ${DATE_FILE} ]; then
     # Read Date from file
     echo "Align Last Date file found" >&2
@@ -38,7 +49,8 @@ function read_start_date() {
       # Redirect command to avoid mixing output with this function otuput
       if   date -d $LAST_DATE +${DATE_FORMAT} >&2
       then
-         START_DATE=$(date -d "$LAST_DATE +1 days" +${DATE_FORMAT} )
+         #START_DATE=$(date -d "$LAST_DATE +1 days" +${DATE_FORMAT} )
+         START_DATE=$LAST_DATE
       else
         echo "Date in Last Date file has wrong format" >&2
         exit -1
@@ -46,7 +58,7 @@ function read_start_date() {
     fi
   else
     # Read Date from Env Variable
-    echo "Align Last Date file not found" >&2
+    echo "Align Last Date file ${DATE_FILE} not found" >&2
     if [ -z ${L0_ALIGN_START+x} ]; then
       echo "L0_ALIGN_START not set" >&2
       exit -1
@@ -67,10 +79,13 @@ function read_start_date() {
 
 function update_last_date() {
 LAST_DATE=$1
+MISSION=$2
+TARGET_F=$3
+  DATE_FILE=$(get_date_file_name $MISSION ${TARGET_F})
 echo ${LAST_DATE} > $DATE_FILE
 }
 
-#test_single_exec
+test_single_exec
 if [[ $? -ne 0 ]]; then
    echo "Cannot run, bye"
    exit 1
@@ -88,7 +103,9 @@ WORK_FOLDER=$1
 echo "WORK_FOLDER : "$WORK_FOLDER
 
 
-REQ_MISSION=""
+# Read Mission from ENVIRONMENT VARIABLE
+REQ_MISSION=${ALIGN_MISSION}
+# Override the value, if specified on Command Line Arguments
 if [[ $# -gt 1 ]]; then
     # CHeck Mission is valid
     REQ_MISSION=$2
@@ -104,30 +121,37 @@ if [[ $# -gt 1 ]]; then
     
 fi
 
-MISSIONS=""
+# Define List of Missions; all missions, or the one specified
+# by command line or environment variable
+MISSIONS="S1 S2 S3"
 if [[ ! -z ${REQ_MISSION} ]]; then
   echo "Ingesting only Mission  $REQ_MISSION"
     MISSIONS="$REQ_MISSION"
 fi
 
-CURR_DATE=$(read_start_date)
-if [[ $? -eq 0 ]]; then 
-  echo "Start date is: $CURR_DATE"
-fi
+for mission in ${MISSIONS}
+do
+   CURR_DATE=$(read_start_date ${mission} ${WORK_FOLDER})
+   if [[ $? -eq 0 ]]; then 
+     echo "Start date is: $CURR_DATE"
+   fi
 
-# Define a work Folder under WORK_FOLDER
-TEMP_FOLDER=${WORK_FOLDER}/${CURR_DATE}
-create_folder $TEMP_FOLDER
+   # Define a work Folder under WORK_FOLDER
+   TEMP_FOLDER=${WORK_FOLDER}/${CURR_DATE}
+   create_folder $TEMP_FOLDER
 
-NLOOPS=${LTA_ALIGN_BATCH_LEN}
-if [[ -z ${NLOOPS} ]]; then
-  # Default number of executions in one batch is 7
-  NLOOPS=7
-fi
-echo "Executing $NLOOPS one day ingestions from date $CURR_DATE"
- # Loop N times 
-for in in $(seq $NLOOPS); do 
-    $CUR_DIR/PRIP_Ingestion.sh ${TEMP_FOLDER} $CURR_DATE
-    CURR_DATE=$(date -d "${CURR_DATE} +1 days" +${DATE_FORMAT})
+   NLOOPS=${LTA_ALIGN_BATCH_LEN}
+   if [[ -z ${NLOOPS} ]]; then
+     # Default number of executions in one batch is 7
+     NLOOPS=7
+   fi
+   echo "Mission $mission: Executing $NLOOPS one day ingestions from date $CURR_DATE"
+   # Loop N times 
+    for in in $(seq $NLOOPS); do 
+        echo "Starting ingestion for date $CURR_DATE"
+        $CUR_DIR/PRIP_Ingestion.sh ${TEMP_FOLDER} $CURR_DATE $mission
+        CURR_DATE=$(date -d "${CURR_DATE} +1 days" +${DATE_FORMAT})
+        update_last_date $CURR_DATE $mission ${WORK_FOLDER}
+    done
 done
-update_last_date $CURR_DATE
+# Write on file the date to be used at next activation
