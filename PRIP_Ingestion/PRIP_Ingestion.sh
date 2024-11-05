@@ -97,7 +97,8 @@ function ingest_downloaded_files() {
   echo "Ingesting downloaded files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER, Folder for JSONS: $JSONS_FOLDER"
   master_code=$code
   if [ $code -eq 0 ]; then
-    echo "PRIP download completed succesfully"
+    echo "LTA download completed succesfully: $(ls $DWL_TEMP_FOLDER | wc -l) files downloaded"
+    echo "LTA download completed succesfully: $(ls $DWL_TEMP_FOLDER | wc -l) files downloaded" >> ${ERROR_FILE_LOG}
 
     echo "Starting AUXIP ingestion $MISSION"
     python3 -u ${CUR_DIR}/ingestion/ingestion.py -i ${DWL_TEMP_FOLDER} -u ${AUXIP_USER} -pw ${AUXIP_PASS} -mc ${MCPATH} -b "wasabi-auxip-archives/"${S3_BUCKET} -o ${LISTING_FOLDER}/file_list_${MISSION}.txt -m ${MODE}
@@ -120,6 +121,8 @@ function ingest_downloaded_files() {
       rm  -rf "${DWL_TEMP_FOLDER}"
       echo "Removed files downloaded from LTA"
       if [ -s "${LISTING_FOLDER}/file_list_${MISSION}.txt" ]; then
+        echo "$(wc -l ${LISTING_FOLDER}/file_list_${MISSION}.txt) Files ingested into Auxip"
+        echo "$(wc -l ${LISTING_FOLDER}/file_list_${MISSION}.txt) Files ingested into Auxip" >> ${ERROR_FILE_LOG}
         echo "Starting Reprobase jsons generation for $MISSION"
         MISSION_LOWER=${MISSION,,}
         python3 -u ${CUR_DIR}/ingest_${MISSION_LOWER}files.py -i ${LISTING_FOLDER}/file_list_${MISSION}.txt -f ${CUR_DIR}/file_types -t ${CUR_DIR}/template.json -o ${JSONS_FOLDER}

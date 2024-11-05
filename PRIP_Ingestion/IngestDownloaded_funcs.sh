@@ -8,7 +8,8 @@ function ingest_downloaded_files() {
   echo "Ingesting downloaded files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER, Folder for JSONS: $JSONS_FOLDER"
   master_code=$code
   if [ $code -eq 0 ]; then
-    echo "PRIP download completed succesfully"
+    echo "LTA download completed succesfully: $(ls $DWL_TEMP_FOLDER | wc -l) files downloaded"
+    echo "LTA download completed succesfully: $(ls $DWL_TEMP_FOLDER | wc -l) files downloaded" >> ${ERROR_FILE_LOG}
     ls $DWL_TEMP_FOLDER/${MISSION}
 
     echo "Starting AUXIP ingestion $MISSION"
@@ -41,6 +42,8 @@ function ingest_downloaded_files() {
   fi
   if [ ! -z ${LISTING_FOLDER}/file_list_${MISSION}.txt ]; then
      master_code=0
+     echo "$(wc -l ${LISTING_FOLDER}/file_list_${MISSION}.txt) Files ingested into Auxip"
+     echo "$(wc -l ${LISTING_FOLDER}/file_list_${MISSION}.txt) Files ingested into Auxip" >> ${ERROR_FILE_LOG}
   fi
   return $master_code
 }
