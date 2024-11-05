@@ -10,10 +10,10 @@ services:
       file: docker-compose.yml
       service: prip_ingestion_s2
     container_name: lta_auxip_align
-    image: lta_auxip_align:1.0.0
+    image: lta_auxip_align:1.0.1
     environment:
-      LTA_ALIGN_BATCH_LEN: 10
-      L0_ALIGN_START: "2018-01-01"
+      LTA_ALIGN_BATCH_LEN: 12
+      L0_ALIGN_START: "2022-04-01"
     volumes:
       - /adg_data/grib2/lta_auxip_align:/lta_auxip_align
     restart: no
