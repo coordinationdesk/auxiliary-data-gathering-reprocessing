@@ -1,4 +1,4 @@
 SHELL=/bin/bash
 BASH_ENV=/container.env
 MAILTO=""
-10 02,06,10,14,22  * * * /LTA_AUXIP_Align.sh /lta_auxip_align > /proc/1/fd/1 2>/proc/1/fd/2
+10 03,8,13,23  * * * /LTA_AUXIP_Align.sh /lta_auxip_align > /proc/1/fd/1 2>/proc/1/fd/2
