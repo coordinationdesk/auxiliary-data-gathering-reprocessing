@@ -1,0 +1,50 @@
+ARG DEBIAN_FRONTEND noninteractive
+FROM ubuntu:20.04
+
+MAINTAINER CS SI
+
+ENV TZ=UTC
+
+#    && RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y  tzdata unzip \
+    && apt-get install -y  --no-install-recommends apt-utils cron ca-certificates lsb-core gnupg2 \
+    && apt-get install -y  --no-install-recommends python3-requests python3-lxml python3-pip \
+    && apt-get clean
+
+    
+# Control scripts
+ADD InitFuncs.sh /
+ADD LastDateFile.sh /
+ADD IngestDownloaded_funcs.sh /
+ADD EumetsatBatchContinuous.sh /
+ADD Eumetsat_Ingest.sh /
+# Eumetsat acquisition
+ADD eumetsat_provider /eumetsat_provider
+ADD FileUtils.py /
+# AUXIP ingestion
+ADD mc /
+ADD ingestion /ingestion
+
+# Reprobase Ingestion
+ADD ingest_s1files.py /
+ADD ingest_s2files.py /
+ADD ingest_s3files.py /
+ADD update_base.py /
+ADD template.json /
+ADD S2_FileNaming.py /
+ADD odata_request.py /
+ADD file_types.tgz /
+
+RUN chmod a+x /EumetsatBatchContinuous.sh
+RUN chmod a+x /mc
+
+#ADD setenv.sh /setenv.sh
+#RUN chmod a+x /setenv.sh 
+
+#CMD ["/EumetsatBatchContinuous.sh", "/eumetsat", "S3", "AX___MA1_AX", "2016-02-29", "2024-07-31" ]
+#ENTRYPOINT ["/EumetsatBatchContinuous.sh", "/eumetsat", "S3", "AX___MA1_AX", "2016-02-29", "2024-07-31" ]
+ENTRYPOINT ["/EumetsatBatchContinuous.sh"]
+CMD [ "/eumetsat", "S3", "AX___MA1_AX", "2016-02-29", "2024-07-31" ]

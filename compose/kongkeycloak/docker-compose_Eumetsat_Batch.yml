@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+
+  #######################################
+  # EUMETSAT MA1_AX v.2 Ingestion
+ #######################################
+  eumetsat_MA1_batch:
+    extends: 
+      file: docker-compose.yml
+      service: prip_ingestion_s2
+    container_name: eumetsat_batch
+    image: eumetsat_ma1_ax_v2_ingest:1.0.0
+    environment:
+      BATCH_LEN: 12
+      BATCH_DELAY: 120
+      BATCH_START: "2022-04-01"
+    restart: no
+    volumes:
+      - /adg_data/eumetsat_ingestion:/eumetsat
+
