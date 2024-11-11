@@ -5,7 +5,7 @@ function ingest_downloaded_files() {
   code=$2
   DWL_TEMP_FOLDER=$3
   LISTING_FOLDER=$4
-  echo "Ingesting downloaded files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER, Folder for JSONS: $JSONS_FOLDER"
+  echo "Ingesting downloaded files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER"
   master_code=$code
   if [ $code -eq 0 ]; then
     echo "LTA download completed succesfully: $(ls $DWL_TEMP_FOLDER | wc -l) files downloaded"
