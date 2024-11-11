@@ -14,10 +14,6 @@ if [ -z ${PRIP_PASS+x} ]; then
   exit 1
 fi
 #echo "PRIP_PASS: "${PRIP_PASS}
-if [ -z ${PRIP_PASS+x} ]; then
-  echo "PRIP_PASS not set"
-  exit 1
-fi
 }
 function init_adgs_variables() {
 if [ -z ${ADGS_ENDPOINT+x} ]; then
@@ -102,7 +98,7 @@ function create_folder() {
 
 
 function init_folders() {
-  START_DATE=$1
+  local START_DATE=$1
   ERROR_FILE_LOG="${WORK_FOLDER}/${START_DATE}_PRIP_error.log"
   TEMP_FOLDER=$(mktemp -p $WORK_FOLDER -d)
   echo "TEMP_FOLDER : ${TEMP_FOLDER}" >> $ERROR_FILE_LOG
