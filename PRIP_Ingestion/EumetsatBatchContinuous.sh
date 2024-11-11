@@ -156,7 +156,7 @@ until [[ ${BATCH_START_DAY} > ${END_DAY} ]]; do
     if [[ ${NEXT_START_DAY} > $END_DAY ]]; then
       echo "Setting Batch Num Days to reach END DAY: ${END_DAY}"
       #  If yes, compute N-DAYS as: END_DAY - CURRENT_DAY
-      NDAYS=$(( ($(date +%s -d ${END_DAY})-$(date +%s -d ${NEXT_START_DAY}))/86400 ))
+      NDAYS=$(( ($(date +%s -d ${NEXT_START_DAY})-$(date +%s -d ${END_DAY}))/86400 ))
     fi
 
    # Define a work Folder under WORK_FOLDER
