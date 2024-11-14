@@ -31,6 +31,11 @@ def get_command_arguments():
     parser.add_argument("-w", "--out_folder",
                         help="Folder where to download FTP files",
                         required=True)
+    parser.add_argument("-l", "--list_only",
+                        help="Flag: if set, do not download, bug generate repository listing ",
+                        default=False,
+                        required=False,
+                        action='store_true')
     args_values = parser.parse_args()
 
     return args_values
@@ -41,6 +46,14 @@ def get_aux_files_from_file(filepath):
     # you may also want to remove whitespace characters like `\n` at the end of each line
     files = [x.strip() for x in files if len(x)] 
     return files
+
+def save_aux_files_list(folderpath, list_date, aux_files_list):
+    # Open target file
+    out_file= os.path.join(folderpath, f"Repository_files_{list_date}.list")
+    with open(out_file, "w") as of:
+        # Write files in input list, one per line
+        for aux_file in aux_files_list:
+            print(aux_file, file=of)
 
 def main():
     args = get_command_arguments()
@@ -55,12 +68,18 @@ def main():
         repository = Eumet.FtpRepository(hostname,
                                          ftpuser, ftppwd,
                                          args.start_folder, user_home=True)
-
-        repository.download_day_products(day_folder, target)
+        if not args.list_only:
+            repository.download_day_products(day_folder, target)
+        else:
+            day_aux_files = repository.list_day_products(day_folder)
+            # Save files to output file
+            save_aux_files_list(target, product_day, day_aux_files)
+            print("\n".join(day_aux_files))
     except Exception as e:
         print(e)
     print("End List")
-    print("Ingested files ")
+    if not args.list_only:
+        print("Ingested files ")
 
 
 if __name__ == "__main__":

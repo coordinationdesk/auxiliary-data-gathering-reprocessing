@@ -36,13 +36,16 @@ class FtpRepository:
         #
         pass
 
+    @staticmethod
+    def date_to_path(date_str):
+        date_parts = date_str.split("-")
+        return os.path.join(*date_parts)
+
     # to be called with a string for the day
     # e.g: yyyy/mm/dd
     def download_day_products(self, date_str, dest_dir):
         # convert date_str to folder structure
-        # date_folders = 
-        date_parts = date_str.split("-")
-        date_path = os.path.join(*date_parts)
+        date_path = self.date_to_path(date_str)
         # List product folders
         daily_products = self.list_day_products(date_path)
         # download_products
@@ -63,7 +66,8 @@ class FtpRepository:
     def list_day_products(self, date_str):
         # convert date_str to folder structure
         # date_folders = 
-        date_folders = [date_str]
+        date_path = self.date_to_path(date_str)
+        date_folders = [date_path]
         print("Listing products for date ", date_str)
         # cd to day folder at end of folder structure
         # List product folders

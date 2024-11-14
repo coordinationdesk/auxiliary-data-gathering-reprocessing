@@ -4,6 +4,28 @@ source InitFuncs.sh
 source IngestDownloaded_funcs.sh
 
 
+function list_day_aux_files() {
+  if [[ $# != 4 ]] ; then
+      echo "ingest_from_file function arguments: TEMP_FOLDER MISSION AUX_TYPE DAY "
+      echo "Received: $@"
+      exit 1
+  fi
+  TEMP_ROOT=$1
+  MISSION=$2
+  AUX_TYPE=$3
+  DAY=$4
+  create_folder ${TEMP_ROOT}/${MISSION}
+  python3 -u ${CUR_DIR}/eumetsat_provider/Eumetsat_ingest_products.py  -u ${FTP_USER} -pw ${FTP_PASS} \
+        -w ${TEMP_ROOT}/${MISSION} \
+        -fh ${FTP_HOST} \
+        -sf ${FTP_FOLDER} \
+        -d $DAY -l
+  code=$?
+  if [ $code -ne 0 ]; then
+    echo "EUMETSAT list failed"
+    echo "EUMETSAT list failed" >> ${ERROR_FILE_LOG}
+  fi
+}
 # TODO: pass FTP Access variables + START_FOLDER
 function ingest_day_aux_files() {
 
@@ -38,8 +60,8 @@ function ingest_day_aux_files() {
         -d $DAY
   code=$?
   if [ $code -ne 0 ]; then
-    echo "PRIP Retrieve failed"
-    echo "PRIP Retrieve failed" >> ${ERROR_FILE_LOG}
+    echo "EUMETSAT Retrieve failed"
+    echo "EUMETSAT Retrieve failed" >> ${ERROR_FILE_LOG}
   fi
   ingest_downloaded_files $MISSION $code "$MISSION_TEMP_FOLDER" "${MISSION_TEMP_FOLDER_LISTING}" "${MISSION_TEMP_FOLDER_JSONS}"
   ingestion_code=$?
@@ -80,6 +102,32 @@ function ingest_day_aux_files() {
 
 
 
+function list_mission_date_interval() {
+#   Input arguments:
+#  TEMP_FOLDER MISSION AUX_TYPE FROM_DATE NUM_DAYS 
+# Loop: set CURR_DATE = START_DATE
+
+   local WORK_FOLDER=$1
+   local MISSION=$2
+   local AUX_TYPE=$3
+   local CURR_DATE=$4
+
+   #EXECUTION DATE
+   EXEC_DATE=$(date '+%Y-%m-%d')
+
+   # MOVE Folders creation inside ingest mission, to be done for each BATCH
+   init_folders $EXEC_DATE
+
+   NLOOPS=$5
+   echo "Mission $MISSION: Executing $NLOOPS one day ingestions from date $CURR_DATE"
+   # Loop N times 
+    for in in $(seq $NLOOPS); do 
+        echo "Starting list for date $CURR_DATE"
+        list_day_aux_files $TEMP_FOLDER $MISSION $AUX_TYPE $CURR_DATE 
+# INCREMENT curr_date
+        CURR_DATE=$(date -d "${CURR_DATE} +1 days" +${DATE_FORMAT})
+    done
+}
 
 function ingest_mission_date_interval() {
 #   Input arguments:
