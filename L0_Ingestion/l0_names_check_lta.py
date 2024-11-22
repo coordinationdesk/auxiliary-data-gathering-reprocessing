@@ -71,9 +71,10 @@ def print_l0_names_comparison(names_comparison_table):
     print(num_only_lta, " L0 names not ingested from LTA")
     print(num_only_db, " L0 names not present on LTA")
     if num_only_lta:
-        print("L0 names not ingested: ")
-        answer = input("Return to print...")
-        print(','.join(names_comparison_table['only_lta']))
+        # print("L0 names not ingested: ")
+        # answer = input("Return to print...")
+        # print(','.join(names_comparison_table['only_lta']))
+        print("L0 names not ingested: ", ','.join(names_comparison_table['only_lta']))
     if num_only_db:
         print("L0 names not present in LTA: ")
         answer = input("Return to print...")
@@ -173,7 +174,7 @@ if __name__ == "__main__":
         # if input file is defined,get from input file
         # get validities from input file!!
         # Get Max validity for all types related to mission
-        lta_retriever = LtaL0Retriever(mission, args.ltaurl, args.ltauser, args.ltapassword, num_days)
+        lta_retriever = LtaL0Retriever(mission, args.ltaurl, args.ltauser, args.ltapassword, num_days, True)
         if 'from_datetime' in vars(args):
             from_date = args.from_datetime
             last_l0_type_table = {}
