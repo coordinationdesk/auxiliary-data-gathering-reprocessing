@@ -3,10 +3,7 @@
 
 import datetime
 import hashlib
-import json
 import os
-import re
-import copy
 import shutil
 import subprocess
 import sys
@@ -14,7 +11,9 @@ import sys
 import xml.etree.ElementTree as ET
 from .time_formats import odata_datetime_format
 
-def getValueByName(root_node,attribute_name):
+# We are getting the value, since we return the "text" of the element
+#   and how are we selecting the attribute
+def getValueByName(root_node, attribute_name):
     if root_node is None:
         raise Exception("No node passed to retrieve attribute {} value".format(attribute_name))
     for elt in root_node:
@@ -23,10 +22,10 @@ def getValueByName(root_node,attribute_name):
 
     return None
 
-
-def getNodeByName(root_node,node_name):
+# We are getting the whole Element, i.e. the node
+def getNodeByName(root_node, node_name):
     if root_node is None:
-        raise Exception("No node passed to retrieve node with name {} ".format(attribute_name))
+        raise Exception("No node passed to retrieve node with name {} ".format(node_name))
     for elt in root_node:
         if node_name in elt.tag:
             return elt
@@ -107,71 +106,13 @@ def _get_S1_file_attributes(file_path):
         unzip_command = "unzip -qq %s %s" % (file_path, xml_file)
         if '.TGZ' in filename_zip:
             unzip_command = "tar xzf %s %s" % (file_path, xml_file)
-
         try:
             os.system(unzip_command)
         except Exception as e:
             print(e)
-
         # From Here: _get_S1_SAFE_Attributes(xml_file)
         print("Extracting metadata attributes for ", filename_zip)
-        tree = ET.parse(xml_file)
-        root = tree.getroot()
-
-        metadataSection = getNodeByName(root, 'metadataSection')
-        print("Checking if Metadata are present in manifest file")
-        if metadataSection is None:
-            raise Exception("Metadata Section missing in SAFE manifest file: could not extract product attributes")
-        processing_node = getNodeByID(metadataSection, 'processing')
-        platform_node = getNodeByID(metadataSection, 'platform')
-
-        generalProductInformation = getNodeByID(metadataSection, 'generalProductInformation')
-        if generalProductInformation is None:  # for AUX_PP1,AUX_PP2,AUX_CAL,AUX_INS
-            # print("Getting Standalone  Product Information node ")
-            generalProductInformation = getNodeByID(metadataSection, 'standAloneProductInformation')
-
-        processing_metadata_container = getNodeByName(getNodeByName(processing_node, 'metadataWrap'), 'xmlData')
-        processing_metadata = processing_metadata_container[0][0]
-        print("Identified main nodes; reading attributes")
-        generalProductInformation = getNodeByName(getNodeByName(generalProductInformation, 'metadataWrap'), 'xmlData')
-        platform_metadata = getNodeByName(getNodeByName(platform_node, 'metadataWrap'), 'xmlData') if platform_node is not None else None
-
-        # print("Getting Begin validity from General Product Information")
-        beginningDateTime = getValueByName(generalProductInformation[0], 'validity')
-        product_type = getValueByName(generalProductInformation[0], 'auxProductType')
-
-        if product_type in ['AUX_ICE', 'AUX_WAV', 'AUX_WND']:
-            start_dt = datetime.datetime.strptime(beginningDateTime, "%Y-%m-%dT%H:%M:%S.%f")
-            stop_dt = start_dt + datetime.timedelta(days=1)
-            endingDateTime = datetime.datetime.strftime(stop_dt, odata_datetime_format)
-        else:
-            endingDateTime = "2100-01-01T00:00:00"
-
-        attributes = {
-            "productType": product_type,
-            "processingDate": processing_metadata_container[0].get('start'),
-            "beginningDateTime": beginningDateTime,
-            "endingDateTime": endingDateTime,
-            "processingCenter": processing_metadata.get('site'),
-        }
-
-        # try to get processorName / processorVersion
-        # these attributes are missing in some .SAFE files ( may be are missing in all of them )
-        try:
-            processorName = getNodeByName(processing_metadata, 'software').get('name')
-            processorVersion = getNodeByName(processing_metadata, 'software').get('version')
-
-            attributes["processorName"] = processorName
-            # BUG: FIXED : processorName was assigned to attribute processorVersion!
-            attributes["processorVersion"] = processorVersion
-
-        except Exception as e:
-            pass
-        if platform_metadata is not None:
-            attributes.update({
-            "platformShortName": getValueByName(platform_metadata[0], 'familyName'),
-            "platformSerialIdentifier": getValueByName(platform_metadata[0], 'number'),
-            })
+        attributes = _get_S1_SAFE_file_attributes(xml_file)
 
     # ==========================================================================================
     #                      S1 .EOF FILES
@@ -187,6 +128,61 @@ def _get_S1_file_attributes(file_path):
 
     os.remove(xml_file)
     shutil.rmtree(filename, ignore_errors=True)
+    return attributes
+
+
+def _get_S1_SAFE_file_attributes(xml_file):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    metadataSection = getNodeByName(root, 'metadataSection')
+    print("Checking if Metadata are present in manifest file")
+    if metadataSection is None:
+        raise Exception("Metadata Section missing in SAFE manifest file: could not extract product attributes")
+    processing_node = getNodeByID(metadataSection, 'processing')
+    platform_node = getNodeByID(metadataSection, 'platform')
+    generalProductInformation = getNodeByID(metadataSection, 'generalProductInformation')
+    if generalProductInformation is None:  # for AUX_PP1,AUX_PP2,AUX_CAL,AUX_INS
+        # print("Getting Standalone  Product Information node ")
+        generalProductInformation = getNodeByID(metadataSection, 'standAloneProductInformation')
+    processing_metadata_container = getNodeByName(getNodeByName(processing_node, 'metadataWrap'), 'xmlData')
+    processing_metadata = processing_metadata_container[0][0]
+    print("Identified main nodes; reading attributes")
+    generalProductInformation = getNodeByName(getNodeByName(generalProductInformation, 'metadataWrap'), 'xmlData')
+    platform_metadata = getNodeByName(getNodeByName(platform_node, 'metadataWrap'),
+                                      'xmlData') if platform_node is not None else None
+    # print("Getting Begin validity from General Product Information")
+    beginningDateTime = getValueByName(generalProductInformation[0], 'validity')
+    product_type = getValueByName(generalProductInformation[0], 'auxProductType')
+    if product_type in ['AUX_ICE', 'AUX_WAV', 'AUX_WND']:
+        start_dt = datetime.datetime.strptime(beginningDateTime, "%Y-%m-%dT%H:%M:%S.%f")
+        stop_dt = start_dt + datetime.timedelta(days=1)
+        endingDateTime = datetime.datetime.strftime(stop_dt, odata_datetime_format)
+    else:
+        endingDateTime = "2100-01-01T00:00:00"
+    attributes = {
+        "productType": product_type,
+        "processingDate": processing_metadata_container[0].get('start'),
+        "beginningDateTime": beginningDateTime,
+        "endingDateTime": endingDateTime,
+        "processingCenter": processing_metadata.get('site'),
+    }
+    # try to get processorName / processorVersion
+    # these attributes are missing in some .SAFE files ( may be are missing in all of them )
+    try:
+        processorName = getNodeByName(processing_metadata, 'software').get('name')
+        processorVersion = getNodeByName(processing_metadata, 'software').get('version')
+
+        attributes["processorName"] = processorName
+        # BUG: FIXED : processorName was assigned to attribute processorVersion!
+        attributes["processorVersion"] = processorVersion
+
+    except Exception as e:
+        pass
+    if platform_metadata is not None:
+        attributes.update({
+            "platformShortName": getValueByName(platform_metadata[0], 'familyName'),
+            "platformSerialIdentifier": getValueByName(platform_metadata[0], 'number'),
+        })
     return attributes
 
 
@@ -251,8 +247,9 @@ def _get_hdr_file_attributes(hdr_file):
     }
     return attributes
 
+
 def _uncompress(compressed_filepath):
-    if '.zip' in file_path:
+    if '.zip' in compressed_filepath:
         filename_zip = os.path.basename(compressed_filepath)
         uncompressed_filename = filename_zip.split('.zip')[0]
         unzip_command = "unzip %s" % compressed_filepath
@@ -263,6 +260,7 @@ def _uncompress(compressed_filepath):
         except Exception as e:
             print(e)
     return uncompressed_filename
+
 
 def _get_EOF_filename(file_path):
     if '.zip' in file_path:
