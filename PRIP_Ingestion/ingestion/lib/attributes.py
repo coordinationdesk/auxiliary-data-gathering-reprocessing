@@ -3,7 +3,10 @@
 
 import datetime
 import hashlib
+import json
 import os
+import re
+import copy
 import shutil
 import subprocess
 import sys
@@ -50,6 +53,19 @@ def md5(fname):
     return hash_md5.hexdigest()
 
 
+# # EOF Metadata attributes extraction
+def _extract_EOF_from_product(file_path):
+    if '.zip' in file_path:
+        filename_zip = os.path.basename(file_path)
+        eof_filename = filename_zip.split('.zip')[0]
+        _unzip_file(file_path)
+    else:
+        print("EOF file not compressed ")
+        # File not compressed, take as it is
+        eof_filename = file_path
+    return eof_filename
+
+
 def _get_EOF_file_attributes(eof_file_path):
     # TODO: Check if xml file is reachable for parse command
     tree = ET.parse(eof_file_path)
@@ -70,9 +86,21 @@ def _get_EOF_file_attributes(eof_file_path):
     return attributes
 
 
-def _get_file_extension(file_path):
-    filename_zip = os.path.basename(file_path)
+def _EOF_get_attributes(file_path):
+    eof_filename = _extract_EOF_from_product(file_path)
+    attributes = _get_EOF_file_attributes(eof_filename)
+    if '.zip' in file_path:
+        # EOF products compressed are composed of only the EOF file
+        os.remove(eof_filename)
+    return attributes
 
+
+def _is_compressed(aux_filename):
+    return '.zip' in aux_filename or '.TGZ' in aux_filename
+
+
+def _get_product_path_components(file_path):
+    filename_zip = os.path.basename(file_path)
     # TODO: modifiy in order to handle also non cmopressed files!
     if '.zip' in filename_zip:
         filename = filename_zip.split('.zip')[0]
@@ -80,58 +108,81 @@ def _get_file_extension(file_path):
         filename = filename_zip.split('.TGZ')[0]
     else:
         filename = filename_zip
+    try:
+        extension = filename[filename.index('.') + 1:]
+    except:
+        extension = None
+    #filename_parts = filename.split('.', 1)[-1]
+    #extension = filename_parts[1] if len(filename_parts) else None
 
-    extension = filename.split('.')[1]
-    return extension
+    return filename_zip, filename, extension
+
+
+S1_MPL_types = ['REP__MACP_', 'REP__MCSF_', 'REP__SMPR_',
+                'TLM__REQ_A', 'TLM__REQ_B', 'TLM__REQ_C',
+                'TLM__REQ_D', 'TLM__REQ_E', 'TLM__REQ_F']
+
 
 def _get_S1_file_attributes(file_path):
-    # extension = _get_file_extension(file_path)
-    filename_zip = os.path.basename(file_path)
 
-    # TODO: modifiy in order to handle also non cmopressed files!
-    if '.zip' in filename_zip:
-        filename = filename_zip.split('.zip')[0]
-    else:
-        filename = filename_zip.split('.TGZ')[0]
+    filename_zip, filename, extension = _get_product_path_components(file_path)
+    print("Extracting metadata attributes for ", filename_zip)
 
-    extension = filename.split('.')[1]
+    try:
+        # ==========================================================================================
+        #                      S1 .SAFE FILES
+        # ==========================================================================================
+        if extension is not None and extension == 'SAFE':
+            # manifest_file = _get_zip_manifest(file_path)
+            xml_file = _get_S1_SAFE_manifest(file_path, filename, filename_zip)
 
-    # ==========================================================================================
-    #                      S1 .SAFE FILES
-    # ==========================================================================================
-    if extension == 'SAFE':
-        # manifest_file = _get_zip_manifest(file_path)
-        # the function is not considering TGZ files
-        xml_file = "%s/manifest.safe" % filename
-        unzip_command = "unzip -qq %s %s" % (file_path, xml_file)
-        if '.TGZ' in filename_zip:
-            unzip_command = "tar xzf %s %s" % (file_path, xml_file)
-        try:
-            os.system(unzip_command)
-        except Exception as e:
-            print(e)
-        # From Here: _get_S1_SAFE_Attributes(xml_file)
-        print("Extracting metadata attributes for ", filename_zip)
-        attributes = _get_S1_SAFE_file_attributes(xml_file)
+            attributes = _get_S1_SAFE_attributes(xml_file)
+            os.remove(xml_file)
+        else:
+            product_type = filename[9:19]
+            print("Extracting Attributes for Product Type: ", product_type)
+            if product_type in S1_MPL_types:
+                print("Extracting attributes from MPL HDR file inside compress tar")
+                attributes = _HDR_get_attributes(file_path, filename, product_type)
+            elif product_type in ['MPL_MANPRE']:
+                print("Extracting attributes for MANeuver file")
+                #  product is compressed prod_filename ;
+                #  uncompressed file is removed in function
+                attributes = _get_MANPRE_file_attributes(file_path,
+                                                         'Sentinel-1',
+                                                         product_type)
+            elif product_type in ['REP_MP_MP_']:
+                print("Extracting attributes for Mission Plan Report file")
+                #  product is compressed prod_filename ;
+                #  uncompressed file is removed in function
+                attributes = _get_MP_REP_file_attributes(file_path,
+                                                         'Sentinel-1',
+                                                         product_type)
 
-    # ==========================================================================================
-    #                      S1 .EOF FILES
-    # ==========================================================================================
-    else:
-        xml_file = filename
-        unzip_command = "unzip %s" % file_path
-
-        os.system(unzip_command)
-        attributes = _get_EOF_file_attributes(xml_file)
-    # with open(os.path.join(filename_zip + ".json"), 'w') as json_file:
-    #     json.dump(attributes, json_file)
-
-    os.remove(xml_file)
-    shutil.rmtree(filename, ignore_errors=True)
+            # ==========================================================================================
+            #                      S1 .EOF FILES
+            # ==========================================================================================
+            else:
+                xml_file = filename
+                _uncompress(file_path)
+                attributes = _get_EOF_file_attributes(xml_file)
+                os.remove(xml_file)
+        # with open(os.path.join(filename_zip + ".json"), 'w') as json_file:
+        #     json.dump(attributes, json_file)
+        # TOOD: CHECK: not valid for MANPRE (no XML, no pruct folder to remove)
+        shutil.rmtree(filename, ignore_errors=True)
+    except Exception as ex:
+        print("Failure extracting attributes: ", ex)
+        raise ex
     return attributes
 
 
-def _get_S1_SAFE_file_attributes(xml_file):
+def _get_S1_SAFE_attributes( xml_file):
+    """
+     Extract attributes from SAFE manifest XML file
+     xml_file: path to the xml file to be parsed
+
+    """
     tree = ET.parse(xml_file)
     root = tree.getroot()
     metadataSection = getNodeByName(root, 'metadataSection')
@@ -186,49 +237,114 @@ def _get_S1_SAFE_file_attributes(xml_file):
     return attributes
 
 
-def _extract_hdr_from_product(file_path):
-    filename_zip = os.path.basename(file_path)
-    filename = filename_zip.split('.')[0]
-    product_type = filename[9:19]
+def _get_S1_SAFE_manifest(file_path, filename, filename_zip):
+    # the function is not considering TGZ files
+    xml_file = "%s/manifest.safe" % filename
+    unzip_command = "unzip -qq %s %s" % (file_path, xml_file)
+    if '.TGZ' in filename_zip:
+        unzip_command = "tar xzf %s %s" % (file_path, xml_file)
+    try:
+        os.system(unzip_command)
+    except Exception as e:
+        print(e)
+    return xml_file
+
+def _get_S3_SAFE_manifest(file_path, filename, filename_zip):
+    manifest_file = "%s/xfdumanifest.xml" % filename
+    unzip_command = "unzip %s %s" % (file_path, manifest_file)
+    os.system(unzip_command)
+    return manifest_file
+
+HDR_FOLDER_PRODUCT_TYPES = ['AUX_ECMWFD', 'AUX_UT1UTC']
+def _extract_hdr_from_product(file_path, filename, product_type):
+    print("Extracting HDR File from product file ")
+
     # extract to separate function (hdr_file, product_type, filename)
     # PARSE extracted uncompressed file (XML File)
     # UNCOMPRESS HDR file (Tar gzip)
     hdr_filename = "%s.HDR" % filename
-    if product_type in ['AUX_ECMWFD', 'AUX_UT1UTC']:
-        tar_process = subprocess.run(["tar", "xzf", file_path, hdr_filename])
+    # Not specifying 'z' in the options automatically un-tars
+    #   even if the file is not compressed
+    # tar_options = "xzf"
+    tar_options = "xf"
+    # SOME TYPES could have the files under a folder with the product name
+    if product_type in HDR_FOLDER_PRODUCT_TYPES:
+        print("Trying if Product File is a compressed Tar without a folder")
+        tar_process = subprocess.run(["tar", tar_options, file_path, hdr_filename])
         if tar_process.returncode != 0:
-            hdr_file = "%s/%s.HDR" % (filename, filename)
-            tar_process = subprocess.run(["tar", "xzf", file_path, hdr_filename])
+            # TODO: Check hdr_file is not used!!
+            print("Product File is a compressed Tar with a folder")
+            hdr_filename = "%s/%s % (filename, hdr_filename)"
+            tar_process = subprocess.run(["tar", tar_options, file_path, hdr_filename])
             if tar_process.returncode != 0:
                 raise Exception("Impossible to get the HDR file in the file " + filename)
     else:
-        tar_command = "tar xzf %s %s" % (file_path, hdr_filename)
+        print("Product File is a compressed Tar without a folder")
+        tar_command = "tar %s %s ./%s" % (tar_options, file_path, hdr_filename)
         os.system(tar_command)
-    return filename, hdr_filename
+    return hdr_filename
     
 def _get_MANPRE_file_attributes(manpre_file, mission, product_type):
+    """
+
+    """
+    # Filename contains: generation time, end of validity
+    prod_filename = _uncompress(manpre_file)
+    # The platform identifier is the first character after the mission
+    short_mission = prod_filename[:2]
+    platform = prod_filename[3]
     # Extract attributes
-    # get start/end from filename
+    # get generation time, /end validity from filename
     attributes = {
         "productType": product_type,
         "platformShortName": mission,
-        "platformSerialIdentifier": mission,
+        "platformSerialIdentifier": platform,
         #"processingDate": getValueByName(source_node, 'Creation_Date').split('UTC=')[1],
         #"beginningDateTime": getValueByName(validity_period, 'Validity_Start').split('UTC=')[1],
         #"endingDateTime": getValueByName(validity_period, 'Validity_Stop').split('UTC=')[1],
-        "processingCenter": 'S2MPL',
+        "processingCenter": f'{short_mission}MPL',
     }
+    os.remove(prod_filename)
     return attributes
 
+def _get_MP_REP_file_attributes(rep_file, mission, product_type):
+    """
 
+    """
+    # Filename contains: generation time, end of validity
+    prod_filename = _uncompress(rep_file)
+    # The platform identifier is the first character after the mission
+    short_mission = prod_filename[:2]
+    platform = prod_filename[3]
+    # Extract attributes
+    tree = ET.parse(prod_filename)
+    root = tree.getroot()
+    report_node = root
+    # get generation time, /end validity from filename
+    attributes = {
+        "productType": product_type,
+        "platformShortName": mission,
+        "platformSerialIdentifier": platform,
+        "processingDate": getValueByName(report_node, 'ReportingTime'),
+        "beginningDateTime": getValueByName(report_node, 'ValidityStart'),
+        "endingDateTime": getValueByName(report_node, 'ValidityStop'),
+        "processingCenter": f'{short_mission}MPL',
+    }
+    os.remove(prod_filename)
+    return attributes
+
+S2_BAND_AUX_TYPES = ['GIP_VIEDIR', 'GIP_R2EQOG',
+                     'GIP_R2DEFI', 'GIP_R2WAFI',
+                     'GIP_R2L2NC', 'GIP_R2DENT',
+                     'GIP_R2DECT', 'GIP_R2EOB2']
 def _get_hdr_file_attributes(hdr_file):
+    print("Extracting attributes from HDR file: ", hdr_file)
     tree = ET.parse(hdr_file)
     root = tree.getroot()
     if root.tag == 'Earth_Explorer_File':  # pug in S2 Files
         root = root[0]
     product_type = getValueByName(root[0], 'File_Type')
-    if product_type in ['GIP_VIEDIR', 'GIP_R2EQOG', 'GIP_R2DEFI', 'GIP_R2WAFI', 'GIP_R2L2NC', 'GIP_R2DENT',
-                        'GIP_R2DECT', 'GIP_R2EOB2']:
+    if product_type in S2_BAND_AUX_TYPES:
         # add band to product_type
         band = hdr_file.split('_')[-1].split('.')[0]
         product_type = product_type + '_' + band
@@ -248,76 +364,60 @@ def _get_hdr_file_attributes(hdr_file):
     return attributes
 
 
+def _HDR_get_attributes(file_path, product_name, prod_type):
+    print("Extracting attributes from product with HDR file")
+    try:
+        hdr_file = _extract_hdr_from_product(file_path,
+                                             product_name,
+                                             prod_type)
+    except Exception as ex:
+        print("Error extracting Attributs from HDR:", ex)
+    attributes = _get_hdr_file_attributes(hdr_file)
+    os.remove(hdr_file)
+    shutil.rmtree(product_name, ignore_errors=True)
+    return attributes
+
+
+def _unzip_file(file_path):
+    unzip_command = "unzip %s" % file_path
+    # print("Zip command: ", unzip_command)
+    try:
+        os.system(unzip_command)
+    except Exception as e:
+        print(e)
+
+
 def _uncompress(compressed_filepath):
     if '.zip' in compressed_filepath:
         filename_zip = os.path.basename(compressed_filepath)
         uncompressed_filename = filename_zip.split('.zip')[0]
-        unzip_command = "unzip %s" % compressed_filepath
-        print("Uncompressed file name: ", uncompressed_filename)
-        print("Zip command: ", unzip_command)
-        try:
-            os.system(unzip_command)
-        except Exception as e:
-            print(e)
+        _unzip_file(compressed_filepath)
+    else:
+        raise Exception(f"{compressed_filepath} not a ZIP File")
     return uncompressed_filename
 
 
-def _get_EOF_filename(file_path):
-    if '.zip' in file_path:
-        filename_zip = os.path.basename(file_path)
-        eof_filename = filename_zip.split('.zip')[0]
-        unzip_command = "unzip %s" % file_path
-        print("Uncompressed file name: ", eof_filename)
-        print("Zip command: ", unzip_command)
-        try:
-            os.system(unzip_command)
-        except Exception as e:
-            print(e)
-    else:
-        print("EOF file not compressed ")
-        # File not compressed, take as it is
-        eof_filename = file_path
-    return eof_filename
-
 def _get_S2_file_attributes(file_path):
     # PARSE extracted uncompressed file (XML File)
-    basename = os.path.basename(file_path)
-    product_type = basename[9:19]
+    filename_zip, filename, extension = _get_product_path_components(file_path)
+    product_type = filename[9:19]
     print("Getting attributes for file of type ", product_type)
     if product_type in ['MPL_ORBRES', 'MPL_ORBPRE', 'REP__SUP__']:
         print("Extracting attributes for EOF file")
-        # TODO CHeck extension if EOF
-        # 
-        eof_filename = _get_EOF_filename(file_path)
-        attributes = _get_EOF_file_attributes(eof_filename)
-        if '.zip' in file_path:
-            os.remove(eof_filename)
-    elif product_type in ['MANPRE']:
+        #
+        attributes = _EOF_get_attributes(file_path)
+    elif product_type in ['MPL_MANPRE']:
         print("Extracting attributes for MANeuver file")
-        prod_filename = _uncompress(file_path)
-        attributes = _get_MANPRE_file_attributes(prod_filename, 'Sentinel-2', product_type)
-        os.remove(prod_filename)
+        attributes = _get_MANPRE_file_attributes(file_path, 'Sentinel-2', product_type)
     else:
-        print("Extracting attributes from HDR file inside compress tar")
-        product_name, hdr_file = _extract_hdr_from_product(file_path)
-        attributes = _get_hdr_file_attributes(hdr_file)
-        os.remove(hdr_file)
-        shutil.rmtree(product_name, ignore_errors=True)
+        attributes = _HDR_get_attributes(file_path, filename, product_type)
     # with open(os.path.join(filename_zip + ".json"), 'w') as json_file:
     #     json.dump(attributes, json_file)
     return attributes
 
-def _get_zip_manifest(file_path):
-    filename_zip = os.path.basename(file_path)
-    filename = filename_zip.split('.zip')[0]
-    manifest_file = "%s/xfdumanifest.xml" % filename
-    unzip_command = "unzip %s %s" % (file_path, manifest_file)
-    os.system(unzip_command)
-    return manifest_file
 
-def _get_S3_SAFE_file_attributes(file_path):
+def _get_S3_SAFE_file_attributes(manifest_file):
     # TODO: Put Parsing in a general SAFE_Maniferst Parser module
-    manifest_file = _get_zip_manifest(file_path)
     tree = ET.parse(manifest_file)
     root = tree.getroot()
     metadataSection = getNodeByName(root, 'metadataSection')
@@ -341,21 +441,19 @@ def _get_S3_SAFE_file_attributes(file_path):
     return attributes
 
 def _get_S3_file_attributes(file_path):
-    filename_zip = os.path.basename(file_path)
-    extension = _get_file_extension(file_path)
+    filename_zip, filename, extension = _get_product_path_components(file_path)
     if extension != 'EOF':
-        filename = filename_zip.split('.zip')[0]
-        attributes = _get_S3_SAFE_file_attributes(file_path)
+        manifest_file = _get_S3_SAFE_manifest(file_path, filename, extension)
+        attributes = _get_S3_SAFE_file_attributes(manifest_file)
         shutil.rmtree(filename, ignore_errors=True)
     else:
-        eof_filename = _get_EOF_filename(file_path)
-        attributes = _get_EOF_file_attributes(eof_filename)
-        if '.zip' in file_path:
-            os.remove(eof_filename)
+        attributes = _EOF_get_attributes(file_path)
 
     # with open(os.path.join(filename_zip + ".json"), 'w') as json_file:
     #     json.dump(attributes, json_file)
     return attributes
+
+
 
 mission_attributes_funcs = {
     'S1': _get_S1_file_attributes,
@@ -367,7 +465,7 @@ def get_attributes(path_to_aux_data_file):
 
     try:
         file_path = path_to_aux_data_file
-        filename_zip  = os.path.basename(path_to_aux_data_file)
+        filename_zip = os.path.basename(path_to_aux_data_file)
         satellite = filename_zip[:2]
         # compute the md5 checksum
         checksum = md5(file_path)
@@ -375,7 +473,6 @@ def get_attributes(path_to_aux_data_file):
         #_retrieve_attributes_fun = mission_attributes_funcs.get(satellite, None)
         #if _retrieve_attributes_fun is not None:
         #    attributes = mission_attributes_funcs(file_path)
-
 
         if satellite == 'S1':
             # ======================================================================
