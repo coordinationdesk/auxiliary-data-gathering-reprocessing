@@ -27,11 +27,12 @@ class TestS2Attributes(unittest.TestCase):
     # L2CFG
     # Other file not found products
     def test_MANPRE_attributes(self):
-        prod_file_path = os.path.join(self.data_path, s2_data_files.get('S2_MANPRE_file'))
+        prod_file_path = os.path.join(self.data_path, s2_data_files.get('S2_MAN_PRE_file'))
         attrs = get_attributes(prod_file_path)
-        self.assertEqual(attrs.get('processingDate'), '2017-10-03T12:07:30.000000')
-        self.assertEqual(attrs.get("productType"), 'MCSF')  # add assertion here
-        self.assertEqual(attrs.get('processingCenter'), 'CLS-Brest')
+        self.assertEqual(attrs.get('processingDate'), '2022/07/12-12:51:43.298')
+        self.assertEqual(attrs.get("productType"), 'MPL_MANPRE')  # add assertion here
+        self.assertEqual(attrs.get('processingCenter'), 'S2MPL')
+        self.assertEqual('2022/07/14-05:02:56.438', attrs.get('beginningDateTime'))
         prod_folder = os.path.splitext(prod_file_path)[0]
         self.assertTrue(not os.path.exists(prod_folder), f"{prod_folder} not deleted")
 
