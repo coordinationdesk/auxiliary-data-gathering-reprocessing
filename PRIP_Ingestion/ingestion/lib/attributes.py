@@ -1,6 +1,6 @@
 
 # coding=utf-8
-
+import csv
 import datetime
 import hashlib
 import json
@@ -10,6 +10,7 @@ import copy
 import shutil
 import subprocess
 import sys
+import tarfile
 
 import xml.etree.ElementTree as ET
 from .time_formats import odata_datetime_format
@@ -204,6 +205,7 @@ def _get_S1_SAFE_attributes( xml_file):
     # print("Getting Begin validity from General Product Information")
     beginningDateTime = getValueByName(generalProductInformation[0], 'validity')
     product_type = getValueByName(generalProductInformation[0], 'auxProductType')
+    instrumentConfigurationId = getValueByName(generalProductInformation[0], 'instrumentConfigurationId')
     if product_type in ['AUX_ICE', 'AUX_WAV', 'AUX_WND']:
         start_dt = datetime.datetime.strptime(beginningDateTime, "%Y-%m-%dT%H:%M:%S.%f")
         stop_dt = start_dt + datetime.timedelta(days=1)
@@ -216,6 +218,7 @@ def _get_S1_SAFE_attributes( xml_file):
         "beginningDateTime": beginningDateTime,
         "endingDateTime": endingDateTime,
         "processingCenter": processing_metadata.get('site'),
+        'InstrumentConfigurationID': instrumentConfigurationId
     }
     # try to get processorName / processorVersion
     # these attributes are missing in some .SAFE files ( may be are missing in all of them )
@@ -280,8 +283,14 @@ def _extract_hdr_from_product(file_path, filename, product_type):
                 raise Exception("Impossible to get the HDR file in the file " + filename)
     else:
         print("Product File is a compressed Tar without a folder")
-        tar_command = "tar %s %s ./%s" % (tar_options, file_path, hdr_filename)
-        os.system(tar_command)
+        tar_handler = tarfile.open(file_path)
+        for taritem in tar_handler.getnames():
+            if taritem.endswith('HDR'):
+                tar_handler.extract(taritem, ".")
+                hdr_filename = taritem
+        # NOTE: Missing handling of HDR File missing in TAR
+        # tar_command = "tar %s %s %s" % (tar_options, file_path, hdr_filename)
+        # os.system(tar_command)
     return hdr_filename
     
 def _get_MANPRE_file_attributes(manpre_file, mission, product_type):
@@ -293,15 +302,34 @@ def _get_MANPRE_file_attributes(manpre_file, mission, product_type):
     # The platform identifier is the first character after the mission
     short_mission = prod_filename[:2]
     platform = prod_filename[3]
-    # Extract attributes
+    # Extract attributes reading product file as a CSV
+    with open(prod_filename, "r") as ifile:
+        report_reader = csv.reader(ifile, delimiter=' ')
+        # Skip file header
+        header = next(report_reader)
+        first_row = next(report_reader)
+        generation_time = first_row[0]
+        # Skip Optimisation Row
+        next(report_reader)
+        # SKip maneuvers header
+        man_header = next(report_reader)
+        first_man = True
+        for row in report_reader:
+            if first_man:
+                first_man_row = row
+                first_man = False
+            last_row = row
+        fist_man_time = first_man_row[0]
+        last_man_time = last_row[0]
+
     # get generation time, /end validity from filename
     attributes = {
         "productType": product_type,
         "platformShortName": mission,
         "platformSerialIdentifier": platform,
-        #"processingDate": getValueByName(source_node, 'Creation_Date').split('UTC=')[1],
-        #"beginningDateTime": getValueByName(validity_period, 'Validity_Start').split('UTC=')[1],
-        #"endingDateTime": getValueByName(validity_period, 'Validity_Stop').split('UTC=')[1],
+        "processingDate": generation_time,
+        "beginningDateTime": fist_man_time,
+        "endingDateTime": last_man_time,
         "processingCenter": f'{short_mission}MPL',
     }
     os.remove(prod_filename)

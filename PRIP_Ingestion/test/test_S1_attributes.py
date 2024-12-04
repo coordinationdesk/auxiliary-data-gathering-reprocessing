@@ -24,16 +24,17 @@ s1_data_files = {
 class TestS1Attributes(unittest.TestCase):
     data_path = 'PRIP_Ingestion/test/test_data'
     '''
+    '''
     def test_ICID_attribute(self):
         prod_file_path = os.path.join(self.data_path, s1_data_files.get('S1_AUX_ICE_NCDF_SAFE_file'))
         attrs = get_attributes(prod_file_path)
         self.assertIsNotNone(attrs)
-        self.assertEqual(attrs.get('InstrumentConfiguration'), '2')
+        self.assertEqual(attrs.get('InstrumentConfigurationID'), '1')
         prod_file_path = os.path.join(self.data_path, s1_data_files.get('S1_AUX_WAV_NCDF_SAFE_file'))
         attrs = get_attributes(prod_file_path)
         self.assertIsNotNone(attrs)
-        self.assertEqual(attrs.get('InstrumentConfiguration'), '2')
-    '''
+        self.assertEqual(attrs.get('InstrumentConfigurationID'), '1')
+
     def test_ICE_SAFE_attributes(self):
         prod_file_path = os.path.join(self.data_path, s1_data_files.get('S1_AUX_ICE_NCDF_SAFE_file'))
         attrs = get_attributes(prod_file_path)
