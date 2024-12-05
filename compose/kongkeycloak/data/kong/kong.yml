@@ -24,6 +24,7 @@ services:
 
 - name: auxip-service
   url: http://auxip:8080/auxipv2.svc
+  read_timeout: 120000
   plugins:
   - name: oidc
     config:
@@ -35,6 +36,10 @@ services:
       discovery: "https://192.168.253.2/auth/realms/reprocessing-preparation/.well-known/openid-configuration"
       # redirect_uri_path: "/auxip.svc"
       session_secret: "bXkgc2Vzc2lvbiBzZWNyZXQ="
+
+#  - name: upstream-timeout
+#    config:
+#      read_timeout: 120000
 
   routes:
   - name: auxip-route
