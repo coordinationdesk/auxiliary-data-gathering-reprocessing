@@ -22,6 +22,7 @@ fi
 WORK_FOLDER=$1
 echo "WORK_FOLDER : "$WORK_FOLDER
 
+PROVIDER=LTA
 
 # OPTIONAL ARGUMENT: Reference DATE
 # IF NOT SPECIFIED; get it from AUXIP
@@ -192,8 +193,8 @@ function ingest_mission() {
         ${FROM_DATE_ARG} ${TO_DATE_ARG}
   code=$?
   if [ $code -ne 0 ]; then
-    echo "PRIP Retrieve failed"
-    echo "PRIP Retrieve failed" >> ${ERROR_FILE_LOG}
+    echo "${PROVIDER} Retrieve failed"
+    echo "${PROVIDER} Retrieve failed" >> ${ERROR_FILE_LOG}
   fi
   ingest_downloaded_files $MISSION $code "$MISSION_TEMP_FOLDER" "${MISSION_TEMP_FOLDER_LISTING}" "${MISSION_TEMP_FOLDER_JSONS}"
   ingestion_code=$?
@@ -231,8 +232,8 @@ function ingest_mission_types() {
           ${FROM_DATE_ARG} ${TO_DATE_ARG}
     code=$?
     if [ $code -ne 0 ]; then
-      echo "PRIP Retrieve for mission $MISSION, type ${AUX_TYPES} failed"
-      echo "PRIP Retrieve  for mission $MISSION, type ${AUX_TYPES} failed (error: $code)" >> ${ERROR_FILE_LOG}
+      echo "${PROVIDER} Retrieve for mission $MISSION, type ${AUX_TYPES} failed"
+      echo "${PROVIDER} Retrieve  for mission $MISSION, type ${AUX_TYPES} failed (error: $code)" >> ${ERROR_FILE_LOG}
     fi
     ingest_downloaded_files $MISSION $code "${MISSION_TYPE_TEMP_FOLDER}" "${MISSION_TYPE_TEMP_FOLDER_LISTING}" "${MISSION_TYPE_TEMP_FOLDER_JSONS}"
     ingestion_code=$?
@@ -279,8 +280,11 @@ function ingest_mission_type_by_type() {
 
   IFS=',' AUX_TYPES_LIST=($MISSION_AUX_TYPES)
   IFS=$OIFS
+  TYPES_FILE=${CUR_DIR}/${MISSION}_${PROVIDER}_Types
+  (IFS='\n'; echo ${AUX_TYPES_LIST[@]} > $TYPES_FILE)
   echo "TYPES: ${AUX_TYPES_LIST[@]}"
   tt_ingestion_code=0
+  # TODO: Replace with Types read from TYPES_FILE
   for aux_t in "${AUX_TYPES_LIST[@]}"
   do
     echo "[BEG] Ingesting aux type $aux_t for mission $MISSION from $FROM_DATE_ARG to $TO_DATE_ARG"
@@ -294,7 +298,7 @@ function ingest_mission_type_by_type() {
   return $tt_ingestion_code
 }
 
-echo "Starting PRIP download"
+echo "Starting ${PROVIDER} download"
 ingestion_code=0
 for mission in ${MISSIONS}
 do

@@ -22,7 +22,8 @@ fi
 WORK_FOLDER=$1
 echo "WORK_FOLDER : "$WORK_FOLDER
 
-OUTPUT_FILE_BASENAME="ADGS_list"
+PROVIDER=ADGS
+OUTPUT_FILE_BASENAME="${PROVIDER}_list"
 
 # OPTIONAL ARGUMENT: Reference DATE
 # IF NOT SPECIFIED; get it from AUXIP
@@ -104,7 +105,7 @@ function ingest_mission() {
       exit 1
   fi
   MISSION=$1
-  FILE_TYPES_FILE=${MISSION}_ADGS_filetypes
+  FILE_TYPES_FILE=${MISSION}_${PROVIDER}_filetypes
   MISSION_TEMP_FOLDER=${TEMP_FOLDER}/$MISSION
   MISSION_TEMP_FOLDER_LISTING=${TEMP_FOLDER_LISTING}/${MISSION}
   create_folder $MISSION_TEMP_FOLDER
@@ -121,8 +122,8 @@ function ingest_mission() {
         ${FROM_DATE_ARG} ${TO_DATE_ARG}
   code=$?
   if [ $code -ne 0 ]; then
-    echo "ADGS Retrieve failed"
-    echo "ADGS Retrieve failed" >> ${ERROR_FILE_LOG}
+    echo "${PROVIDER} Retrieve failed"
+    echo "${PROVIDER} Retrieve failed" >> ${ERROR_FILE_LOG}
   fi
   ingest_downloaded_files $MISSION $code "$MISSION_TEMP_FOLDER" "${MISSION_TEMP_FOLDER_LISTING}" 
   ingestion_code=$?
@@ -162,8 +163,8 @@ function ingest_mission_types() {
         ${FROM_DATE_ARG} ${TO_DATE_ARG}
     code=$?
     if [ $code -ne 0 ]; then
-      echo "ADGS Retrieve for mission $MISSION, type ${AUX_TYPES} failed"
-      echo "ADGS Retrieve  for mission $MISSION, type ${AUX_TYPES} failed (error: $code)" >> ${ERROR_FILE_LOG}
+      echo "${PROVIDER} Retrieve for mission $MISSION, type ${AUX_TYPES} failed"
+      echo "${PROVIDER} Retrieve  for mission $MISSION, type ${AUX_TYPES} failed (error: $code)" >> ${ERROR_FILE_LOG}
     fi
     ingest_downloaded_files $MISSION $code "${MISSION_TYPE_TEMP_FOLDER}" "${MISSION_TYPE_TEMP_FOLDER_LISTING}" 
     ingestion_code=$?
@@ -200,7 +201,7 @@ function ingest_mission_type_by_type() {
       exit 1
   fi
   MISSION=$1
-  FILE_TYPES_FILE=${MISSION}_ADGS_filetypes
+  FILE_TYPES_FILE=${MISSION}_${PROVIDER}_filetypes
   echo "Function ingest_mission_type_by_type: Ingesting Mission ${MISSION} with arg ${FROM_DATE_ARG} and ${TO_DATE_ARG}"
   # FOr S2, specify types to downldao, instead of specifying the type folder
   set -a MISSION_AUX_TYPES
@@ -221,7 +222,7 @@ function ingest_mission_type_by_type() {
   return $tt_ingestion_code
 }
 
-echo "Starting ADGS download"
+echo "Starting ${PROVIDER} download"
 ingestion_code=0
 for mission in ${MISSIONS}
 do
