@@ -2,11 +2,8 @@ package com.csgroup.reprodatabaseline.datamodels;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import com.csgroup.reprodatabaseline.rules.RuleEnum;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class AuxType{
@@ -22,6 +19,10 @@ public class AuxType{
 
 	public List<String> ProductTypes = new ArrayList<String>();
 
+//	public List<L0ParameterValue> L0ParameterValues = new List<L0ParameterValue>();
+
+	// TODO Add L0Parameters
+
 	public String Variability;
 
 	public String Validity;
@@ -30,6 +31,13 @@ public class AuxType{
 
 	public String Comments;
 
+	public Boolean usedForProductType(final String productType)
+	{
+		// First part of ProductType is always the Level of the product to be generated
+		final String level = productType.substring(0,2);
+		// TODO: Check if second condition should be: ProductLevels.contains(level)
+		return ProductTypes.contains(productType) || ( Mission.equals("S3ALL") && ProductTypes.contains(level) );
+	}
 }
 
 
