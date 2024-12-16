@@ -52,8 +52,8 @@ public class L0NameAttributesConfiguration {
 
 	public L0NameAttributesConfiguration() {
 		Map<String, SubStringConfig> s1_configuration = new HashMap<>();
-		s1_configuration.put("Polarization", new SubStringConfig(15,2));
-		s1_configuration.put("Mode", new SubStringConfig(5,3));
+		s1_configuration.put("Polarization", new SubStringConfig(15,1));
+		s1_configuration.put("Mode", new SubStringConfig(4	,2));
 		missionL0NameAttributesConfiguration.put("S1SAR", s1_configuration);
 	}
 

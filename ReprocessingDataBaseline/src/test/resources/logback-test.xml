@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<configuration>
+
+    <!-- Definition of the default appender which will append the stream to the console -->
+    <!-- Use Spring Boot default values to avoid changes in the logs format before the introduction of logback.xml file -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+    
+    <!-- Definition of the custom appender made to add L0 names not found on the database to a custom log file -->
+    <appender name="L0-NOT-FOUND-FILE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    
+    <!-- Logger associated with the custom appender of L0 names -->
+    <!-- additivity=false ensures analytics data only goes to the analytics log -->
+    <logger name="L0NotFoundOnBase" level="WARN" additivity="false">
+        <appender-ref ref="L0-NOT-FOUND-FILE"/>
+    </logger>
+
+    <!-- Default logger associated with the default appender -->
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

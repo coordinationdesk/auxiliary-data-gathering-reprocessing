@@ -391,21 +391,29 @@ public class ReproBaselineAccess {
 			// read from configuration
 			AuxTypeL0Selector l0AuxTypeSelector = null;
 			if (auxTypesL0Parameters != null) {
-				LOG.debug(" Creat a Selector For Aux Type based on L0 Parameters");
+				LOG.debug(" Creating a Selector For Aux Type based on L0 Parameters");
 				l0AuxTypeSelector = new AuxTypeL0Selector(level0, mission, auxTypesL0Parameters);
 			}
 			for (AuxType t: types.getValues())
 			{
-				// If selected continue, else continue with next Aux Type
-				if ((l0AuxTypeSelector != null) && !l0AuxTypeSelector.selectAuxType(t)) {
-					continue;
-				}
+				// Apply a chain of checks for slection on AuxType, based on:
+				// productType, L0Selector
+
 				// T: Consider possibility of defining another Filter for AuxTYpe based on ProductType
 				// take into account only auxiliary data files with requested product type
 				// but take care about auxtype from mission S3ALL
 				if( t.usedForProductType(productType) )
 				{
-					Duration delta0 = Duration.ofSeconds(auxTypesDeltas.get(t.LongName).getDelta0()); 
+					// If selected continue, else continue with next Aux Type
+					if ((l0AuxTypeSelector != null) && !l0AuxTypeSelector.selectAuxType(t)) {
+						continue;
+					}
+					// TODO: Extract method (or move to separate object):
+					//   AuxFileSelector receivies AuxType (+auxTypesDeltas?)
+					//         platformShortName, platformSerialIde
+					//       t0t1 (L0 Interval)
+					// Returns ReprocessingAuxFiles
+					Duration delta0 = Duration.ofSeconds(auxTypesDeltas.get(t.LongName).getDelta0());
 					Duration delta1 = Duration.ofSeconds(auxTypesDeltas.get(t.LongName).getDelta1());
 
 					// call on reproBaselineAcess: getAuxFiles(key)
@@ -418,7 +426,8 @@ public class ReproBaselineAccess {
 					List<AuxFile> files_repro_filtered;
 
 					if (!files_repro.isEmpty()) {
-						LOG.debug(">>> Applying Selection Rule to Aux Files");
+						LOG.debug(String.format(">>> Applying Selection Rule to %d Aux Files",
+								files_repro.size()));
 						// TODO: Apply any extra AxuFile Selection Rule dependent on Mission:
 						//       ICID Based selection for S1
 						//       Product time distance vs Aux File for S1

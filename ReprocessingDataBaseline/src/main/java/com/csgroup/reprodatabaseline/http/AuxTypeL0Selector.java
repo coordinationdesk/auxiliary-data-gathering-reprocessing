@@ -82,12 +82,12 @@ public class AuxTypeL0Selector {
         Boolean selected = Boolean.TRUE;
         // CHeck if aux Type associated L0 Parameter have values matching the corresponding L0 Value
         if ( auxTypesL0ParameterValuesTable.containsKey(auxType.LongName)) {
-            LOG.debug(String.format(">>> AuxType {} has configured L0 Parameters", auxType.LongName));
+            LOG.debug(String.format(">>> AuxType %s has configured L0 Parameters", auxType.LongName));
             Map<String, List<String>> auxTypeL0Parameters = auxTypesL0ParameterValuesTable.get(auxType.LongName);
             for (String parameterName: auxTypeL0Parameters.keySet()) {
                 // Check if L0Product has parameter
                 String L0ParamValue = getL0ParameterValue(this.l0Product.getName(), parameterName);
-                LOG.debug(String.format(" Checking Parameter {}: L0 value: {}",
+                LOG.debug(String.format(" Checking Parameter %s: L0 value: %s",
                         parameterName, L0ParamValue));
 
                 // If yes, check if L0 Product parameter value is in AuxType associate list of values
