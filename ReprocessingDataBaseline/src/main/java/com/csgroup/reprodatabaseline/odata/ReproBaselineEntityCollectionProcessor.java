@@ -56,7 +56,6 @@ import org.springframework.data.util.Pair;
 
 import com.csgroup.reprodatabaseline.datamodels.AuxFile;
 import com.csgroup.reprodatabaseline.datamodels.L0Product;
-import com.csgroup.reprodatabaseline.http.ReproBaselineAccess;
 
 public class ReproBaselineEntityCollectionProcessor implements EntityCollectionProcessor {
 
@@ -68,15 +67,15 @@ public class ReproBaselineEntityCollectionProcessor implements EntityCollectionP
 
   private OData odata;
   private ServiceMetadata srvMetadata;
-  private ReproBaselineAccess reproBaselineAccess;
+  private ReproDataBaseline reproBaseline;
 
   public void init(OData odata, ServiceMetadata serviceMetadata) {
     this.odata = odata;
     this.srvMetadata = serviceMetadata;
   }
 
-  public ReproBaselineEntityCollectionProcessor(ReproBaselineAccess reproBaselineAccess) {
-    this.reproBaselineAccess = reproBaselineAccess;
+  public ReproBaselineEntityCollectionProcessor(ReproDataBaseline reproBaseline) {
+    this.reproBaseline = reproBaseline;
   }
 
   /*
@@ -150,7 +149,8 @@ public class ReproBaselineEntityCollectionProcessor implements EntityCollectionP
       // Get the parameter of the function
       int nbParameters = uriResourceFunction.getParameters().size();
       String accessToken = request.getHeader("Authorization").replace("Bearer ", "");
-      this.reproBaselineAccess.setAccessToken(accessToken);
+      // TODO instead, pass it to ReproDataBaseline
+      this.reproBaseline.setAccessToken(accessToken);
 
       Map<Pair<String, String>, List<AuxFile>> dataBaselines = new HashMap<>();
       String level0Names = "";
@@ -193,10 +193,14 @@ public class ReproBaselineEntityCollectionProcessor implements EntityCollectionP
       		+ "So, the ADF selection rule has been applied using the sensing start of the corresponding data take.";
 
       if (nbParameters == 4) {
-
+// TODO: reorganize: the problem is associating the L0 Information message to each L0 Product
+        // The different messages agenerated on only two conditions: L0 Product available in RDB or not
+        // The solution is to generate two lists of L0 Products, when retrieving them by name:
+        // the list of found products, and the list of not found products!
         for (String level0Name : level0Names.split(",")) {
-        	
-        	List<L0Product> level0Products = this.reproBaselineAccess.getLevel0ProductsByName(level0Name);
+
+          // TODO: get L0 products from reproDataBaseline or better databaslineRepository
+        	List<L0Product> level0Products = this.reproBaseline.getLevel0ProductsByName(level0Name);
         	L0Product level0;
         	String level0InfoMessage = defaultLevel0InformationMessage;
         	
@@ -217,24 +221,26 @@ public class ReproBaselineEntityCollectionProcessor implements EntityCollectionP
         		LOG_L0_NOT_FOUND.warn(level0Name);
         	}
         	
-        	
-			List<AuxFile> auxDataFiles = this.reproBaselineAccess.getReprocessingDataBaseline(level0, mission, unit, productType);
+        	// TODO: Call funciton on Reprodatabaseline
+			List<AuxFile> auxDataFiles = this.reproBaseline.getReprocessingDataBaseline(level0, mission, unit, productType);
 			dataBaselines.put(Pair.of(level0Name, level0InfoMessage), auxDataFiles);
         }
 
       } else {
 
-        List<L0Product> l0Products = this.reproBaselineAccess.getLevel0Products(start, stop, mission, unit,
+        List<L0Product> l0Products = this.reproBaseline.getLevel0Products(start, stop, mission, unit,
             productType);
         for (L0Product product : l0Products) {
-          List<AuxFile> auxDataFiles = this.reproBaselineAccess.getReprocessingDataBaseline(product, mission,
+          List<AuxFile> auxDataFiles = this.reproBaseline.getReprocessingDataBaseline(product, mission,
               unit, productType);
           dataBaselines.put(Pair.of(product.getName(), defaultLevel0InformationMessage), auxDataFiles);
         }
       }
 
+      // TODO : put in function: buildL0BaslineENtity
       final EntityCollection resultCollection = new EntityCollection();
 
+      // Loop items: Pair <L0Name, warnMessage>, List<AuxFile>
       for (Map.Entry<Pair<String, String>, List<AuxFile>> me : dataBaselines.entrySet()) {
         Entity entity = new Entity();
         Property level0 = new Property("String", "Level0", ValueType.PRIMITIVE, me.getKey().getFirst());

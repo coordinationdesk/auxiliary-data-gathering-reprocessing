@@ -177,7 +177,7 @@ public class ReproBaselineAccess {
 	public List<L0Product> getLevel0ProductsByName(String level0Name) {
 		return this.baselineRepository.getLevel0ProductsByName(level0Name);
 	}
-	
+
 	private class T0T1DateTime {
 		public ZonedDateTime _t0;
 		public ZonedDateTime _t1;
@@ -247,6 +247,7 @@ public class ReproBaselineAccess {
 		}
 		return Boolean.FALSE;
 	}
+
 	public List<AuxFile> getReprocessingDataBaseline(L0Product level0,String mission,String unit,String productType) {
 		// 1 -> get mission and sat_unit
 		// 2 -> get AuxType for this mission
@@ -338,7 +339,6 @@ public class ReproBaselineAccess {
 		return results;
 
 	}
-
 
 	public AuxTypes getAuxTypes(String mission) {
 		// TODO: This is a ReproBaseLineAccess method : getAuxTypes(Mission)
