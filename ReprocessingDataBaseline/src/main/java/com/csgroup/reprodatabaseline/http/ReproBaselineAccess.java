@@ -12,10 +12,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
-
 import com.csgroup.reprodatabaseline.datamodels.*;
 import com.csgroup.reprodatabaseline.odata.DatabaselineRepository;
 import org.apache.commons.io.FilenameUtils;
@@ -27,6 +23,7 @@ import com.csgroup.reprodatabaseline.config.UrlsConfiguration;
 import com.csgroup.reprodatabaseline.rules.RuleApplierFactory;
 import com.csgroup.reprodatabaseline.rules.RuleApplierInterface;
 import com.csgroup.reprodatabaseline.rules.RuleEnum;
+import org.springframework.transaction.TransactionUsageException;
 
 @Component
 public class ReproBaselineAccess {
@@ -35,17 +32,15 @@ public class ReproBaselineAccess {
 	private final HttpHandler httpHandler;
 	private final UrlsConfiguration config;
 	private final AuxipAccess auxip;
-	private final EntityManagerFactory entityManagerFactory;
 
 	// for internal use
-	private final Map<String,Map<String,AuxTypeDeltas>> cachedAuxTypesDeltas;
 	private String accessToken;
 	// ReproBaselineAccess entity can be used several times for the same productType
 	// so for the performences optimization and to avoid requesting for the same data , AuxTypes and AuxFiles should be keeped in memory
 	private final Map<String,AuxTypes> cachedAuxTypes;
 	private final Map<String,List<AuxFile>> cachedAuxFiles;
 	private final DatabaselineRepository baselineRepository;
-	//private final L0NameParser l0NameParser;
+
 	public String getAccessToken() {
 		return accessToken;
 	}
@@ -54,16 +49,15 @@ public class ReproBaselineAccess {
 		this.accessToken = accessToken;
 	}
 
-	public ReproBaselineAccess(HttpHandler handler, UrlsConfiguration conf,AuxipAccess auip,EntityManagerFactory entityManager,
+	public ReproBaselineAccess(HttpHandler handler, UrlsConfiguration conf,AuxipAccess auip,
 							   DatabaselineRepository dataRepository) {
 		this.httpHandler = handler;
 		this.config = conf;
 		this.auxip = auip;
-		this.entityManagerFactory = entityManager;
 
 		this.cachedAuxFiles = new HashMap<>();
 		this.cachedAuxTypes = new HashMap<>();
-		this.cachedAuxTypesDeltas = new HashMap<>();
+		//this.cachedAuxTypesDeltas = new HashMap<>();
 
 		this.baselineRepository = dataRepository;
 	}
@@ -163,11 +157,6 @@ public class ReproBaselineAccess {
 		return null;
 	}
 
-	/*public Map<String, L0ParameterValue> getAuxTypesL0ParameterValues()
-	{
-
-	}*/
-
 	// TODO: move to RerpoBaselineENityCollecitonProcessor
 	// TODO: Should be : by time interal
 
@@ -181,72 +170,12 @@ public class ReproBaselineAccess {
 	 * @return a list of L0Product objects, having the validity interval intersecting the input interval
 	 */
 	public List<L0Product> getLevel0Products(String start,String stop, String mission,String unit,String productType) 	{
-
-		final String satellite = mission.substring(0, 2);
-		final String instrument = mission.substring(2, 4);
-
-		String queryString = "";
-		if(mission.contains("S3"))
-		{
-			String startsWith = satellite + unit + "_" + instrument + "_0_";
-			// TODO Use a table!!!
-			if( instrument.equals("OL") || instrument.equals("SY") ) startsWith += "EFR";
-			else if( instrument.equals("SL")) startsWith += "SLT";
-			else if( instrument.equals("MW")) startsWith += "MWR";
-			else { //SR
-				if( productType.contains("CAL")) startsWith += "CAL";
-				else startsWith += "SRA";
-			}
-
-			queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.L0Product entity "
-			+ "WHERE entity.validityStart >= \'start\' AND  entity.validityStop <= \'stop\'"
-			+ "AND entity.name LIKE \'literal%\'";
-			queryString = queryString.replace("start", start).replace("stop", stop).replace("literal", startsWith);
-		}else
-		{
-			String startsWith = satellite + unit;
-			// for S1 and S2 we dont care about the product type 
-			queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.L0Product entity "
-			+ "WHERE entity.validityStart >= \'start\' AND  entity.validityStop <= \'stop\'"
-			+ "AND entity.name LIKE \'literal%\'";
-			queryString = queryString.replace("start", start).replace("stop", stop).replace("literal", startsWith);
-		}
-
-		// LOG.debug(">> queryString " + queryString);
-		
-		EntityManager entityManager = entityManagerFactory.createEntityManager();
-		List<L0Product> l0_products;
-		try {	
-			Query query_m1 = entityManager.createQuery(queryString);
-			l0_products = query_m1.getResultList();
-			LOG.debug("Number of level0 products found : "+String.valueOf(l0_products.size()));
-		} finally {
-			entityManager.close();
-		}
-		return l0_products;
+		return this.baselineRepository.getLevel0Products(start, stop,
+				mission, unit, productType);
 	}
-	// TODO: move to RerpoBaselineENityCollecitonProcessor
+	// TODO: move to databaseline Repostiory
 	public List<L0Product> getLevel0ProductsByName(String level0Name) {
-		
-		String reformatedLevel0Name = level0Name.replace("\\\"", "");
-		reformatedLevel0Name = FilenameUtils.removeExtension(reformatedLevel0Name);
-		
-		String queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.L0Product entity "
-				+ "WHERE entity.name LIKE \'%level0Name%\'";
-		
-		queryString = queryString.replace("level0Name", reformatedLevel0Name);
-		
-		EntityManager entityManager = entityManagerFactory.createEntityManager();
-		List<L0Product> l0_products;
-		try {	
-			Query query = entityManager.createQuery(queryString);
-			l0_products = query.getResultList();
-			LOG.debug(MessageFormat.format("{0} L0 products match \"{1}\" in the database.", String.valueOf(l0_products.size()), reformatedLevel0Name));
-		} finally {
-			entityManager.close();
-		}
-		
-		return l0_products;
+		return this.baselineRepository.getLevel0ProductsByName(level0Name);
 	}
 	
 	private class T0T1DateTime {
@@ -254,6 +183,70 @@ public class ReproBaselineAccess {
 		public ZonedDateTime _t1;
 	}
 
+	private List<AuxFile> selectAuxFilesByRule(List<AuxFile> reprocessingFiles,
+											   Map<String, AuxTypeDeltas> auxTypesDeltas,
+											   AuxType auxType,
+											   T0T1DateTime l0Interval) {
+		RuleApplierInterface rule_applier = RuleApplierFactory.getRuleApplier(auxType.Rule);
+		Duration delta0 = Duration.ofSeconds(auxTypesDeltas.get(auxType.LongName).getDelta0());
+		Duration delta1 = Duration.ofSeconds(auxTypesDeltas.get(auxType.LongName).getDelta1());
+
+		List<AuxFile> files_repro_filtered;
+
+		if (!reprocessingFiles.isEmpty()) {
+			LOG.debug(String.format(">>> Applying Selection Rule to %d Aux Files",
+					reprocessingFiles.size()));
+			// TODO: Apply any extra AxuFile Selection Rule dependent on Mission:
+			//       ICID Based selection for S1
+			//       Product time distance vs Aux File for S1
+
+			// TODO: AuxFile has Band Property with value BXX
+			// TODO: Replace with : if (files_repro.get(0).Band.
+			if (reprocessingFiles.get(0).FullName.matches(".*B..\\..*")) {
+				// The type has band files
+
+				// We need to group the files by band and apply the rule on each group
+				Map<String, List<AuxFile>> sortedFilesByBand = sortFilesByBand(reprocessingFiles);
+
+				files_repro_filtered = new ArrayList<AuxFile>();
+
+				for (String band : sortedFilesByBand.keySet()) {
+					files_repro_filtered.addAll(rule_applier.apply(sortedFilesByBand.get(band),
+							l0Interval._t0, l0Interval._t1,
+							delta0, delta1));
+				}
+
+			} else {
+				// The type does not have band files
+
+				// We need to apply the rule on every file at once
+				files_repro_filtered = rule_applier.apply(reprocessingFiles,
+						l0Interval._t0, l0Interval._t1,
+						delta0, delta1);
+			}
+		} else {
+			// Return empty array list
+			files_repro_filtered = new ArrayList<>();
+		}
+		return files_repro_filtered;
+	}
+
+	private Boolean selectAuxType(AuxType auxType, String productType, AuxTypeL0Selector l0Selector) throws Exception
+	{
+		if (auxType.usedForProductType(productType)) {
+			LOG.debug(String.format("AuxType %s configured for production of %s",
+					auxType.LongName, productType));
+			// If selected continue, else continue with next Aux Type
+			// If no configuration exists, use the AuxTYpe
+			if ((l0Selector != null) && !l0Selector.selectAuxType(auxType)) {
+				LOG.debug(String.format("Aux Type %s not selected due to L0 parameters",
+						auxType.LongName));
+				return Boolean.FALSE;
+			}
+			return Boolean.TRUE;
+		}
+		return Boolean.FALSE;
+	}
 	public List<AuxFile> getReprocessingDataBaseline(L0Product level0,String mission,String unit,String productType) {
 		// 1 -> get mission and sat_unit
 		// 2 -> get AuxType for this mission
@@ -289,10 +282,10 @@ public class ReproBaselineAccess {
 		// TODO for each AuxTYpe name, dfine a table with : parameter Name, list of Values
 		//Map<String, Map<String, List<String>>> auxTypesL0Parameters = getAuxTypesL0ParametersTable(auxTypes.getValues();
 		Map<String, Map<String, List<String>>> auxTypesL0Parameters = baselineRepository.getAuxTypesL0ParametersTable(mission);
-		// TODO: Use a table of posins of tiem fields in L0 Product name, based on mission
+
 		T0T1DateTime t0t1 = getLevel0StartStop(level0, platformShortName);
 
-		// AuxTypeSelector allows to select AuxType link to L0 attribute values
+		// AuxTypeSelector allows to select AuxType based on L0 attribute values
 		//  L0 product is used to get its attributes
 		//  aux types L0 parameters is the table specifying the association between AuxTYpes and L0Attributes
 		// read from configuration
@@ -301,74 +294,26 @@ public class ReproBaselineAccess {
 			LOG.debug(">>> Creating a Selector For Aux Types based on L0 Parameters");
 			l0AuxTypeSelector = new AuxTypeL0Selector(level0, mission, auxTypesL0Parameters);
 		}
-		// TODO: Verify if try should be moved internally, for each AuxType
-		//  Do we acept losing one AuxTYpe files, for an error, or are we
-		//     throwing all the results for any error?
+
 		try {
 			for (AuxType t: types.getValues())
 			{
-				// Apply a chain of checks (AuxTypeSelector)
-				//  for selection on AuxType, based on:
-				//         productType, mission, L0Product
-
 				// T: Consider possibility of defining another Filter for AuxTYpe based on ProductType
 				// take into account only auxiliary data files with requested product type
 				// but take care about auxtype from mission S3ALL
-				if( t.usedForProductType(productType) )
-				{
-					LOG.debug(String.format("AuxType %s configured for production of %s",
-											t.LongName, productType));
-					// If selected continue, else continue with next Aux Type
-					// If no configuration exists, use the AuxTYpe
-					if ((l0AuxTypeSelector != null) && !l0AuxTypeSelector.selectAuxType(t)) {
-						LOG.debug(String.format("Aux Type %s not selected due to L0 parameters",
-												t.LongName));
-						continue;
-					}
+				if (selectAuxType(t, productType, l0AuxTypeSelector)) {
 					// TODO: Extract method (or move to separate object):
 					//   AuxFileSelector receivies AuxType (+auxTypesDeltas?)
 					//         platformShortName, platformSerialIde
 					//       t0t1 (L0 Interval)
 					// Returns ReprocessingAuxFiles
-					Duration delta0 = Duration.ofSeconds(auxTypesDeltas.get(t.LongName).getDelta0());
-					Duration delta1 = Duration.ofSeconds(auxTypesDeltas.get(t.LongName).getDelta1());
-
 					// call on reproBaselineAcess: getAuxFiles(key)
 
 					LOG.debug(">>> Loading Aux Files for Aux Type "+t.ShortName);
-					// check if auxtype is not already treated
 					List<AuxFile> files_repro = this.getAuxFiles(t, platformShortName, platformSerialIdentifier);
-
-					RuleApplierInterface rule_applier = RuleApplierFactory.getRuleApplier(t.Rule);
-					List<AuxFile> files_repro_filtered;
-
-					if (!files_repro.isEmpty()) {
-						LOG.debug(String.format(">>> Applying Selection Rule to %d Aux Files",
-								files_repro.size()));
-						// TODO: Apply any extra AxuFile Selection Rule dependent on Mission:
-						//       ICID Based selection for S1
-						//       Product time distance vs Aux File for S1
-
-						// TODO: AuxFile has Band Property with value BXX
-						// TODO: Replace with : if (files_repro.get(0).Band.
-						if (files_repro.get(0).FullName.matches(".*B..\\..*")) {
-							// The type has band files
-
-							// We need to group the files by band and apply the rule on each group
-							Map<String, List<AuxFile>> sortedFilesByBand = sortFilesByBand(files_repro);
-
-							files_repro_filtered = new ArrayList<AuxFile>();
-
-							for (String band : sortedFilesByBand.keySet()) {
-								files_repro_filtered.addAll(rule_applier.apply(sortedFilesByBand.get(band),t0t1._t0,t0t1._t1,delta0,delta1));
-							}
-
-						} else {
-							// The type does not have band files
-
-							// We need to apply the rule on every file at once
-							files_repro_filtered = rule_applier.apply(files_repro,t0t1._t0,t0t1._t1,delta0,delta1);
-						}
+					if (! files_repro.isEmpty()) {
+						List<AuxFile> files_repro_filtered;
+						files_repro_filtered = this.selectAuxFilesByRule(files_repro, auxTypesDeltas, t, t0t1);
 
 						LOG.debug(">>> Retrieving from AUXIP download URLs for selected Aux Files");
 						try {

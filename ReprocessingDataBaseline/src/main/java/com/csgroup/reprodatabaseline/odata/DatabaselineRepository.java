@@ -61,6 +61,15 @@ public class DatabaselineRepository {
 
     // TODO: move to RerpoBaselineENityCollecitonProcessor
     // TODO: Should be : by time interal
+    /**
+     *
+     * @param start start of interval where to search for L0 Products
+     * @param stop   end of interval where to search for L0 Products
+     * @param mission: String specifying mission and instrument
+     * @param unit : the platform unit (A,B,C...): the satellite of the mission
+     * @param productType : the type of product to be generated
+     * @return a list of L0Product objects, having the validity interval intersecting the input interval
+     */
     public List<L0Product> getLevel0Products(String start, String stop, String mission, String unit, String productType)
     {
         final String satellite = mission.substring(0, 2);
@@ -123,20 +132,20 @@ public class DatabaselineRepository {
     // TODO: move to RerpoBaselineENityCollecitonProcessor
     public List<L0Product> getLevel0ProductsByName(String level0Name) {
 
-        String reformatedLevel0Name = level0Name.replace("\\\"", "");
-        reformatedLevel0Name = FilenameUtils.removeExtension(reformatedLevel0Name);
+        String reformattedLevel0Name = level0Name.replace("\\\"", "");
+        reformattedLevel0Name = FilenameUtils.removeExtension(reformattedLevel0Name);
 
         String queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.L0Product entity "
                 + "WHERE entity.name LIKE \'%level0Name%\'";
 
-        queryString = queryString.replace("level0Name", reformatedLevel0Name);
+        queryString = queryString.replace("level0Name", reformattedLevel0Name);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         List<L0Product> l0_products;
         try {
             Query query = entityManager.createQuery(queryString);
             l0_products = query.getResultList();
-            LOG.debug(MessageFormat.format("{0} L0 products match \"{1}\" in the database.", String.valueOf(l0_products.size()), reformatedLevel0Name));
+            LOG.debug(MessageFormat.format("{0} L0 products match \"{1}\" in the database.", String.valueOf(l0_products.size()), reformattedLevel0Name));
         } finally {
             entityManager.close();
         }
