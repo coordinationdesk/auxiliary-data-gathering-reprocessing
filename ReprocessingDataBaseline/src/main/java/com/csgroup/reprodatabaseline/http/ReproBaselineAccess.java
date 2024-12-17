@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,6 +17,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 
 import com.csgroup.reprodatabaseline.datamodels.*;
+import com.csgroup.reprodatabaseline.odata.DatabaselineRepository;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class ReproBaselineAccess {
 	// so for the performences optimization and to avoid requesting for the same data , AuxTypes and AuxFiles should be keeped in memory
 	private final Map<String,AuxTypes> cachedAuxTypes;
 	private final Map<String,List<AuxFile>> cachedAuxFiles;
-	private final Map<String, Map<String, Map<String, List<String>>>> cachedMissionAuxTypesL0Parameters;
+	private final DatabaselineRepository baselineRepository;
 	//private final L0NameParser l0NameParser;
 	public String getAccessToken() {
 		return accessToken;
@@ -54,7 +54,8 @@ public class ReproBaselineAccess {
 		this.accessToken = accessToken;
 	}
 
-	public ReproBaselineAccess(HttpHandler handler, UrlsConfiguration conf,AuxipAccess auip,EntityManagerFactory entityManager) {
+	public ReproBaselineAccess(HttpHandler handler, UrlsConfiguration conf,AuxipAccess auip,EntityManagerFactory entityManager,
+							   DatabaselineRepository dataRepository) {
 		this.httpHandler = handler;
 		this.config = conf;
 		this.auxip = auip;
@@ -63,8 +64,8 @@ public class ReproBaselineAccess {
 		this.cachedAuxFiles = new HashMap<>();
 		this.cachedAuxTypes = new HashMap<>();
 		this.cachedAuxTypesDeltas = new HashMap<>();
-		this.cachedMissionAuxTypesL0Parameters = new HashMap<>();
-		//this.l0NameParser = new L0NameParser();
+
+		this.baselineRepository = dataRepository;
 	}
 
 	// TODO make it protected or private
@@ -166,40 +167,6 @@ public class ReproBaselineAccess {
 	{
 
 	}*/
-	// TOO: should be moved to ReproBaselineEntityCollecitonProcessor, or
-	// to another package related to RDB data
-	public Map<String,AuxTypeDeltas> getAuxTypesDeltas(String mission)
-	{
-		// do this once for each mission , only if auxTypesDeltas is not already set
-		LOG.info(">> Starting ReproBaselineAccess.getAuxTypesDeltas for mission " + mission);
-		if ( this.cachedAuxTypesDeltas.containsKey(mission) )
-		{
-			LOG.info("<< Ending ReproBaselineAccess.getAuxTypesDeltas");
-			return this.cachedAuxTypesDeltas.get(mission);
-		}else
-		{
-			String queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.AuxTypeDeltas entity "
-			+ "WHERE entity.isCurrent = true AND entity.mission = \'MISSION\' ORDER BY entity.creationDateTime ASC";
-			queryString = queryString.replace("MISSION", mission);
-	
-			EntityManager entityManager = entityManagerFactory.createEntityManager();
-			Map<String,AuxTypeDeltas> auxTypesDeltas = new HashMap<>();
-			List<AuxTypeDeltas> deltasList = null;
-			try {	
-				Query query = entityManager.createQuery(queryString);
-				deltasList = query.getResultList();
-				for(AuxTypeDeltas deltas : deltasList)
-				{
-					auxTypesDeltas.put(deltas.getAuxType(), deltas);
-				}
-			} finally {
-				entityManager.close();
-			}
-			LOG.info("<< Ending ReproBaselineAccess.getAuxTypesDeltas");
-			this.cachedAuxTypesDeltas.put(mission, auxTypesDeltas);
-			return auxTypesDeltas;
-		}		
-	}
 
 	// TODO: move to RerpoBaselineENityCollecitonProcessor
 	// TODO: Should be : by time interal
@@ -287,65 +254,6 @@ public class ReproBaselineAccess {
 		public ZonedDateTime _t1;
 	}
 
-	private List<AuxTypeL0ParameterValue> getListAuxTypeL0ParameterValues(String mission) {
-		String queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.AuxTypeL0ParameterValue entity "
-				+ "WHERE entity.mission = \'MISSION\' ORDER BY entity.auxtype ASC";
-		queryString = queryString.replace("MISSION", mission);
-
-		EntityManager entityManager = entityManagerFactory.createEntityManager();
-		Map<String,Map<String, List<String>>> AuxTypeL0ParameterValueTable = new HashMap<>();
-		List<AuxTypeL0ParameterValue> auxTypeL0ParameterValues ;
-		try {
-			Query query = entityManager.createQuery(queryString);
-			auxTypeL0ParameterValues = query.getResultList();
-			// Group on two levels:
-			// Aux Type
-			// Parameter Name
-
-		} finally {
-			entityManager.close();
-		}
-		return auxTypeL0ParameterValues;
-	}
-
-	// TODO Define an alternate getAuxTypesL0ParametersTable funciton that reads L0Parameters table from AuxTYpes list
-	public Map<String, Map<String, List<String>>> getAuxTypesL0ParametersTable(String mission) 	{
-		// Map<String, Map<String, List<String>>> auxTypesL0Parameters = new HashMap<>();
-
-		// If aux types from RBA contain L0 Parameters, just collect and aggregate into a table for each
-		// Loop on types; if L0ParameterValues is not empty, browse the list and add each item to a map.
-		// add the map to auxTYpesL0Parameters with key the aux type longname
-		// Otherwise read from Database
-
-		// do this once for each mission , only if auxTypesDeltas is not already set
-		LOG.info(">> Starting ReproBaselineAccess.getAuxTypesL0ParametersTable");
-		if ( this.cachedMissionAuxTypesL0Parameters.isEmpty() )
-		{
-			List<AuxTypeL0ParameterValue> auxTypeL0ParameterValues = getListAuxTypeL0ParameterValues(mission);
-			if (!auxTypeL0ParameterValues.isEmpty()) {
-				Map<String, Map<String, List<String>>> AuxTypeL0ParameterValueTable;
-				// assign to last group a list of Parameter Values
-				AuxTypeL0ParameterValueTable = auxTypeL0ParameterValues.
-						stream().
-						collect(
-								Collectors.groupingBy(
-										AuxTypeL0ParameterValue::getAuxtype,
-										Collectors.groupingBy(
-												AuxTypeL0ParameterValue::getName,
-												Collectors.mapping(AuxTypeL0ParameterValue::getValue,
-														Collectors.toList()
-												)
-										)
-								));
-				LOG.info("  Loaded Aux Types L0 Parameters configuration for mission "+mission);
-				this.cachedMissionAuxTypesL0Parameters.put(mission, AuxTypeL0ParameterValueTable);
-			}
-		}
-		LOG.info("<< Ending ReproBaselineAccess.getAuxTypesL0Parameters");
-		return this.cachedMissionAuxTypesL0Parameters.get(mission);
-
-	}
-
 	public List<AuxFile> getReprocessingDataBaseline(L0Product level0,String mission,String unit,String productType) {
 		// 1 -> get mission and sat_unit
 		// 2 -> get AuxType for this mission
@@ -373,39 +281,48 @@ public class ReproBaselineAccess {
 		}
 		LOG.debug(">>> Loading Aux Types Deltas configuration");
 		// get deltas to be applied with selection rules for a given mission
-		Map<String, AuxTypeDeltas> auxTypesDeltas = this.getAuxTypesDeltas(mission);
+		Map<String, AuxTypeDeltas> auxTypesDeltas = this.baselineRepository.getAuxTypesDeltas(mission);
 		LOG.debug(">>> Loading Aux Types for mission");
 		AuxTypes types = getAuxTypes(mission);
 
 		LOG.debug(">>> Loading Aux Types configuration w.r.t. L0 attributes");
 		// TODO for each AuxTYpe name, dfine a table with : parameter Name, list of Values
 		//Map<String, Map<String, List<String>>> auxTypesL0Parameters = getAuxTypesL0ParametersTable(auxTypes.getValues();
-		Map<String, Map<String, List<String>>> auxTypesL0Parameters = getAuxTypesL0ParametersTable(mission);
+		Map<String, Map<String, List<String>>> auxTypesL0Parameters = baselineRepository.getAuxTypesL0ParametersTable(mission);
 		// TODO: Use a table of posins of tiem fields in L0 Product name, based on mission
 		T0T1DateTime t0t1 = getLevel0StartStop(level0, platformShortName);
 
+		// AuxTypeSelector allows to select AuxType link to L0 attribute values
+		//  L0 product is used to get its attributes
+		//  aux types L0 parameters is the table specifying the association between AuxTYpes and L0Attributes
+		// read from configuration
+		AuxTypeL0Selector l0AuxTypeSelector = null;
+		if (auxTypesL0Parameters != null) {
+			LOG.debug(">>> Creating a Selector For Aux Types based on L0 Parameters");
+			l0AuxTypeSelector = new AuxTypeL0Selector(level0, mission, auxTypesL0Parameters);
+		}
+		// TODO: Verify if try should be moved internally, for each AuxType
+		//  Do we acept losing one AuxTYpe files, for an error, or are we
+		//     throwing all the results for any error?
 		try {
-			// AuxTypeSelector allows to select AuxType link to L0 attribute values
-			//  L0 product is used to get its attributes
-			//  aux types L0 parameters is the table specifying the association between AuxTYpes and L0Attributes
-			// read from configuration
-			AuxTypeL0Selector l0AuxTypeSelector = null;
-			if (auxTypesL0Parameters != null) {
-				LOG.debug(" Creating a Selector For Aux Type based on L0 Parameters");
-				l0AuxTypeSelector = new AuxTypeL0Selector(level0, mission, auxTypesL0Parameters);
-			}
 			for (AuxType t: types.getValues())
 			{
-				// Apply a chain of checks for slection on AuxType, based on:
-				// productType, L0Selector
+				// Apply a chain of checks (AuxTypeSelector)
+				//  for selection on AuxType, based on:
+				//         productType, mission, L0Product
 
 				// T: Consider possibility of defining another Filter for AuxTYpe based on ProductType
 				// take into account only auxiliary data files with requested product type
 				// but take care about auxtype from mission S3ALL
 				if( t.usedForProductType(productType) )
 				{
+					LOG.debug(String.format("AuxType %s configured for production of %s",
+											t.LongName, productType));
 					// If selected continue, else continue with next Aux Type
+					// If no configuration exists, use the AuxTYpe
 					if ((l0AuxTypeSelector != null) && !l0AuxTypeSelector.selectAuxType(t)) {
+						LOG.debug(String.format("Aux Type %s not selected due to L0 parameters",
+												t.LongName));
 						continue;
 					}
 					// TODO: Extract method (or move to separate object):
