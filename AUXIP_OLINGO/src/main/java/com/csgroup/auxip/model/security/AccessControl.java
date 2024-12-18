@@ -89,16 +89,21 @@ public class AccessControl {
             Boolean canDownload =  ( rolesTypes.contains(RoleType.download) && 
                    ( this.user.getDownloadedVolume().getVolume() * 10e-9  < quotasConfiguration.getTotalDownloadsQuota() ) &&
                    ( this.user.getNumberOfParallelDownloads()  < quotasConfiguration.getParallelDownloadsQuota() ) ) ;
-                   
+            String logMessage = MessageFormat.format("The user \"{0}\" has downloaded {1} out of {2}. The number of his parallel downloads is {3} out of {4}.",
+                                                this.user.getName(),
+                                                this.user.getDownloadedVolume().getVolume() * 10e-9,
+                                                quotasConfiguration.getTotalDownloadsQuota(),
+                                                this.user.getNumberOfParallelDownloads(),
+                                                quotasConfiguration.getParallelDownloadsQuota());
             if (!canDownload) {
             	// The user is not allowaed to download
             	
-                LOG.error(MessageFormat.format("The user \"{0}\" has downloaded {1} out of {2}. The number of his parallel downloads is {3} out of {4}.", this.user.getName(), this.user.getDownloadedVolume().getVolume() * 10e-9, quotasConfiguration.getTotalDownloadsQuota(), this.user.getNumberOfParallelDownloads(), quotasConfiguration.getParallelDownloadsQuota()));
+                LOG.error(logMessage);
 
             } else {
             	// The user is allowed to download
             	
-                LOG.info(MessageFormat.format("The user \"{0}\" has downloaded {1} out of {2}. The number of his parallel downloads is {3} out of {4}.", this.user.getName(), this.user.getDownloadedVolume().getVolume() * 10e-9, quotasConfiguration.getTotalDownloadsQuota(), this.user.getNumberOfParallelDownloads(), quotasConfiguration.getParallelDownloadsQuota()));
+                LOG.info(logMessage);
             }
                 
             return canDownload;

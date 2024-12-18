@@ -59,10 +59,10 @@ public class AuxTypeDeltas{
 	public void setCurrent(boolean isCurrent) {
 		this.isCurrent = isCurrent;
 	}
-	public void setDelat0(int delta0) {
+	public void setDelta0(int delta0) {
 		this.delta0 = delta0;
 	}
-	public void setDelat1(int delta1) {
+	public void setDelta1(int delta1) {
 		this.delta1 = delta1;
 	}
 	
