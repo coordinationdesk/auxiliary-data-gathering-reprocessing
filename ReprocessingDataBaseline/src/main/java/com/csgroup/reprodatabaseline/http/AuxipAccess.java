@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.csgroup.reprodatabaseline.datamodels.AuxType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,48 @@ public class AuxipAccess {
 	public AuxipAccess(HttpHandler handler, UrlsConfiguration conf) {
 		this.httpHandler = handler;
 		this.config = conf;
+	}
+
+	public List<String> getAuxFilesWithICID(final String mission, final AuxType  auxType,
+											final String ICID,
+											String bearerToken) throws Exception {
+		List<String> auxFileNames = new ArrayList<String>();
+		ObjectMapper mapper = new ObjectMapper();
+		LOG.debug("getAuxFilesWithICID: Building GET REequest for S1 ICID: " + ICID);
+		String getResult = httpHandler.getPost(
+				String.format( "%s/Products?$filter=startswith(Name, '%s') and contains(Name,'%s') " +
+								"and Attributes/OData.CSC.StringAttribute/any(att:att/Name eq '%s'" +
+								"and att/OData.CSC.StringAttribute/Value eq '%s')" +
+								"&select=Name",
+								config.getAuxip_url(), mission,
+								auxType.ShortName.trim(), "InstrumentConfigurationID", ICID),
+				bearerToken);
+		JsonNode currentObj;
+
+		try {
+			currentObj = mapper.readTree(getResult.replaceAll("@", ""));
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new Exception("Malformed json response");
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new Exception("Malformed json response");
+		}
+		JsonNode valueNode = currentObj.get("value");
+		for (JsonNode value : valueNode) {
+			/*
+			 * {"@odata.context":"$metadata#Products(Id,Name)",
+			 * "value":[{"@odata.mediaContentType":"application/json",
+			 * "Id": "ffc183a9-7555-4427-b246-176e2485abed",
+			 * "Name":
+			 * "S2B_OPER_GIP_G2PARA_MPC__20170206T103032_V20170101T000000_21000101T000000_B00.TGZ"
+			 * }
+			 */
+			auxFileNames.add(value.get("Name").asText());
+		}
+		return auxFileNames;
 	}
 
 	public List<String> getListOfAuxFileURLs(final List<AuxFile> files, String bearerToken) throws Exception {
