@@ -183,11 +183,15 @@ def main():
                 print(adgs_files_to_download)
                 for file_id, file_name, *_ in adgs_files_to_download:
                     print("File ", file_id, ", name: ", file_name)
-                    ADGS_Retrieval.prip_download(file_id, file_name,
-                                          adgs_authenticator,
-                                          lta_baseurl, working_dir)
-                    dwl_counter += 1
-                    print("Downloaded ", dwl_counter, "/", len(prip_list))
+                    try:
+                        ADGS_Retrieval.prip_download(file_id, file_name,
+                                              adgs_authenticator,
+                                              lta_baseurl, working_dir)
+                        dwl_counter += 1
+                        print("Downloaded ", dwl_counter, "/", len(prip_list))
+                    except Exception as ex:
+                        print("Failed downloading product file {}".format(file_name))
+                        # TODO: Save failed to download filename to failed lsit file
             else:
                 print("Found ", len(prip_list), " files for Type ", t, ": \n", "\n".join((str(prip_item) for prip_item in prip_list)))
                 print("End List")

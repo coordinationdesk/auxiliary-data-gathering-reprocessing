@@ -139,11 +139,15 @@ def main():
                 dwl_counter = 0
                 for file_id, file_name, *_ in prip_list:
                     print("File ", file_id, ", name: ", file_name)
-                    PRIP_S2.prip_download(file_id, file_name,
-                                          args.user, args.password,
-                                          lta_baseurl, working_dir)
-                    dwl_counter += 1
-                    print("Downloaded ", dwl_counter, "/", len(prip_list))
+                    try:
+                        PRIP_S2.prip_download(file_id, file_name,
+                                              args.user, args.password,
+                                              lta_baseurl, working_dir)
+                        dwl_counter += 1
+                        print("Downloaded ", dwl_counter, "/", len(prip_list))
+                    except Exception as ex:
+                        print("Failed downloading product file {}".format(file_name))
+                        # TODO: Save failed to download filename to failed lsit file
             else:
                 print("Found ", len(prip_list), " files for Type ", t, ": \n", "\n".join((str(prip_item) for prip_item in prip_list)))
                 print("End List")
