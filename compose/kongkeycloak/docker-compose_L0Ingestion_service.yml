@@ -9,7 +9,7 @@ services:
  #######################################
   l0_ingestion:
     container_name: l0_ingestion
-    image: l0_ingestion:1.0.0
+    image: l0_ingestion:1.0.1
     environment:
       PRIP_USER: ${PRIPS2_USER}
       PRIP_PASS: ${PRIPS2_PASS}
@@ -25,7 +25,7 @@ services:
     networks:
       - proxynet
     volumes:
-      - /adg_data/l0_ingestion:/L0_Ingestion
+      - /adg_data/l0_ingestion:/L0_ingestion
 
 
 

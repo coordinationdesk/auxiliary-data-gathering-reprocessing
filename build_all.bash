@@ -38,6 +38,10 @@ cd ${CUR_DIR}/ECMWF_Ingestion
 
 docker build -t ecmwf_ingestion:1.0.1 .
 
+cd ${CUR_DIR}/L0_Ingestion
+
+docker build -t l0_ingestion:1.0.0 .
+
 
 cd ${CUR_DIR}
 

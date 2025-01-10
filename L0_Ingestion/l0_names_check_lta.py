@@ -25,9 +25,34 @@ class L0_NamesRetriever:
     #   We retrieve all the satellite/satellte_sensor for a mission
     # Unit is satellite + any possible sensor/subsystem
     _query_sql = """SELECT name FROM l0_products where SUBSTRING(name, 0, 3) = '%s' and validitystart >= '%s' and validitystart <= '%s';"""
-    def __init__(self, mission, dbconn, numdays ):
+    @staticmethod
+    def add_arguments(parser) :
+        parser.add_argument("-dbh", "--host",
+                            help="IP of the host of the DataBase",
+                            required=True)
+        parser.add_argument("-p", "--port",
+                            help="Port on which the host of the DataBase is listening for DB requests",
+                            required=True)
+        parser.add_argument("-dbn", "--dbName",
+                            help="Name of the DataBase",
+                            required=True)
+        parser.add_argument("-dbu", "--user",
+                            help="User for DataBase authentication",
+                            required=True)
+        parser.add_argument("-dbp", "--password",
+                            help="Password for DataBase authentication",
+                            required=True)
+
+    def __init__(self, mission, db_args, numdays ):
         print("Initializing L0 Retriever for mission", mission)
-        self._db_conn = dbconn
+        host=db_args.host
+        port=db_args.port
+        database=db_args.dbName
+        user=db_args.user
+        password=db_args.password
+        db_conn = psycopg2.connect(host=host, port=port, database=database,
+                                    user=user, password=password)
+        self._db_conn = db_conn
         self._mission = mission
         self._num_days = int(numdays)
         self._now_time = dt.datetime.utcnow()
@@ -91,21 +116,7 @@ def get_command_arguments():
     parser.add_argument("-n", "--numDays",
                         help="Num Days for L0 files",
                         required=False)
-    parser.add_argument("-dbh", "--host",
-                        help="IP of the host of the DataBase",
-                        required=True)
-    parser.add_argument("-p", "--port",
-                        help="Port on which the host of the DataBase is listening for DB requests",
-                        required=True)
-    parser.add_argument("-dbn", "--dbName",
-                        help="Name of the DataBase",
-                        required=True)
-    parser.add_argument("-dbu", "--user",
-                        help="User for DataBase authentication",
-                        required=True)
-    parser.add_argument("-dbp", "--password",
-                        help="Password for DataBase authentication",
-                        required=True)
+    L0_NamesRetriever.add_arguments(parser) 
     parser.add_argument("-lu", "--ltaurl",
                         help="Prip/Lta Endpoint Url",
                         required=False)
@@ -146,11 +157,6 @@ def get_command_arguments():
 if __name__ == "__main__":
 
     args = get_command_arguments()
-    host=args.host
-    port=args.port
-    database=args.dbName
-    user=args.user
-    password=args.password
     mission=args.mission
     mode = args.mode
 
@@ -167,9 +173,7 @@ if __name__ == "__main__":
         'S3':  ["S3A", "S3B"]
     }
     try:
-        rdb_conn = psycopg2.connect(host=host, port=port, database=database,
-                                    user=user, password=password)
-        l0_retriever = L0_NamesRetriever(mission, rdb_conn, num_days)
+        l0_retriever = L0_NamesRetriever(mission, args, num_days)
 
         # if input file is defined,get from input file
         # get validities from input file!!

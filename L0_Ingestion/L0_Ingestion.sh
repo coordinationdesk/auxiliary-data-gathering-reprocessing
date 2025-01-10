@@ -60,11 +60,6 @@ if [[ ! -z $REQ_MISSION ]]; then
   esac
 fi
 
-if [[ -z ${NUM_DAYS} ]]; then
-  NUM_DAYS_ARG=""
-else
-  NUM_DAYS_ARG="-n ${NUM_DAYS}"
-fi
 
 set -a MISSIONS
 
@@ -92,11 +87,17 @@ function ingest_mission() {
   # Expecting argument for MISSION to be ingested
   #  From/TO date arguments (with option included) are defined
   #   using global variables
-  if [[ $# != 1 ]] ; then
+  if [[ $# < 1 ]] ; then
       echo "Called ingest_mission function without MISSION argument"
       exit 1
   fi
   MISSION=$1
+  MISSION_DAYS=$2
+  if [[ -z ${MISSION_DAYS} ]]; then
+    NUM_DAYS_ARG=""
+  else
+    NUM_DAYS_ARG="-n ${MISSION_DAYS}"
+  fi
   echo "Function ingest_mission: Ingesting L0 names of Mission ${MISSION}  for  $NUM_DAYS days "
   python3 -u ${CUR_DIR}/baseline_l0.py -m ${MISSION} \
         -dbh ${DATABASELINE_POSTGRES_HOST} -p 5432 -dbn ${DATABASELINE_POSTGRES_DB}  -dbu ${DATABASELINE_POSTGRES_USER} -dbp ${DATABASELINE_POSTGRES_PASS}    \
@@ -116,8 +117,12 @@ echo "Starting L0 Names  download"
 ingestion_code=0
 for mission in ${MISSIONS}
 do
+    # Do not allow Num days to be greater than 5 for S2
+    if [ $mission == "S2" ] && [ ${NUM_DAYS} -gt 3 ]; then
+       M_NUM_DAYS=3
+    fi
     echo "Ingesting mission $mission $MAX_L0_DAYS "
-    ingest_mission ${mission}
+    ingest_mission ${mission} ${M_NUM_DAYS}
     result=$?
     (( ingestion_code=$result||$ingestion_code ))
 done
