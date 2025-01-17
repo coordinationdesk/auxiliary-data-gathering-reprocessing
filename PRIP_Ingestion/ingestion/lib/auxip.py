@@ -231,6 +231,20 @@ def search_in_auxip(name,access_token,mode='dev'):
         print(e)
         raise e
 
+def build_metadata(attr_name, attr_value):
+    if "Date" in attr_name:
+        value_type = "DateTimeOffset"
+        attr_value = get_odata_datetime_format(attr_value)
+    else:
+        value_type = "String"
+
+    metadata_attribute = {
+        "ValueType":value_type,
+        "Value":attr_value,
+        "Name":attr_name
+    }
+    return metadata_attribute
+
 
 def _create_auxip_record(aux_data_file_path, uuid, file_attributes, pub_date=None):
     aux_data_file_name = os.path.basename(aux_data_file_path)
@@ -243,7 +257,9 @@ def _create_auxip_record(aux_data_file_path, uuid, file_attributes, pub_date=Non
         if attr_name not in ['uuid','md5','length']:
             if "Date" in attr_name:
                 value_type = "DateTimeOffset"
+                print("Converting attribute ", attr_name, " with value: ", attr_value)
                 attr_value = get_odata_datetime_format(attr_value)
+                print("Converted attribute ", attr_name, " new value: ", attr_value)
             else:
                 value_type = "String"
 
@@ -259,6 +275,7 @@ def _create_auxip_record(aux_data_file_path, uuid, file_attributes, pub_date=Non
         "EvictionDate": datetime.strftime(datetime.utcnow() + dt.timedelta(weeks=5346), odata_datetime_format),
         "Name": aux_data_file_name,
         "OriginDate": get_odata_datetime_format(file_attributes['processingDate']),
+        #"OriginDate": file_attributes['processingDate'], # no need to convert: it has alread been converted in file_attributes llop
         "PublicationDate": publicationdate,
         "ContentDate" : {
             "Start": get_odata_datetime_format(file_attributes['beginningDateTime']),
@@ -273,6 +290,7 @@ def _create_auxip_record(aux_data_file_path, uuid, file_attributes, pub_date=Non
         ],
         "Attributes" : attributes_list
     }
+    print("Created record for product: ", product_record)
     return product_record
 
 # post auxdata file to the auxip.svc
@@ -299,6 +317,7 @@ def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev'):
             auxip_base_endpoint = get_auxip_base_endpoint(mode)
             auxip_endpoint = f"{auxip_base_endpoint}/Products"
 
+            print("Sending post request to AUXIP")
             response = requests.post(auxip_endpoint,data=json.dumps(product),
                                     headers=headers)
 

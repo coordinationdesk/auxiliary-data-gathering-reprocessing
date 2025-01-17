@@ -120,6 +120,7 @@ def _get_product_path_components(file_path):
 
 
 S1_MPL_types = ['REP__MACP_', 'REP__MCSF_', 'REP__SMPR_',
+                'MPL_TLEPRE',
                 'TLM__REQ_A', 'TLM__REQ_B', 'TLM__REQ_C',
                 'TLM__REQ_D', 'TLM__REQ_E', 'TLM__REQ_F']
 
@@ -127,7 +128,7 @@ S1_MPL_types = ['REP__MACP_', 'REP__MCSF_', 'REP__SMPR_',
 def _get_S1_file_attributes(file_path):
 
     filename_zip, filename, extension = _get_product_path_components(file_path)
-    print("Extracting metadata attributes for ", filename_zip)
+    print("Extracting metadata attributes for S1 product ", filename_zip)
 
     try:
         # ==========================================================================================
@@ -260,7 +261,7 @@ def _get_S3_SAFE_manifest(file_path, filename, filename_zip):
 
 HDR_FOLDER_PRODUCT_TYPES = ['AUX_ECMWFD', 'AUX_UT1UTC']
 def _extract_hdr_from_product(file_path, filename, product_type):
-    print("Extracting HDR File from product file ")
+    print("Extracting HDR File from product file ", file_path)
 
     # extract to separate function (hdr_file, product_type, filename)
     # PARSE extracted uncompressed file (XML File)
@@ -304,23 +305,40 @@ def _get_MANPRE_file_attributes(manpre_file, mission, product_type):
     platform = prod_filename[3]
     # Extract attributes reading product file as a CSV
     with open(prod_filename, "r") as ifile:
+        print("Reading MANPRE ", prod_filename, " as CSV")
         report_reader = csv.reader(ifile, delimiter=' ')
         # Skip file header
         header = next(report_reader)
+        print("Skipped Header in first line")
         first_row = next(report_reader)
         generation_time = first_row[0]
+        print("Read generation time from first row after header")
         # Skip Optimisation Row
-        next(report_reader)
+        opt_row = next(report_reader)
+        print("skipped second line")
         # SKip maneuvers header
-        man_header = next(report_reader)
-        first_man = True
-        for row in report_reader:
+        try:
+            man_header = next(report_reader)
+            print("skipped third line (Maneuver header)")
+            first_man = True
+            for row in report_reader:
+                if first_man:
+                    first_man_row = row
+                    first_man = False
+                last_row = row
+            #fist_man_time = first_man_row[0] if len(first_man_row)  else ''
+            #last_man_time = last_row[0] if len(last_row)  else ''
             if first_man:
-                first_man_row = row
-                first_man = False
-            last_row = row
-        fist_man_time = first_man_row[0]
-        last_man_time = last_row[0]
+                # No maneuver
+                first_man_row = last_row = man_header
+        except StopIteration as stopex:
+            print("MANPRE has only three lines")
+            first_man_row = last_row = opt_row
+
+        print("First maneuver row: ", first_man_row)
+        print("Last maneuver row: ", last_row)
+        fist_man_time = first_man_row[0] 
+        last_man_time = last_row[0] 
 
     # get generation time, /end validity from filename
     attributes = {
@@ -429,6 +447,7 @@ def _get_S2_file_attributes(file_path):
     # PARSE extracted uncompressed file (XML File)
     filename_zip, filename, extension = _get_product_path_components(file_path)
     product_type = filename[9:19]
+    print("Extracting metadata attributes for S2 product ", filename_zip)
     print("Getting attributes for file of type ", product_type)
     if product_type in ['MPL_ORBRES', 'MPL_ORBPRE', 'REP__SUP__']:
         print("Extracting attributes for EOF file")
@@ -470,6 +489,7 @@ def _get_S3_SAFE_file_attributes(manifest_file):
 
 def _get_S3_file_attributes(file_path):
     filename_zip, filename, extension = _get_product_path_components(file_path)
+    print("Extracting metadata attributes for S3 product ", filename_zip)
     if extension != 'EOF':
         manifest_file = _get_S3_SAFE_manifest(file_path, filename, extension)
         attributes = _get_S3_SAFE_file_attributes(manifest_file)
@@ -488,6 +508,28 @@ mission_attributes_funcs = {
     'S2': _get_S2_file_attributes,
     'S3': _get_S3_file_attributes
 }
+
+def get_S1_L0_attributes(l0_file_path):
+    # Do not extract Checksum, we need only Product metadata
+    filename_zip = os.path.basename(l0_file_path)
+    satellite = filename_zip[:2]
+    try:
+        if satellite == 'S1':
+            # ======================================================================
+            #                      S1  FILES
+            # ======================================================================
+            attributes = _get_S1_file_attributes(l0_file_path)
+        else:
+            attributes = None
+    except Exception as e:
+        print( e )
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
+        attributes = None
+        # shutil.rmtree(filename, ignore_errors=True)
+
+    return attributes
 
 def get_attributes(path_to_aux_data_file):
 

@@ -27,6 +27,13 @@ def get_odata_datetime_format(datetime_string):
         except ValueError:
             pass
 
+        # 2024/02/21-21:52:36.767 in MANPRE files
+        try:
+            date_time = datetime.strptime(datetime_string, "%Y/%m/%d-%H:%M:%S.%f")
+            odata_format = datetime.strftime(date_time, odata_datetime_format)
+        except ValueError:
+            pass
+
         # 2020-10-06T00:00:00.000000   ( Z is missing )
         try:
             date_time = datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S.%f")
