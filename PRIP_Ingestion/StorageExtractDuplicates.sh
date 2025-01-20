@@ -35,10 +35,11 @@ fi
 
   AUX_TYPE=$1
   TIMESTAMP=$(date '+%Y%m%d%H%M')
-mkdir -p ARCHIVE_DUPLS_BEFORE
-get_storage_list_by_type ARCHIVE_DUPLS_BEFORE $AUX_TYPE
+TARGET_FOLDER=ARCHIVE_DUPLS_AFTER
+mkdir -p ${TARGET_FOLDER}
+get_storage_list_by_type ${TARGET_FOLDER} $AUX_TYPE
 
 #python3 storage_purge_duplicates.py -au $AUXIP_USER -apw $AUXIP_PASS -m $MODE -mc $MCPATH -b ${STORAGE_ALIAS}/${PRIPS2_S3_BUCKET}  -f ${STORAGE_LIST_FILE}.duplicates.lst -o ${STORAGE_LIST_FILE}.out  2>&1 | tee /tmp/${AUX_TYPE}_cleanup_${TIMESTAMP}.out
 
-#mkdir -p ARCHIVE_DUPLS_AFTER
-#get_storage_list_by_type ARCHIVE_DUPLS_AFTER $AUX_TYPE
+#mkdir -p ${TARGET_FOLDER}
+#get_storage_list_by_type ${TARGET_FOLDER} $AUX_TYPE

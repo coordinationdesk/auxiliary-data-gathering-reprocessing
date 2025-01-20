@@ -7,6 +7,7 @@ import sys
 import time
 import os
 import csv
+import json
 
 import requests
 from ingestion.auxip_client import AuxipClient
@@ -64,6 +65,44 @@ def get_duplicate_ids_from_file(input_file):
     # you may also want to remove whitespace characters like `\n` at the end of each line
     return name_id_table
 
+def get_name_dupl_availability(dupl_file, auxip_client):
+    # Read file with Aux names list
+    names_dupl_id_list = get_duplicate_ids_from_file(dupl_file)
+    names_file_folder = os.path.abspath(dupl_file)
+    # Build a new table
+    name_dupl_avail_table = {}
+    # for each filename 
+    for name, id_list in names_dupl_id_list.items():
+         availables, not_availables = auxip_client.get_file_ids_availability(name, id_list)
+         # a flag active if at least an instance was available on AUXIP
+         #       a list of IDs on storage, not available on AUXIP
+         #       a list of IDs on storage, that are available on AUXIP 
+         available_ids = availables
+         name_dupl_avail_table[name] = {
+              'available' : len(available_ids) > 0,
+              'catalogued' : available_ids,
+              'uncatalogued': not_availables
+         }
+         print("File ", name, " Available ids: ", available_ids)
+         print("File ", name, " Not catalogued ids: ", name_dupl_avail_table[name]['uncatalogued'])
+    return name_dupl_avail_table
+
+def write_products_status(avail_status, out_file):
+    '''
+      write to a json file the status of products, from 
+      availability strucutre.
+      change format (isntead of a dictionary having product file names as key ,
+        convert to a list of dictionaries, having each an item : 
+        name: <product file name>
+    '''
+    json_dict_list = []
+    for name_key, name_data in avail_status.items():
+        json_dict = {'name': name_key}
+        json_dict.update(name_data)
+        json_dict_list.append(json_dict) 
+    with open(out_file, 'w') as of:
+        json.dump(json_dict_list, of)
+ 
 
 def remove_from_archive_product_instances(path_to_mc, bucket, filename, id_list, mode):
     removal_result = {}
@@ -168,34 +207,20 @@ def remove_aux_product_instances(filename, id_list,
         removal_result.update({id: {'archive': wasabi_res, 'auxip': auxip_res}})
     return global_status, removal_result
 
+
 def main():
     args = get_command_arguments()
     requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-    # Read file with Aux names list
-    names_dupl_id_list = get_duplicate_ids_from_file(args.input_file)
     print("Init Auxip client")
     # Check files against Auxip: generate a list specifiying for each Aux file: if available on Auxip, ID
     auxip_connection = AuxipClient(args.auxipuser, args.auxippassword, args.mode)
 
     try:
-        # Build a new table
-        name_dupl_avail_table = {}
-        # for each filename 
-        for name, id_list in names_dupl_id_list.items():
-             availables, not_availables = auxip_connection.get_file_ids_availability(name, id_list)
-             # a flag active if at least an instance was available on AUXIP
-             #       a list of IDs on storage, not available on AUXIP
-             #       a list of IDs on storage, that are available on AUXIP 
-             available_ids = availables
-             name_dupl_avail_table[name] = {
-                  'available' : len(available_ids) > 0,
-                  'catalogued' : available_ids,
-                  'uncatalogued': not_availables
-             }
-             print("File ", name, "Available ids: ", available_ids)
-             print("Not catalogued ids: ", name_dupl_avail_table[name]['uncatalogued'])
+        name_dupl_avail_table = get_name_dupl_availability(args.input_file, auxip_connection)
         # Write table of Availability for filename duplicates on file
         print(name_dupl_avail_table)
+        write_products_status(name_dupl_avail_table, args.input_file +"_status.json")
+        
         archive_deleted = []
         archive_auxip_deleted = []
         operation_results = {}
