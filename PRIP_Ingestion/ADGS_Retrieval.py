@@ -2,7 +2,7 @@ import requests
 import time,sys,os
 from ingestion.lib.auxip import get_latest_of_type,are_file_availables,get_token_info,are_file_availables_w_checksum
 from ingestion.lib.oauth2_token_provider import AdgsOauth2TokenProvider
-from odata_request import build_paginated_request
+from ingestion.odata_request import build_paginated_request
 
 # MAXIMUM RESULTS to retrieve 
 # in a single session
@@ -151,7 +151,7 @@ class ADGS_Retrieval:
                                  names_list,
                                  batch_size=20,
                                  max_results=MAX_SESSION_RESULTS):
-        print("Querying LTA (", lta_base_url, "), for Names ")
+        print("Querying LTA (", self._lta_base_url, "), for Names ")
         retrieved_results = []
         # NUmber of names to be included in each single request
         req_num_names = batch_size
@@ -162,7 +162,7 @@ class ADGS_Retrieval:
             print("\nRequesting names: ", names_sublist)
             if names_sublist[0]:
                 lta_request = self._build_lta_names_base_request(names_sublist)
-            retrieved_results.extend( self._get_lta_file_results(lta_request, max_results))
+                retrieved_results.extend( self._get_lta_file_results(lta_request, max_results))
         return retrieved_results
 
 

@@ -2,7 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import time,sys,os
 from ingestion.lib.auxip import get_latest_of_type,are_file_availables,get_token_info,are_file_availables_w_checksum
-from odata_request import build_paginated_request
+from ingestion.odata_request import build_paginated_request
 
 # MAXIMUM RESULTS to retrieve 
 # in a single session
@@ -134,7 +134,9 @@ def get_lta_files_from_names(user, password, lta_base_url,
         print("\nRequesting names: ", names_sublist)
         if names_sublist[0]:
             lta_request = _build_lta_names_base_request(lta_base_url, names_sublist)
-        retrieved_results.extend( _get_lta_file_results(user, password, lta_request, max_results))
+            # Execution of get requests was performed even if naems_sublist[0] was null
+            # In that case we would have executed again the previous request!
+            retrieved_results.extend( _get_lta_file_results(user, password, lta_request, max_results))
     return retrieved_results
 
 
