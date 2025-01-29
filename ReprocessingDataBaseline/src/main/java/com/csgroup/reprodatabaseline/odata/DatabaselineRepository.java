@@ -1,8 +1,6 @@
 package com.csgroup.reprodatabaseline.odata;
 
-import com.csgroup.reprodatabaseline.datamodels.AuxTypeDeltas;
-import com.csgroup.reprodatabaseline.datamodels.AuxTypeL0ParameterValue;
-import com.csgroup.reprodatabaseline.datamodels.L0Product;
+import com.csgroup.reprodatabaseline.datamodels.*;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +10,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import java.text.MessageFormat;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +24,15 @@ public class DatabaselineRepository {
     // for internal use
     private final Map<String, Map<String, AuxTypeDeltas>> cachedAuxTypesDeltas;
     private final Map<String, Map<String, Map<String, List<String>>>> cachedMissionAuxTypesL0Parameters;
+    private final Map<String, Map<String, Long>> cachedMissionAuxTypesL0ProductAges;
+    private  final Map<String, List<S1ICIDTimeline>> icidTimelineConfiguration;
 
     public DatabaselineRepository(EntityManagerFactory entityManager) {
         this.entityManagerFactory = entityManager;
         this.cachedAuxTypesDeltas = new HashMap<>();
         this.cachedMissionAuxTypesL0Parameters = new HashMap<>();
+        this.cachedMissionAuxTypesL0ProductAges = new HashMap<>();
+        this.icidTimelineConfiguration = new HashMap<>();
     }
     // TOO: should be moved to ReproBaselineEntityCollecitonProcessor, or
     // to another package related to RDB data
@@ -152,6 +156,106 @@ public class DatabaselineRepository {
 
         return l0_products;
     }
+
+
+    public List<S1ICIDTimeline> getIcidTimelineConfiguration(String unit) {
+
+        if (icidTimelineConfiguration.isEmpty() ) {
+            // TODO: Ensure that the list is ordered
+            List<S1ICIDTimeline> unitIcidConfiguration = this.loadIcidTimelineConfiguration(unit);
+            icidTimelineConfiguration.put(unit, unitIcidConfiguration);
+        }
+        return icidTimelineConfiguration.get(unit);
+    }
+    private List<S1ICIDTimeline> loadIcidTimelineConfiguration(String unit) {
+        String queryString = "SELECT entity FROM com.csgroup.reprodatabaseline.datamodels.S1ICIDTimeline entity "
+                + " WHERE entity.unit = \'UNIT\' ORDER BY entity.fromDate ASC";
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        List<S1ICIDTimeline> unitIcidConfiguration;
+        try {
+            Query query = entityManager.createQuery(queryString);
+            unitIcidConfiguration = query.getResultList();
+        } finally {
+            entityManager.close();
+        }
+        return unitIcidConfiguration;
+    }
+
+    /**
+     *
+     * Retrieve the S1 ICID (Instrument Configuration ID) value
+     * for the specified Satellite Unit at the given time.
+     *
+     * @param unit
+     * @param icidTime
+     * @return the icid value
+     * exception: if icidTie is before first time in timeline configuration
+     * or if unit is not configured
+     */
+    public int getIcid(String unit, ZonedDateTime icidTime) throws Exception {
+        List<S1ICIDTimeline> unitTimeline = this.getIcidTimelineConfiguration(unit);
+        // Loop on timeline: select the interval including icidTime
+        // Check: if icidTime is before first Interval
+        for (S1ICIDTimeline icidInterval: unitTimeline) {
+            if (icidTime.isBefore(icidInterval.getFromDate())) {
+                throw new Exception("Requested ICID for time before earliest configured value");
+            }
+            // Check: last interval shall not have the toDate value
+            if ( icidInterval.getToDate() == null ||
+                    icidTime.isBefore(icidInterval.getToDate())) {
+                    return icidInterval.getICID();
+            }
+        }
+        throw new Exception("Wrong ICID Timeline configuration: last interval must be open");
+    }
+    private List<AuxTypeL0ProductMaxAge> getListAuxTypeL0ProductAge(String mission) {
+        String queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.AuxTypeL0ProductMaxAge entity "
+                + "WHERE entity.mission = \'MISSION\' ORDER BY entity.auxtype ASC";
+        queryString = queryString.replace("MISSION", mission);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        List<AuxTypeL0ProductMaxAge> AuxTypeL0ProductMaxAges ;
+        try {
+            Query query = entityManager.createQuery(queryString);
+            AuxTypeL0ProductMaxAges = query.getResultList();
+            // Group on two levels:
+            // Aux Type
+            // Parameter Name
+
+        } finally {
+            entityManager.close();
+        }
+        return AuxTypeL0ProductMaxAges;
+    }
+    public Map<String, Long> getAuxTypesL0ProductAgeTable(String mission) 	{
+
+
+        LOG.info(">> Starting DatabaselineRepository.getAuxTypesL0ProductAgeTable");
+        // If no Mission Aux Types has been cached , or
+        // if this mission AuxTypes have not been cached
+        // load from Repository and save on cache
+        if ( this.cachedMissionAuxTypesL0ProductAges.isEmpty() ||
+                !this.cachedMissionAuxTypesL0ProductAges.containsKey(mission))
+        {
+            List<AuxTypeL0ProductMaxAge> auxTypeL0ProductMaxAges = getListAuxTypeL0ProductAge(mission);
+            Map<String, Long> AuxTypeL0ProductAgeTable;
+            // assign to last group a list of Parameter Values
+            AuxTypeL0ProductAgeTable = auxTypeL0ProductMaxAges.
+                    stream().
+                    collect(
+                            Collectors.toMap(
+                                    AuxTypeL0ProductMaxAge::getAuxtype,
+                                    AuxTypeL0ProductMaxAge::getMax_days
+                                    )
+                            );
+            LOG.info("  Loaded Aux Types L0 Product Max Age configuration for mission "+mission);
+            this.cachedMissionAuxTypesL0ProductAges.put(mission, AuxTypeL0ProductAgeTable);
+        }
+        LOG.info("<< Ending DatabaselineRepository.getAuxTypesL0ParametersTable");
+        return this.cachedMissionAuxTypesL0ProductAges.get(mission);
+
+    }
+
     // TODO Define an alternate getAuxTypesL0ParametersTable funciton that reads L0Parameters table from AuxTYpes list
 
     private List<AuxTypeL0ParameterValue> getListAuxTypeL0ParameterValues(String mission) {
@@ -160,7 +264,6 @@ public class DatabaselineRepository {
         queryString = queryString.replace("MISSION", mission);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        Map<String,Map<String, List<String>>> AuxTypeL0ParameterValueTable = new HashMap<>();
         List<AuxTypeL0ParameterValue> auxTypeL0ParameterValues ;
         try {
             Query query = entityManager.createQuery(queryString);

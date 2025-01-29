@@ -1,11 +1,13 @@
 package com.csgroup.reprodatabaseline.odata;
 
 import com.csgroup.reprodatabaseline.datamodels.*;
-import com.csgroup.reprodatabaseline.http.AuxTypeL0Selector;
+import com.csgroup.reprodatabaseline.selectors.AuxTypeL0Selector;
 import com.csgroup.reprodatabaseline.http.AuxipAccess;
 import com.csgroup.reprodatabaseline.http.ReproBaselineAccess;
 import com.csgroup.reprodatabaseline.rules.RuleApplierFactory;
 import com.csgroup.reprodatabaseline.rules.RuleApplierInterface;
+import com.csgroup.reprodatabaseline.selectors.L0AttributeAuxFileSelector;
+import com.csgroup.reprodatabaseline.selectors.ProductAgeSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -269,7 +271,14 @@ public class ReproDataBaseline {
             LOG.debug(">>> Creating a Selector For Aux Types based on L0 Parameters");
             l0AuxTypeSelector = new AuxTypeL0Selector(level0, mission, auxTypesL0Parameters);
         }
-
+        Map<String, Long> maxAuxFileAges = baselineRepository.getAuxTypesL0ProductAgeTable(mission);
+        ProductAgeSelector auxFileAgeFilter = new ProductAgeSelector(level0,
+                maxAuxFileAges);
+        /*
+        L0AttributeAuxFileSelector auxFileAttributeSelector = new L0AttributeAuxFileSelector(level0,
+                auxTypeL0AttributeAttributeAuxFileConfiguration);
+                */
+        // TODO: instantiate a L0AttributeAuxFileSelector on level0
         // TODO: Verify if try should be moved internally, for each AuxType
         //  Do we acept losing one AuxTYpe files, for an error, or are we
         //     throwing all the results for any error?
@@ -297,6 +306,17 @@ public class ReproDataBaseline {
 
                     if (!files_repro.isEmpty()) {
                         List<AuxFile> files_repro_filtered;
+                        if (maxAuxFileAges.containsKey(t.ShortName) ) {
+                            // TODO Copy to another VArible!!!
+                            // If ProductAge is Configured for AuxTYpe, Filter list using ProductAgeSelector
+                            files_repro = auxFileAgeFilter.filter(files_repro);
+                        }
+                        // TODO: If AuxType is associated to ICID, filter with L0AttribtueAuxFileSeelctor
+                        /*
+                        if (auxFileAttributeSelector != null) {
+                            files_repro = auxFileAttributeSelector.filter(files_repro);
+                        }
+                         */
                         files_repro_filtered = this.selectAuxFilesByRule(files_repro, auxTypesDeltas, t, t0t1);
                         // TODO: AuxFile has Band Property with value BXX
 

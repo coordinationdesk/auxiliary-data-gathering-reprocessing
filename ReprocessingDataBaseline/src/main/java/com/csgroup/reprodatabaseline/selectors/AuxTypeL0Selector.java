@@ -1,22 +1,20 @@
-package com.csgroup.reprodatabaseline.http;
+package com.csgroup.reprodatabaseline.selectors;
 
 import com.csgroup.reprodatabaseline.datamodels.L0NameParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.csgroup.reprodatabaseline.config.L0NameAttributesConfiguration;
 import com.csgroup.reprodatabaseline.datamodels.AuxType;
 import com.csgroup.reprodatabaseline.datamodels.L0Product;
 
 /**
  *
  */
-//@Component
+
 public class AuxTypeL0Selector {
     private static final Logger LOG = LoggerFactory.getLogger(AuxTypeL0Selector.class);
     private final L0Product l0Product;
