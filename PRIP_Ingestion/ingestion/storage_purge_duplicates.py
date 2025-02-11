@@ -10,9 +10,9 @@ import csv
 import json
 
 import requests
-from ingestion.auxip_client import AuxipClient
-from ingestion.lib.wasabi import remove_from_wasabi
-    
+from auxip_client import AuxipClient
+from lib.wasabi import remove_from_wasabi
+
 def get_command_arguments():
     print("Called with command line: ", sys.argv)
     parser = argparse.ArgumentParser(description="This script removes  from Storage  the files from a list list (with specific UUID) that are duplicated and have no record in AUXIP",  # main description for help
@@ -71,20 +71,20 @@ def get_name_dupl_availability(dupl_file, auxip_client):
     names_file_folder = os.path.abspath(dupl_file)
     # Build a new table
     name_dupl_avail_table = {}
-    # for each filename 
+    # for each filename
     for name, id_list in names_dupl_id_list.items():
-         availables, not_availables = auxip_client.get_file_ids_availability(name, id_list)
-         # a flag active if at least an instance was available on AUXIP
-         #       a list of IDs on storage, not available on AUXIP
-         #       a list of IDs on storage, that are available on AUXIP 
-         available_ids = availables
-         name_dupl_avail_table[name] = {
+        availables, not_availables = auxip_client.get_file_ids_availability(name, id_list)
+        # a flag active if at least an instance was available on AUXIP
+        #       a list of IDs on storage, not available on AUXIP
+        #       a list of IDs on storage, that are available on AUXIP
+        available_ids = availables
+        name_dupl_avail_table[name] = {
               'available' : len(available_ids) > 0,
               'catalogued' : available_ids,
               'uncatalogued': not_availables
-         }
-         print("File ", name, " Available ids: ", available_ids)
-         print("File ", name, " Not catalogued ids: ", name_dupl_avail_table[name]['uncatalogued'])
+        }
+        print("File ", name, " Available ids: ", available_ids)
+        print("File ", name, " Not catalogued ids: ", name_dupl_avail_table[name]['uncatalogued'])
     return name_dupl_avail_table
 
 def write_products_status(avail_status, out_file):
@@ -99,15 +99,15 @@ def write_products_status(avail_status, out_file):
     for name_key, name_data in avail_status.items():
         json_dict = {'name': name_key}
         json_dict.update(name_data)
-        json_dict_list.append(json_dict) 
+        json_dict_list.append(json_dict)
     with open(out_file, 'w') as of:
         json.dump(json_dict_list, of)
- 
+
 
 def remove_from_archive_product_instances(path_to_mc, bucket, filename, id_list, mode):
     removal_result = {}
     for uuid in id_list:
-        wasabi_res = remove_from_wasabi(path_to_mc,bucket,filename,uuid,mode) 
+        wasabi_res = remove_from_wasabi(path_to_mc,bucket,filename,uuid,mode)
         if wasabi_res == OK:
             print("%s ==> removed from wasabi successfully with : %s " % (filename,uuid) )
         else:
@@ -185,24 +185,24 @@ def remove_aux_product_instances(filename, id_list,
                                  path_to_mc, bucket ):
 
     print("Removeing from Storage and Auxip  aux file ", filename, " with uuid's ", id_list)
-     
+
     global_status = OK
     removal_result = {}
     for uuid in id_list:
         print("Removing from Auxip file ", filename, ", id: ", uuid)
-        auxip_res = auxip_connection.remove_auxip_file(filename, uuid) 
+        auxip_res = auxip_connection.remove_auxip_file(filename, uuid)
         if auxip_res == OK:
             print("%s ==> Removed from AUXIP uuid %s" % (filename, uuid))
         else:
             global_status = KO
             print("%s ==> Failure deleteing from AUXIP with uuid %s" % (filename, uuid))
-        wasabi_res = remove_from_wasabi(path_to_mc,bucket,filename,uuid) 
+        wasabi_res = remove_from_wasabi(path_to_mc,bucket,filename,uuid)
         if wasabi_res == OK:
             global_status = KO
             print("%s ==> removed from wasabi successfully with : %s " % (filename,uuid) )
         else:
             print("%s ==> Failed remove from Wasabi with : %s " % (filename,uuid) )
-        
+
         print ( "%s : %s\tremove_from_wasabi : %s; remove_from_auxip : %s\n" % (filename,uuid, code_result[wasabi_res], code_result[auxip_res]))
         removal_result.update({id: {'archive': wasabi_res, 'auxip': auxip_res}})
     return global_status, removal_result
@@ -220,7 +220,7 @@ def main():
         # Write table of Availability for filename duplicates on file
         print(name_dupl_avail_table)
         write_products_status(name_dupl_avail_table, args.input_file +"_status.json")
-        
+
         archive_deleted = []
         archive_auxip_deleted = []
         operation_results = {}
@@ -229,23 +229,23 @@ def main():
         # files not deleted (either from archive or from auxip)
         # avail config specifies a list of IDs for each status of the product: already catalogued, not catalogued
         for name, avail_config in name_dupl_avail_table.items():
-             # TODO: as a result, receive for each deleted file ID, if archive successful, if catalogue successful
-             purge_results = purge_product_instances(name, avail_config, auxip_connection,
-                                                     args.path_to_mc, args.bucket, args.mode)
-             operation_results[name] = purge_results
+            # TODO: as a result, receive for each deleted file ID, if archive successful, if catalogue successful
+            purge_results = purge_product_instances(name, avail_config, auxip_connection,
+                                                    args.path_to_mc, args.bucket, args.mode)
+            operation_results[name] = purge_results
 
         # Write operations performed: files deleted only from archive,
         # files deleted from archive and auxip, files retained
         # any erorr?
         out_file = f"{args.output_file}.removed"
         with open(out_file, "w") as of:
-             print(operation_results, file=of)
+            print(operation_results, file=of)
         #    report_writer = csv.writer(of)
         ##    for fileid in removed:
         #        report_writer.writerow(fileid)
     except Exception as e:
         print(e)
-    # 
+    #
     print("Archive duplicates Purge from Archive/Auxip completed")
     sys.exit(0)
 

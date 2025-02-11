@@ -17,13 +17,13 @@ function get_storage_list_by_type() {
   awk -F" " '{ print $NF;}'  ${OUT_FOLDER}/$STORAGE_LIST_FILE | cut -d "/" --output-delimiter="," -f2,1 | sort -t, -k2 | awk -F, -f JoinLinesByKey.awk | awk -F, 'BEGIN {OFS=",";} { print NF-1, $0; }' >  ${OUT_FOLDER}/$STORAGE_LIST_FILE.dupl_count.lst
 
   # extract records for file with duplicates (keep  the first field, the counter)
-  egrep -v "^1" ${OUT_FOLDER}/${STORAGE_LIST_FILE}.dupl_count.lst > ${OUT_FOLDER}/${STORAGE_LIST_FILE}.duplicates.lst 
+  egrep -v "^1," ${OUT_FOLDER}/${STORAGE_LIST_FILE}.dupl_count.lst > ${OUT_FOLDER}/${STORAGE_LIST_FILE}.duplicates.lst 
   echo "Extracted list of duplicates (filename + id list)"
 
   # extract records for file without duplicates (remove the first field, the counter)
   echo "Extracted list of not duplicated (filename + id)"
 
-  egrep "^1" ${OUT_FOLDER}/${STORAGE_LIST_FILE}.dupl_count.lst | cut -d "," -f 2- > ${OUT_FOLDER}/${STORAGE_LIST_FILE}.not_duplicated.lst 
+  egrep "^1," ${OUT_FOLDER}/${STORAGE_LIST_FILE}.dupl_count.lst | cut -d "," -f 2- > ${OUT_FOLDER}/${STORAGE_LIST_FILE}.not_duplicated.lst 
 
   echo "Done"
 }
