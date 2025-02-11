@@ -250,7 +250,10 @@ def _create_auxip_record(aux_data_file_path, uuid, file_attributes, pub_date=Non
     aux_data_file_name = os.path.basename(aux_data_file_path)
     # TODO: It should read "PublicationDate" from attributes, and set now
     #      only if attribute is not set
+    
     publicationdate = pub_date if pub_date is not None else datetime.strftime(datetime.utcnow(), odata_datetime_format)
+    # Be sure that Publication date is in correct format (in case we use externally provided value)
+    publicationdate = get_odata_datetime_format(publicationdate) 
     # convert attributes to an array of dicts 
     attributes_list = []
     for attr_name, attr_value in file_attributes.items():
@@ -294,7 +297,7 @@ def _create_auxip_record(aux_data_file_path, uuid, file_attributes, pub_date=Non
     return product_record
 
 # post auxdata file to the auxip.svc
-def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev'):
+def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev', publication=None):
     try:
 
         # Get attributes for this aux data file
@@ -304,7 +307,7 @@ def post_to_auxip(access_token,path_to_auxiliary_data_file,uuid,mode='dev'):
             print("%s ==> Error occured while getting attributes " % path_to_auxiliary_data_file )
             return 2
         # Preparing the json to be posted 
-        product = _create_auxip_record(path_to_auxiliary_data_file, uuid, attributes)
+        product = _create_auxip_record(path_to_auxiliary_data_file, uuid, attributes, publication)
 
         # =================================================================
         # Post to auxip.svc

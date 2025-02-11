@@ -3,10 +3,10 @@ import sys
 import traceback
 import json
 import requests
-from .lib.auxip import _get_adg_domain, get_token_info
-from .lib.auxip import get_auxip_base_endpoint, are_file_availables, is_file_available
-from .lib.auxip_rm import remove_from_auxip
-from .lib.auxip import post_to_auxip
+from lib.auxip import _get_adg_domain, get_token_info
+from lib.auxip import get_auxip_base_endpoint, are_file_availables, is_file_available
+from lib.auxip_rm import remove_from_auxip
+from lib.auxip import post_to_auxip
 
 # TODO: Integrate with oauth2 password mode
 # def are_file_availables(auxip_user,auxip_password,aux_data_files_names,step,mode='dev'):
@@ -138,10 +138,10 @@ class AuxipClient:
        access_tk = self._get_token()
        return is_file_available(access_tk, aux_file, mode=self._mode)
 
-   def catalogue_product(self, aux_data_file_path, aux_id):
+   def catalogue_product(self, aux_data_file_path, aux_id, aux_date=None):
        
        access_tk = self._get_token()
-       result = post_to_auxip(access_tk, aux_data_file_path, aux_id, mode=self._mode)
+       result = post_to_auxip(access_tk, aux_data_file_path, aux_id, self._mode, aux_date)
        return result
 
    def catalogue_products(self, in_folder, aux_file_name_uuid_pairs):

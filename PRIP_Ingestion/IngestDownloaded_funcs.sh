@@ -40,7 +40,7 @@ function ingest_downloaded_files() {
       echo "AUXIP ingestion done with some errors"
       echo "Removing files downloaded from LTA ( only those ingested on AUXIP)..."
   fi
-  if [ ! -z ${LISTING_FOLDER}/file_list_${MISSION}.txt ]; then
+  if [  -f ${LISTING_FOLDER}/file_list_${MISSION}.txt ]; then
      master_code=0
      echo "$(wc -l ${LISTING_FOLDER}/file_list_${MISSION}.txt) Files ingested into Auxip"
      echo "$(wc -l ${LISTING_FOLDER}/file_list_${MISSION}.txt) Files ingested into Auxip" >> ${ERROR_FILE_LOG}

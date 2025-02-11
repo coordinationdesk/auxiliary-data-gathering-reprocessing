@@ -13,7 +13,9 @@ echo "${ROOT_F}/${MISS}_AlignLastDate.txt"
 function read_start_date() {
 MISSION=$1
 ROOT_F=$2
+
   DATE_FILE=$(get_date_file_name $MISSION ${ROOT_F})
+  echo "Checking start date from date file: $DATE_FILE" >&2
   if [ -f ${DATE_FILE} ]; then
     # Read Date from file
     echo "Align Last Date file found" >&2

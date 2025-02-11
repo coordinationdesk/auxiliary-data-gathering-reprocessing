@@ -20,6 +20,25 @@ def upload_to_wasabi(path_to_mc,bucket,auxiliary_data_file,uuid,mode="dev"):
         print(e)
         return 1
 
+def download_from_wasabi(path_to_mc,bucket,auxiliary_file,uuid,target_folder,mode="dev"):
+    '''
+    '''
+    try:
+        auxiliary_data_file = os.path.join(target_folder, auxiliary_file)
+        download_command = [path_to_mc ,
+                            "cp", bucket+"/%s/%s" % (uuid,auxiliary_file),
+                            auxiliary_data_file]
+        if mode == "dev" :
+            print( "mc command => %s \n" % download_command )
+            return 0
+        else:
+            process = subprocess.run( download_command)
+            process.check_returncode()
+            return 0
+    except Exception as e:
+        print(e)
+        return 1
+
 # remove auxiliaray data file from wasabi
 def remove_from_wasabi(path_to_mc,bucket,file_name,uuid,mode="dev"):
     try:
