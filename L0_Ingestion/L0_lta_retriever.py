@@ -15,7 +15,7 @@ lta_baseurl = "aip.acri-st.fr"
 class LtaL0Retriever:
     nbRequestsMaxTries = 5
     headers = {'Content-type': 'application/json'}
-    NO_EXP_CORE_URL = "{baseurl}/Products?$filter=ContentDate/Start gt %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')&$top=200"
+    NO_EXP_CORE_URL = "{baseurl}/Products?$filter=ContentDate/Start gt %s and ContentDate/Start lt %s and startswith(Name, '%s') and contains(Name,'%s')"
     _core_urls = {
       'S1': NO_EXP_CORE_URL,
       'S2': NO_EXP_CORE_URL + '&$expand=Attributes',
@@ -30,7 +30,7 @@ class LtaL0Retriever:
 
 
     # TODO: do we get from a time, or from the start of a day?
-    def _get_names(self, unit, l0_type, from_date, to_date, req_timeout=30):
+    def _get_names(self, unit, l0_type, from_date, to_date, req_timeout=30, max_results=None):
         # Build request replacing from_date, from_time and to_date
         next_trial_time = 60 # seconds
         results = []
@@ -39,6 +39,10 @@ class LtaL0Retriever:
 
         #Construction de la requête
         request = (self.coreURL + "&$count=true") % (from_date, to_date, unit, l0_type)
+        if max_results is None:
+            request = request + '&$top=200'
+        else:
+            request = request + '&top=' + str(max_results)
         print(request)
 
         while ((resp is None) or (resp.status_code != 200)) and (requestTriesLeft > 0):
@@ -61,8 +65,10 @@ class LtaL0Retriever:
             raise Exception("All trials failed after timeout")
         elif resp.status_code == 200:
             count = int(resp.json()["@odata.count"])
+            if max_results is not None:
+                count = min(count, max_results)
+            print("Found ", count, " products")
             nb_steps = int(count/200)
-
             for aux in resp.json()["value"]:
                 if self._debug_print:
                     print("Lta record: ", aux)
@@ -96,7 +102,7 @@ class LtaL0Retriever:
             raise Exception("Bad return code ", resp.status_code, " for request: "+request)
         return results
 
-    def get_lta_l0_products(self, unit_name, l0_type, from_date):
+    def get_lta_l0_products(self, unit_name, l0_type, from_date, max_results=None):
         print("Retrieving L0 products for unit ", unit_name, ", l0 type: ", l0_type, " from date ", from_date)
         # adjust the dates, by getting the minimum between today and the date + N days (end of day)
         to_date = from_date + dt.timedelta(days=self._num_days)
@@ -105,7 +111,9 @@ class LtaL0Retriever:
         # TBD: do we pass date objects, or strings? Better to leave to query function the format of the date string
         end_time_str =  dt.datetime.strftime(end_time, odata_datetime_format)
         from_date_str =  dt.datetime.strftime(from_date, odata_datetime_format)
-        lta_results = self._get_names(unit_name, l0_type, from_date_str, end_time_str, 60)
+        lta_results = self._get_names(unit_name, l0_type,
+                                      from_date_str, end_time_str,
+                                      60, max_results)
         return lta_results
 
     def get_lta_l0_names(self, unit_name, l0_type, from_date):
