@@ -2,6 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import time,sys,os
 from ingestion.lib.auxip import get_token_info
+from ingestion.odata_request import build_paginated_request
 
 # MAXIMUM RESULTS to retrieve 
 # in a single session
@@ -14,18 +15,9 @@ MAX_SESSION_REQUESTS = 10
 # 
 
 
-def _add_odata_top(odata_request, top_num_result):
-    return odata_request + "&$top="+str(top_num_result)
-
-
-def _add_odata_skip(odata_request, skip_results):
-    return odata_request + "&$skip="+str(skip_results)
-
-
 def _build_reprobase_simple_base_request(base_url):
     api_request = base_url + "/AuxFiles?$orderby=Unit asc"
     return api_request
-
 
 def _build_reprobase_names_base_request(base_url,
                            names_list):
@@ -39,14 +31,6 @@ def _build_reprobase_names_base_request(base_url,
             api_request += f" or contains(FullName,'{prod_name}')"
     api_request += ")"
     return api_request
-
-
-def _build_paginated_request(lta_request, start, step):
-    stop = start + step
-    request_top = _add_odata_top(lta_request, step)
-    request_top = _add_odata_skip(request_top, start)
-    return request_top
-
 
 def _get_response_aux_files(response):
     aux_files = []
