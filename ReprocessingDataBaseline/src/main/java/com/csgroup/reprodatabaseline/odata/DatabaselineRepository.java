@@ -25,7 +25,8 @@ public class DatabaselineRepository {
     private final Map<String, Map<String, AuxTypeDeltas>> cachedAuxTypesDeltas;
     private final Map<String, Map<String, Map<String, List<String>>>> cachedMissionAuxTypesL0Parameters;
     private final Map<String, Map<String, Long>> cachedMissionAuxTypesL0ProductAges;
-    private  final Map<String, List<S1ICIDTimeline>> icidTimelineConfiguration;
+    private  final Map<String, S1ICIDTimeline> icidTimelineConfiguration;
+    private final Map<String, List<String>> cachedMissionIcidAuxTypes;
 
     public DatabaselineRepository(EntityManagerFactory entityManager) {
         this.entityManagerFactory = entityManager;
@@ -33,6 +34,7 @@ public class DatabaselineRepository {
         this.cachedMissionAuxTypesL0Parameters = new HashMap<>();
         this.cachedMissionAuxTypesL0ProductAges = new HashMap<>();
         this.icidTimelineConfiguration = new HashMap<>();
+        this.cachedMissionIcidAuxTypes = new HashMap<>();
     }
     // TOO: should be moved to ReproBaselineEntityCollecitonProcessor, or
     // to another package related to RDB data
@@ -157,57 +159,67 @@ public class DatabaselineRepository {
         return l0_products;
     }
 
+    public List<String> getIcidAuxTypes(String mission) {
+        LOG.info(">> [BEG] DatabaselineRepository.getIcidAuxTypes");
+// Get from cache lsit for the imssion
+        // load from repostiory if not avaialble
+        // if no aux types for th emission, set an empty list
+        if (cachedMissionIcidAuxTypes.isEmpty() ) {
+            // TODO: Ensure that the list is ordered
+            List<String> missionIcidAuxTypes = this.loadIcidAuxTypes(mission);
+            cachedMissionIcidAuxTypes.put(mission, missionIcidAuxTypes);
+        }
+        LOG.info(">> [END] DatabaselineRepository.getIcidAuxTypes");
+        return cachedMissionIcidAuxTypes.get(mission);
+    }
 
-    public List<S1ICIDTimeline> getIcidTimelineConfiguration(String unit) {
+    public List<String> loadIcidAuxTypes(String mission) {
+        String queryString = "SELECT entity FROM com.csgroup.reprodatabaseline.datamodels.ICIDAuxType entity "
+                + " WHERE entity.mission = \'MISSION\' ORDER BY entity.auxtype ASC";
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        List<ICIDAuxType> missionIcidAuxTypes;
+        try {
+            Query query = entityManager.createQuery(queryString);
+            missionIcidAuxTypes = query.getResultList();
+            LOG.debug(MessageFormat.format("{0} configured Aux Types supporting ICID  .",
+                            String.valueOf(missionIcidAuxTypes.size())));
+        } finally {
+            entityManager.close();
+        }
+        // Extract Aux Type names from result
+        List<String> icidAuxTypeNames = new ArrayList<String>();
+        for(ICIDAuxType auxType : missionIcidAuxTypes){
+            icidAuxTypeNames.add(auxType.getAuxType());
+        }
+        return icidAuxTypeNames;
+    }
+    public S1ICIDTimeline getIcidTimelineConfiguration(String unit) {
+        LOG.info(">> [BEG] DatabaselineRepository.getIcidTimelineConfiguration");
 
         if (icidTimelineConfiguration.isEmpty() ) {
             // TODO: Ensure that the list is ordered
-            List<S1ICIDTimeline> unitIcidConfiguration = this.loadIcidTimelineConfiguration(unit);
+            S1ICIDTimeline unitIcidConfiguration = this.loadIcidTimelineConfiguration(unit);
             icidTimelineConfiguration.put(unit, unitIcidConfiguration);
         }
+        LOG.info(">> [BEG] DatabaselineRepository.getIcidTimelineConfiguration");
         return icidTimelineConfiguration.get(unit);
     }
-    private List<S1ICIDTimeline> loadIcidTimelineConfiguration(String unit) {
+    private S1ICIDTimeline loadIcidTimelineConfiguration(String unit) {
         String queryString = "SELECT entity FROM com.csgroup.reprodatabaseline.datamodels.S1ICIDTimeline entity "
                 + " WHERE entity.unit = \'UNIT\' ORDER BY entity.fromDate ASC";
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        List<S1ICIDTimeline> unitIcidConfiguration;
+        List<S1ICIDTimelineInterval> unitIcidConfiguration;
         try {
             Query query = entityManager.createQuery(queryString);
             unitIcidConfiguration = query.getResultList();
         } finally {
             entityManager.close();
         }
-        return unitIcidConfiguration;
+        return new S1ICIDTimeline(unitIcidConfiguration);
     }
 
-    /**
-     *
-     * Retrieve the S1 ICID (Instrument Configuration ID) value
-     * for the specified Satellite Unit at the given time.
-     *
-     * @param unit
-     * @param icidTime
-     * @return the icid value
-     * exception: if icidTie is before first time in timeline configuration
-     * or if unit is not configured
-     */
-    public int getIcid(String unit, ZonedDateTime icidTime) throws Exception {
-        List<S1ICIDTimeline> unitTimeline = this.getIcidTimelineConfiguration(unit);
-        // Loop on timeline: select the interval including icidTime
-        // Check: if icidTime is before first Interval
-        for (S1ICIDTimeline icidInterval: unitTimeline) {
-            if (icidTime.isBefore(icidInterval.getFromDate())) {
-                throw new Exception("Requested ICID for time before earliest configured value");
-            }
-            // Check: last interval shall not have the toDate value
-            if ( icidInterval.getToDate() == null ||
-                    icidTime.isBefore(icidInterval.getToDate())) {
-                    return icidInterval.getICID();
-            }
-        }
-        throw new Exception("Wrong ICID Timeline configuration: last interval must be open");
-    }
+
     private List<AuxTypeL0ProductMaxAge> getListAuxTypeL0ProductAge(String mission) {
         String queryString = "SELECT DISTINCT entity FROM com.csgroup.reprodatabaseline.datamodels.AuxTypeL0ProductMaxAge entity "
                 + "WHERE entity.mission = \'MISSION\' ORDER BY entity.auxtype ASC";
@@ -229,8 +241,7 @@ public class DatabaselineRepository {
     }
     public Map<String, Long> getAuxTypesL0ProductAgeTable(String mission) 	{
 
-
-        LOG.info(">> Starting DatabaselineRepository.getAuxTypesL0ProductAgeTable");
+        LOG.info(">> [BEG] DatabaselineRepository.getAuxTypesL0ProductAgeTable");
         // If no Mission Aux Types has been cached , or
         // if this mission AuxTypes have not been cached
         // load from Repository and save on cache
@@ -251,7 +262,7 @@ public class DatabaselineRepository {
             LOG.info("  Loaded Aux Types L0 Product Max Age configuration for mission "+mission);
             this.cachedMissionAuxTypesL0ProductAges.put(mission, AuxTypeL0ProductAgeTable);
         }
-        LOG.info("<< Ending DatabaselineRepository.getAuxTypesL0ParametersTable");
+        LOG.info("<< [END] DatabaselineRepository.getAuxTypesL0ParametersTable");
         return this.cachedMissionAuxTypesL0ProductAges.get(mission);
 
     }

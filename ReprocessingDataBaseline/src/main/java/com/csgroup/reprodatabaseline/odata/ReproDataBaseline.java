@@ -6,22 +6,21 @@ import com.csgroup.reprodatabaseline.http.AuxipAccess;
 import com.csgroup.reprodatabaseline.http.ReproBaselineAccess;
 import com.csgroup.reprodatabaseline.rules.RuleApplierFactory;
 import com.csgroup.reprodatabaseline.rules.RuleApplierInterface;
-import com.csgroup.reprodatabaseline.selectors.L0AttributeAuxFileSelector;
+import com.csgroup.reprodatabaseline.selectors.IcidBasedFilter;
 import com.csgroup.reprodatabaseline.selectors.ProductAgeSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 public class ReproDataBaseline {
@@ -159,9 +158,18 @@ public class ReproDataBaseline {
         }
         return sortedFiles;
     }
-
-    private Boolean selectAuxType(AuxType auxType, String productType, AuxTypeL0Selector l0Selector) throws Exception
+    private Boolean auxTypeWithIcid(String mission, AuxType auxType) {
+        List<String> icidAuxTypes = this.baselineRepository.getIcidAuxTypes(mission);
+        return icidAuxTypes.contains(auxType.LongName);
+    }
+    private Boolean selectAuxType(AuxType auxType, String productType,
+                                  AuxTypeL0Selector l0Selector) throws Exception
     {
+        // TODO:  define  another Filter for AuxTYpe based on ProductType
+        // take into account only auxiliary data files with requested product type
+        // but take care about auxtype from mission S3ALL
+        // In thiw way we could just apply a chain of filters:
+        //   ProductTypeFilter, followed by L0ParameterFilter
         if (auxType.usedForProductType(productType)) {
             LOG.debug(String.format("AuxType %s configured for production of %s",
                     auxType.LongName, productType));
@@ -257,7 +265,6 @@ public class ReproDataBaseline {
 
         LOG.debug(">>> Loading Aux Types configuration w.r.t. L0 attributes");
         // For each AuxTYpe name, define a table with : parameter Name, list of Values
-        //Map<String, Map<String, List<String>>> auxTypesL0Parameters = getAuxTypesL0ParametersTable(auxTypes.getValues();
         Map<String, Map<String, List<String>>> auxTypesL0Parameters = this.baselineRepository.getAuxTypesL0ParametersTable(mission);
         // TODO: Use a table of positions of time fields in L0 Product name, based on mission
         T0T1DateTime t0t1 = getLevel0StartStop(level0, platformShortName);
@@ -271,27 +278,29 @@ public class ReproDataBaseline {
             LOG.debug(">>> Creating a Selector For Aux Types based on L0 Parameters");
             l0AuxTypeSelector = new AuxTypeL0Selector(level0, mission, auxTypesL0Parameters);
         }
+        LOG.debug(">>> Loading Aux Types product age configuration ");
+        // For some Aux Types, Aux Files that have a validity too far in the
+        // past w.r.t. the L0 Product, are discarded
         Map<String, Long> maxAuxFileAges = baselineRepository.getAuxTypesL0ProductAgeTable(mission);
         ProductAgeSelector auxFileAgeFilter = new ProductAgeSelector(level0,
                 maxAuxFileAges);
-        /*
-        L0AttributeAuxFileSelector auxFileAttributeSelector = new L0AttributeAuxFileSelector(level0,
-                auxTypeL0AttributeAttributeAuxFileConfiguration);
-                */
+
+        IcidBasedFilter auxFileIcidSelector;
+        // TODO: CCheck if configuration available for current unit (mission)
+        S1ICIDTimeline icidConfiguration = baselineRepository.getIcidTimelineConfiguration(unit);
+
         // TODO: instantiate a L0AttributeAuxFileSelector on level0
         // TODO: Verify if try should be moved internally, for each AuxType
         //  Do we acept losing one AuxTYpe files, for an error, or are we
         //     throwing all the results for any error?
         try {
+            auxFileIcidSelector= new IcidBasedFilter(icidConfiguration, level0);
             for (AuxType t: types.getValues())
             {
                 // Apply a chain of checks (AuxTypeSelector)
                 //  for selection on AuxType, based on:
                 //         productType, mission, L0Product
 
-                // T: Consider possibility of defining another Filter for AuxTYpe based on ProductType
-                // take into account only auxiliary data files with requested product type
-                // but take care about auxtype from mission S3ALL
                 if (selectAuxType(t, productType, l0AuxTypeSelector)) {
                     // TODO: Extract method (or move to separate object):
                     //   AuxFileSelector receivies AuxType (+auxTypesDeltas?)
@@ -299,17 +308,30 @@ public class ReproDataBaseline {
                     //       t0t1 (L0 Interval)
                     // check if auxtype is not already treated
                     LOG.debug(">>> Loading Aux Files for Aux Type "+t.ShortName);
+                    List<AuxFile> files_repro;
                     // call on reproBaselineAcess: getAuxFiles(key)
                     // reprobaseline Access returns cached and
                     // loads cached if key is not present
-                    List<AuxFile> files_repro = this.reproBaselineAccess.getAuxFiles(t, platformShortName, unit);
-
+                    files_repro = this.reproBaselineAccess.getAuxFiles(t, platformShortName, unit);
                     if (!files_repro.isEmpty()) {
-                        List<AuxFile> files_repro_filtered;
+                        List<AuxFile> files_repro_filtered ;
+                        // Copy files_repro to files_repro_filtered
+                        files_repro_filtered = new ArrayList<AuxFile>(files_repro);
+                        LOG.debug(MessageFormat.format(">> Checking if Aux Type {0} is dependent on ICID", t));
+                        if (auxTypeWithIcid(platformShortName, t) && auxFileIcidSelector != null) {
+                            LOG.debug(MessageFormat.format(">> Filtering Aux Type {0} with ICID", t));
+
+                            List<String> icidAuxFileNames = auxip.getAuxFilesWithICID(platformShortName, t,
+                                    auxFileIcidSelector.getL0Icid(), accessToken);
+                            files_repro_filtered = auxFileIcidSelector.filter(files_repro_filtered,
+                                    icidAuxFileNames);
+                        }
+                        // TODO Check on Aux Type configuration for Produc Age
+                        //  is not neededof Type in FileAge Configuration
                         if (maxAuxFileAges.containsKey(t.ShortName) ) {
                             // TODO Copy to another VArible!!!
                             // If ProductAge is Configured for AuxTYpe, Filter list using ProductAgeSelector
-                            files_repro = auxFileAgeFilter.filter(files_repro);
+                            files_repro_filtered = auxFileAgeFilter.filter(files_repro_filtered);
                         }
                         // TODO: If AuxType is associated to ICID, filter with L0AttribtueAuxFileSeelctor
                         /*
@@ -317,7 +339,7 @@ public class ReproDataBaseline {
                             files_repro = auxFileAttributeSelector.filter(files_repro);
                         }
                          */
-                        files_repro_filtered = this.selectAuxFilesByRule(files_repro, auxTypesDeltas, t, t0t1);
+                        files_repro_filtered = this.selectAuxFilesByRule(files_repro_filtered, auxTypesDeltas, t, t0t1);
                         // TODO: AuxFile has Band Property with value BXX
 
                         LOG.debug(">>> Retrieving from AUXIP download URLs for selected Aux Files");
