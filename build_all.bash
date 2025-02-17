@@ -31,7 +31,7 @@ docker build -t backup_postgres:1.0.0 .
 
 cd ${CUR_DIR}/PRIP_Ingestion
 
-docker build -t prip_ingestion:1.1.1 .
+docker build -t prip_ingestion:1.1.2 .
 docker build -f Dockerfile.adgs -t adgs_ingestion:1.1.0 .
 
 cd ${CUR_DIR}/ECMWF_Ingestion
