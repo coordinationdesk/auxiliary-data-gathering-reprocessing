@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="1.1.0"
+VERSION="1.1.1"
 
 
 CUR_DIR="$( cd "$(dirname "$0")" ; pwd -P )"

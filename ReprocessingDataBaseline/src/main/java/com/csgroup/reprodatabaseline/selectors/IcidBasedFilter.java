@@ -3,12 +3,14 @@ package com.csgroup.reprodatabaseline.selectors;
 import com.csgroup.reprodatabaseline.datamodels.AuxFile;
 import com.csgroup.reprodatabaseline.datamodels.L0Product;
 import com.csgroup.reprodatabaseline.datamodels.S1ICIDTimeline;
+import com.csgroup.reprodatabaseline.odata.ReproDataBaseline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,18 +31,15 @@ public class IcidBasedFilter {
      *      * taken from a Timeline configuration of the ICID values
      *      * The ICID value is retrieved for the L0 product time
      * @param icidConfiguration
-     * @param l0Product
      * @throws Exception
      */
-    public IcidBasedFilter(S1ICIDTimeline icidConfiguration, L0Product l0Product) throws Exception
+    public IcidBasedFilter(S1ICIDTimeline icidConfiguration,
+                           ZonedDateTime validityStart) throws Exception
     {
-        LocalDateTime referenceTime = l0Product.getValidityStart();
-        this.l0Icid = String.valueOf(icidConfiguration.getIcid(referenceTime.atZone(ZoneId.of("UTC"))));
-        LOG.debug(MessageFormat.format(">> Instantiated ICD Filter for Aux Files: ICID for L0 {0}: {1}",
-                l0Product.getName(), this.l0Icid));
-
+        this.l0Icid = String.valueOf(icidConfiguration.getIcid(validityStart));
+        LOG.debug(MessageFormat.format(">> Instantiated ICD Filter for Aux Files: ICID at time {0}: {1}",
+                validityStart, this.l0Icid));
     }
-
 
 
     // TODO: Check: how to manage exception:

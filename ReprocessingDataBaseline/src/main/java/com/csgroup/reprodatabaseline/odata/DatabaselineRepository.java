@@ -175,7 +175,8 @@ public class DatabaselineRepository {
 
     public List<String> loadIcidAuxTypes(String mission) {
         String queryString = "SELECT entity FROM com.csgroup.reprodatabaseline.datamodels.ICIDAuxType entity "
-                + " WHERE entity.mission = \'MISSION\' ORDER BY entity.auxtype ASC";
+                + " WHERE entity.mission = \'MISSION\' ORDER BY entity.auxType ASC";
+        queryString = queryString.replace("MISSION", mission);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         List<ICIDAuxType> missionIcidAuxTypes;
         try {
@@ -201,18 +202,20 @@ public class DatabaselineRepository {
             S1ICIDTimeline unitIcidConfiguration = this.loadIcidTimelineConfiguration(unit);
             icidTimelineConfiguration.put(unit, unitIcidConfiguration);
         }
-        LOG.info(">> [BEG] DatabaselineRepository.getIcidTimelineConfiguration");
+        LOG.info(">> [END] DatabaselineRepository.getIcidTimelineConfiguration");
         return icidTimelineConfiguration.get(unit);
     }
     private S1ICIDTimeline loadIcidTimelineConfiguration(String unit) {
-        String queryString = "SELECT entity FROM com.csgroup.reprodatabaseline.datamodels.S1ICIDTimeline entity "
+        String queryString = "SELECT entity FROM com.csgroup.reprodatabaseline.datamodels.S1ICIDTimelineInterval entity "
                 + " WHERE entity.unit = \'UNIT\' ORDER BY entity.fromDate ASC";
+        queryString = queryString.replace("UNIT", unit);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         List<S1ICIDTimelineInterval> unitIcidConfiguration;
         try {
             Query query = entityManager.createQuery(queryString);
             unitIcidConfiguration = query.getResultList();
+            LOG.debug(MessageFormat.format("Loaded ICID Timelien: {0} ", unitIcidConfiguration));
         } finally {
             entityManager.close();
         }
@@ -262,7 +265,7 @@ public class DatabaselineRepository {
             LOG.info("  Loaded Aux Types L0 Product Max Age configuration for mission "+mission);
             this.cachedMissionAuxTypesL0ProductAges.put(mission, AuxTypeL0ProductAgeTable);
         }
-        LOG.info("<< [END] DatabaselineRepository.getAuxTypesL0ParametersTable");
+        LOG.info("<< [END] DatabaselineRepository.getAuxTypesL0ProductAgeTable");
         return this.cachedMissionAuxTypesL0ProductAges.get(mission);
 
     }

@@ -286,6 +286,7 @@ public class ReproDataBaseline {
                 maxAuxFileAges);
 
         IcidBasedFilter auxFileIcidSelector;
+        LOG.debug(">>> Loading L0 ICID Timeline configuration ");
         // TODO: CCheck if configuration available for current unit (mission)
         S1ICIDTimeline icidConfiguration = baselineRepository.getIcidTimelineConfiguration(unit);
 
