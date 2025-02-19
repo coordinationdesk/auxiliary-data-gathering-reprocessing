@@ -160,7 +160,7 @@ public class DatabaselineRepository {
     }
 
     public List<String> getIcidAuxTypes(String mission) {
-        LOG.info(">> [BEG] DatabaselineRepository.getIcidAuxTypes");
+        LOG.info(">> Starting DatabaselineRepository.getIcidAuxTypes");
 // Get from cache lsit for the imssion
         // load from repostiory if not avaialble
         // if no aux types for th emission, set an empty list
@@ -169,7 +169,7 @@ public class DatabaselineRepository {
             List<String> missionIcidAuxTypes = this.loadIcidAuxTypes(mission);
             cachedMissionIcidAuxTypes.put(mission, missionIcidAuxTypes);
         }
-        LOG.info(">> [END] DatabaselineRepository.getIcidAuxTypes");
+        LOG.info(">> Ending DatabaselineRepository.getIcidAuxTypes");
         return cachedMissionIcidAuxTypes.get(mission);
     }
 
@@ -195,14 +195,14 @@ public class DatabaselineRepository {
         return icidAuxTypeNames;
     }
     public S1ICIDTimeline getIcidTimelineConfiguration(String unit) {
-        LOG.info(">> [BEG] DatabaselineRepository.getIcidTimelineConfiguration");
+        LOG.info(">> Starting DatabaselineRepository.getIcidTimelineConfiguration");
 
         if (icidTimelineConfiguration.isEmpty() ) {
             // TODO: Ensure that the list is ordered
             S1ICIDTimeline unitIcidConfiguration = this.loadIcidTimelineConfiguration(unit);
             icidTimelineConfiguration.put(unit, unitIcidConfiguration);
         }
-        LOG.info(">> [END] DatabaselineRepository.getIcidTimelineConfiguration");
+        LOG.info(">> Ending DatabaselineRepository.getIcidTimelineConfiguration");
         return icidTimelineConfiguration.get(unit);
     }
     private S1ICIDTimeline loadIcidTimelineConfiguration(String unit) {
@@ -244,7 +244,7 @@ public class DatabaselineRepository {
     }
     public Map<String, Long> getAuxTypesL0ProductAgeTable(String mission) 	{
 
-        LOG.info(">> [BEG] DatabaselineRepository.getAuxTypesL0ProductAgeTable");
+        LOG.info(">> Starting DatabaselineRepository.getAuxTypesL0ProductAgeTable");
         // If no Mission Aux Types has been cached , or
         // if this mission AuxTypes have not been cached
         // load from Repository and save on cache
@@ -265,7 +265,7 @@ public class DatabaselineRepository {
             LOG.info("  Loaded Aux Types L0 Product Max Age configuration for mission "+mission);
             this.cachedMissionAuxTypesL0ProductAges.put(mission, AuxTypeL0ProductAgeTable);
         }
-        LOG.info("<< [END] DatabaselineRepository.getAuxTypesL0ProductAgeTable");
+        LOG.info("<< Ending DatabaselineRepository.getAuxTypesL0ProductAgeTable");
         return this.cachedMissionAuxTypesL0ProductAges.get(mission);
 
     }

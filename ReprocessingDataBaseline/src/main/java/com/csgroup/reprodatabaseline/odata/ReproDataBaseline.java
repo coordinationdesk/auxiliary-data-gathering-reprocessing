@@ -295,7 +295,7 @@ public class ReproDataBaseline {
         //  Do we acept losing one AuxTYpe files, for an error, or are we
         //     throwing all the results for any error?
         try {
-            auxFileIcidSelector= new IcidBasedFilter(icidConfiguration, level0);
+            auxFileIcidSelector= new IcidBasedFilter(icidConfiguration,  t0t1._t0);
             for (AuxType t: types.getValues())
             {
                 // Apply a chain of checks (AuxTypeSelector)

@@ -3,7 +3,7 @@ import com.csgroup.reprodatabaseline.datamodels.AuxFile;
 import com.csgroup.reprodatabaseline.datamodels.L0Product;
 import com.csgroup.reprodatabaseline.datamodels.S1ICIDTimeline;
 import com.csgroup.reprodatabaseline.datamodels.S1ICIDTimelineInterval;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDateTime;
@@ -16,8 +16,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class IcidTimelineTest {
-     S1ICIDTimeline icidCOnfiguration ;
+class IcidTimelineTest {
+    private S1ICIDTimeline icidCOnfiguration ;
     @BeforeEach
     void setUp() {
         // FIll configuration
