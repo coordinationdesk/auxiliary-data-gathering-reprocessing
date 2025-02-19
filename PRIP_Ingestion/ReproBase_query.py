@@ -99,7 +99,7 @@ def _get_api_file_results(user, password, api_request, mode, req_timeout=30):
 def get_reprobase_base_endpoint(mode):
     base_endpoint = "https://dev.reprocessing-preparation.ml/reprocessing.svc"
     if mode == 'prod':
-        base_endpoint = "https://reprocessing-auxiliary.copernicus.eu/reprocessing.svc"
+        base_endpoint = "https://auxiliary.copernicus.eu/reprocessing.svc"
     return base_endpoint
 
 
