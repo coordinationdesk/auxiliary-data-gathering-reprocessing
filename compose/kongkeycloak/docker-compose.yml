@@ -260,7 +260,7 @@ services:
   #######################################
   ecmwf_ingestion_s2:
     container_name: ecmwf_ingestion
-    image: ecmwf_ingestion:1.0.1
+    image: ecmwf_ingestion:1.0.2
     restart: always
     environment:
       S3_ACCESS_KEY: ${ECMWF_S3_ACCESS_KEY}
