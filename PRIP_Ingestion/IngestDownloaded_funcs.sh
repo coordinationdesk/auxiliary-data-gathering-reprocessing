@@ -1,3 +1,13 @@
+function remove_ingested_files() {
+  MISSION=$1
+  DWL_TEMP_FOLDER=$2
+  LIST_FILE=$3
+  echo "[BEG] Removing ingested files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER"
+      while read ingested_file ; do
+          rm   "${DWL_TEMP_FOLDER}/$MISSION/$ingested_file"
+      done < ${LIST_FILE}
+  echo "[END] Removed ingested files: Download folder: $DWL_TEMP_FOLDER, Listing folder: $LISTING_FOLDER"
+}
 
 
 function ingest_downloaded_files() {
