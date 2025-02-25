@@ -23,6 +23,11 @@ public class S1ICIDTimeline {
         Collections.sort(this.icidTimeline,
                 Comparator.comparing(S1ICIDTimelineInterval::getFromDate));
     }
+
+    public Boolean isEmpty() {
+        return icidTimeline.isEmpty();
+    }
+
     private void checkOverlappedIntervals() {
         // For each pair of consecutive intervals
         // check if first interval to date is > second interval start date

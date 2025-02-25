@@ -285,7 +285,7 @@ public class ReproDataBaseline {
         ProductAgeSelector auxFileAgeFilter = new ProductAgeSelector(level0,
                 maxAuxFileAges);
 
-        IcidBasedFilter auxFileIcidSelector;
+        IcidBasedFilter auxFileIcidSelector = null;
         LOG.debug(">>> Loading L0 ICID Timeline configuration ");
         // TODO: CCheck if configuration available for current unit (mission)
         S1ICIDTimeline icidConfiguration = baselineRepository.getIcidTimelineConfiguration(unit);
@@ -295,7 +295,10 @@ public class ReproDataBaseline {
         //  Do we acept losing one AuxTYpe files, for an error, or are we
         //     throwing all the results for any error?
         try {
-            auxFileIcidSelector= new IcidBasedFilter(icidConfiguration,  t0t1._t0);
+            if (icidConfiguration != null && !icidConfiguration.isEmpty()) {
+                LOG.debug(">>> Instantiating L0 ICID Based Filter ");
+                auxFileIcidSelector= new IcidBasedFilter(icidConfiguration,  t0t1._t0);
+            }
             for (AuxType t: types.getValues())
             {
                 // Apply a chain of checks (AuxTypeSelector)
