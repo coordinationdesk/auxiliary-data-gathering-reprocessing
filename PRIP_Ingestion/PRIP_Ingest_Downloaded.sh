@@ -52,6 +52,7 @@ function ingest_mission() {
   create_folder $MISSION_TEMP_FOLDER_LISTING
   create_folder $MISSION_TEMP_FOLDER_JSONS
   code=0
+  # Check if to be invoked on MISSION_TEMP_FOLDER instead of INPUT_FOLDER
   ingest_downloaded_files $MISSION $code $INPUT_FOLDER "${MISSION_TEMP_FOLDER_LISTING}" 
   #ingest_replace_downloaded_files $MISSION $code $INPUT_FOLDER "${MISSION_TEMP_FOLDER_LISTING}" 
   ingestion_code=$?
@@ -67,10 +68,10 @@ function ingest_mission() {
   if [ $master_code -eq 0 ]; then
       echo "No errors for $MISSION ingestion"
       echo "Removing temporary folders"
-      echo "Removing TEMP Folder ${MISSION_TEMP_FOLDER:?}"
-      rm -rf "${MISSION_TEMP_FOLDER:?}"/
-      REM_RES=$?
-      echo "Removal result: $REM_RES"
+      #echo "Removing TEMP Folder ${MISSION_TEMP_FOLDER:?}"
+      #rm -rf "${MISSION_TEMP_FOLDER:?}"/
+      #REM_RES=$?
+      #echo "Removal result: $REM_RES"
       echo "Removing TEMP LISTING Folder ${MISSION_TEMP_FOLDER_LISTING:?}"
       rm -rf ${MISSION_TEMP_FOLDER_LISTING:?}/
       REM_RES=$?

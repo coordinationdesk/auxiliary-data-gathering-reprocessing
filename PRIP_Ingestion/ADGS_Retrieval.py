@@ -151,7 +151,7 @@ class ADGS_Retrieval:
                                  names_list,
                                  batch_size=20,
                                  max_results=MAX_SESSION_RESULTS):
-        print("Querying LTA (", self._lta_base_url, "), for Names ")
+        print("Querying LTA (", self._base_url, "), for Names ")
         retrieved_results = []
         # NUmber of names to be included in each single request
         req_num_names = batch_size

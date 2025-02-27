@@ -18,7 +18,7 @@ def getL0(year, month, ltaUrl, ltaUsr, ltaPwd):
     with open("S1_L0_names_%02d_%04d.txt" % (month,year) ,"w") as l0_names:
 
         previousNbDays = 0
-        for nb_days in [10,20,days_in_month]:
+        for nb_days in [5, 10,20,days_in_month]:
             # On découpe le mois en plusieurs sections pour éviter un traitement trop long pour LTA
             start_day = nb_days - (nb_days - previousNbDays) + 1
             previousNbDays = nb_days
@@ -40,6 +40,7 @@ def getL0(year, month, ltaUrl, ltaUsr, ltaPwd):
                 nb_steps = int(count/200)
                 
                 for aux in resp.json()["value"]:
+                    print(aux)
                     name = aux['Name']
                     names.add(name)
 

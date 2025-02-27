@@ -128,10 +128,10 @@ class TestS1Attributes(unittest.TestCase):
     def test_MANPRE_attributes(self):
         prod_file_path = os.path.join(self.data_path, s1_data_files.get('S1_MANPRE_file'))
         attrs = get_attributes(prod_file_path)
-        self.assertEqual(attrs.get('processingDate'), '2023/11/14-16:38:37.118')
+        self.assertEqual(attrs.get('processingDate'), '2023/11/14-16:38:37.118Z')
         self.assertEqual(attrs.get("productType"), 'MPL_MANPRE')  # add assertion here
         self.assertEqual(attrs.get('processingCenter'), 'S1MPL')
-        self.assertEqual('2023/11/15-22:48:48.179', attrs.get('beginningDateTime'))
+        self.assertEqual('2023/11/15-22:48:48.179Z', attrs.get('beginningDateTime'))
         #  check that uncompressed zip is not present
         prod_folder = os.path.splitext(prod_file_path)[0]
         self.assertTrue(not os.path.exists(prod_folder), f"{prod_folder} not deleted")
