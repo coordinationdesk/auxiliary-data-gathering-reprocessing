@@ -265,7 +265,7 @@ public class ReproDataBaseline {
 
         LOG.debug(">>> Loading Aux Types configuration w.r.t. L0 attributes");
         // For each AuxTYpe name, define a table with : parameter Name, list of Values
-        Map<String, Map<String, List<String>>> auxTypesL0Parameters = this.baselineRepository.getAuxTypesL0ParametersTable(mission);
+        Map<String, Map<String, List<String>>> auxTypesL0Parameters = this.baselineRepository.getAuxTypesL0ParametersTable(platformShortName);
         // TODO: Use a table of positions of time fields in L0 Product name, based on mission
         T0T1DateTime t0t1 = getLevel0StartStop(level0, platformShortName);
 
@@ -290,9 +290,8 @@ public class ReproDataBaseline {
         // TODO: CCheck if configuration available for current unit (mission)
         S1ICIDTimeline icidConfiguration = baselineRepository.getIcidTimelineConfiguration(unit);
 
-        // TODO: instantiate a L0AttributeAuxFileSelector on level0
         // TODO: Verify if try should be moved internally, for each AuxType
-        //  Do we acept losing one AuxTYpe files, for an error, or are we
+        //  Do we accept losing one AuxTYpe files, for an error, or are we
         //     throwing all the results for any error?
         try {
             if (icidConfiguration != null && !icidConfiguration.isEmpty()) {

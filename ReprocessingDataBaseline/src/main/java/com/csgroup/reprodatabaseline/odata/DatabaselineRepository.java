@@ -285,6 +285,7 @@ public class DatabaselineRepository {
             // Group on two levels:
             // Aux Type
             // Parameter Name
+            LOG.debug(" Retrieved from Db aux Types L0 Parameters table: "+auxTypeL0ParameterValues.toString());
 
         } finally {
             entityManager.close();
@@ -324,6 +325,8 @@ public class DatabaselineRepository {
                                     )
                             ));
             LOG.info("  Loaded Aux Types L0 Parameters configuration for mission "+mission);
+            LOG.debug(" Aux Types configured: "+AuxTypeL0ParameterValueTable.toString());
+
             this.cachedMissionAuxTypesL0Parameters.put(mission, AuxTypeL0ParameterValueTable);
         }
         LOG.info("<< Ending DatabaselineRepository.getAuxTypesL0ParametersTable");

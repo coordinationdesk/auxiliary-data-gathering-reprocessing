@@ -1,5 +1,6 @@
 package com.csgroup.reprodatabaseline.http;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,16 +35,22 @@ public class AuxipAccess {
 											final String ICID,
 											String bearerToken) throws Exception {
 		List<String> auxFileNames = new ArrayList<String>();
+		final String icidAttributeName = "InstrumentConfigurationID";
+
 		ObjectMapper mapper = new ObjectMapper();
 		LOG.debug("getAuxFilesWithICID: Building GET REequest for S1 ICID: " + ICID);
+		String baseUrl = config.getAuxip_url() + "/Products";
+		String filterParam =String.format("$filter=startswith(Name,'%s') and contains(Name,'%s') " +
+				"and Attributes/OData.CSC.StringAttribute/any(att:att/Name eq '%s' " +
+				"and att/OData.CSC.StringAttribute/Value eq '%s')",
+				mission, auxType.ShortName.trim(), icidAttributeName, ICID);
+		String selectParam = "select=Name";
+		String request = String.format("%s?%s&%s", baseUrl, filterParam,selectParam);
+		LOG.debug("Sending to Auxip request: "+request);
 		String getResult = httpHandler.getPost(
-				String.format( "%s/Products?$filter=startswith(Name, '%s') and contains(Name,'%s') " +
-								"and Attributes/OData.CSC.StringAttribute/any(att:att/Name eq '%s'" +
-								"and att/OData.CSC.StringAttribute/Value eq '%s')" +
-								"&select=Name",
-								config.getAuxip_url(), mission,
-								auxType.ShortName.trim(), "InstrumentConfigurationID", ICID),
+				request,
 				bearerToken);
+
 		JsonNode currentObj;
 
 		try {
@@ -69,6 +76,7 @@ public class AuxipAccess {
 			 */
 			auxFileNames.add(value.get("Name").asText());
 		}
+		LOG.debug("Retrieved "+ auxFileNames.size() + " " + auxType.ShortName + " files with ICID " + ICID);
 		return auxFileNames;
 	}
 

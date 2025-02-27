@@ -4,6 +4,7 @@ import com.csgroup.reprodatabaseline.datamodels.L0NameParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,9 @@ public class AuxTypeL0Selector {
         if (!this.cachedL0Parameters.containsValue(parameterName)) {
             String parameterValue = this.l0nameparser.getL0ParameterValue(l0ProductName,
                     parameterName);
+            LOG.debug(MessageFormat.format(">> Extracted from L0 {0} Parameter {1} with value {2}",
+                    l0ProductName, parameterName, parameterValue));
+
             cachedL0Parameters.put(parameterName, parameterValue);
         }
         return cachedL0Parameters.get(parameterName);
