@@ -6,7 +6,7 @@ import sys
 import requests
 from L0_lta_retriever import LtaL0Retriever
 
-from l0_attributes import get_attributes
+from .l0_attributes import get_attributes
 
 
 # l0_product_type

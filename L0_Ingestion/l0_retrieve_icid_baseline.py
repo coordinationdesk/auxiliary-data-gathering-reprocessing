@@ -75,15 +75,16 @@ def get_command_arguments():
         parser.error("LTA arguments shall be all specified, if you are not using input File")
     # time_date_pattern = re.compile("([0-9]{8}T[0-9]{6})")
     # Time date in format: year-month-daymonthThour:minutes:seconds
-    time_date_pattern = re.compile(r"(\d\d\d\d)-([0-1][0-2])-([0-3][0-9])T([0-2][0-4]):([0-5][0-9]):([0-5][0-9])")
+    time_date_pattern = re.compile(r"([0-9]{4})-([0-1][0-9])-([0-3][0-9])T([0-2][0-9]):([0-5][0-9]):([0-5][0-9])")
      # Date in format: year, month day of month
     date_pattern = re.compile("([0-9]{4})-([0-1][0-9])-([0-3][0-9])")
-    print(arg_values.from_date)
+    print("Retrieving L0 ICID from date: ", arg_values.from_date)
     if arg_values.from_date is not None:
         if time_date_pattern.match(arg_values.from_date):
             print("From a date time: converting from string")
-            from_datetime = dt.datetime.strptime(arg_value.from_date, '%Y-%m-%dT%H:%M:%S')
+            from_datetime = dt.datetime.strptime(arg_values.from_date, '%Y-%m-%dT%H:%M:%S')
         elif date_pattern.match(arg_values.from_date):
+            print("From a date (no time): converting from string")
             from_date_str = arg_values.from_date +  '000000'
             # TODO put under try/except to print error if format wrong
             from_datetime = dt.datetime.strptime(from_date_str, '%Y-%m-%d%H%M%S')
