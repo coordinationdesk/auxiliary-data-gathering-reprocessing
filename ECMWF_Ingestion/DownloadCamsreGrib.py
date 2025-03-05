@@ -7,7 +7,8 @@ import datetime, threading, time, os
 #    so to be different if for recovery of big gaps, or operationsl execution)
 def downloadCamsreGribForSmallPeriod(start, stop, outputFilePathName,
                                                 cams_url, api_key, api_user):
-   full_key = "{0}:{1}".format(api_user, api_key)
+   # full_key = "{0}:{1}".format(api_user, api_key)
+   full_key = api_key
    cdsclient = cdsapi.Client(url=cams_url, key=full_key, debug=True)
 
    dataset =  'cams-global-reanalysis-eac4'
@@ -37,7 +38,7 @@ def downloadCamsreGribForSmallPeriod(start, stop, outputFilePathName,
    # cdsinf.exceptions.BadRequestException
    # message/reason: There is no data matching your request.
    try:
-       cdsclient.retrieve(dataset, request_dict, outputFilePathName)
+       cdsclient.retrieve(dataset, request_dict, outputFilePathName).download()
    except cdsinf.exceptions.BadRequestException as reqEx:
        print("Error retrieving data from ECMWF (Data not found): ", reqEx)
        raise reqEx

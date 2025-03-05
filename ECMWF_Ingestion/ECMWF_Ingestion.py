@@ -72,7 +72,8 @@ if __name__ == "__main__":
     #CAMS
     print("Starting CAMS data handling")
     # Init client with access for application
-    full_key = "{0}:{1}".format(args.user, args.key)
+    # full_key = "{0}:{1}".format(args.user, args.key)
+    full_key = args.key
     cdsclient = cdsapi.Client(url=args.url, key=full_key, debug=True)
     # TODO: Change: basic cds_request, ADG_CAMS_Request, ADG_CAMSAN_request, ADG_CAMSRE_request
     # PUt dwonload in a separate module/function
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     # request_3.write_to_file(request_3_filename)
     # Write to file if a log is needed of request issued
    #Exec request
-    cdsclient.retrieve(request_3.dataset, request_3.request_as_dict(), request_3.target)
+    cdsclient.retrieve(request_3.dataset, request_3.request_as_dict(), request_3.target).download()
     #Split the grib into pieces to recompose afterword
     request_3_split_folder = os.path.join(workingDir, "request_3_split")
     os.makedirs(request_3_split_folder, exist_ok=True)
@@ -124,7 +125,7 @@ if __name__ == "__main__":
     request_4.target = request_4_target
     # request_4_filename = os.path.join(workingDir, "request4.req")
     # request_4.write_to_file(request_4_filename)
-    cdsclient.retrieve(request_4.dataset, request_4.request_as_dict(), request_4.target)
+    cdsclient.retrieve(request_4.dataset, request_4.request_as_dict(), request_4.target).download()
     #test if grib is here
     if not os.path.exists(request_4_target):
        print("Output grib for request 4 is not available")
