@@ -21,6 +21,10 @@ collections:
   tutorials:
     output: false
     permalink: /:name.html
+  releasenotes:
+    output: false
+    permalink: /:name.html
+  
   
 defaults:
   - scope:
