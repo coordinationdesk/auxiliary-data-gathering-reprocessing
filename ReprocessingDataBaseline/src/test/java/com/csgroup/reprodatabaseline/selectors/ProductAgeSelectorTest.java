@@ -30,7 +30,9 @@ class ProductAgeSelectorTest {
         l0ToCompare.setName("S1A_IW_RAW__0NDV_20201001T062556_20201001T063833_034599_040733_8B28");
         l0ToCompare.setValidityStart(LocalDateTime.parse("2020-10-01 06:25:56", formatter));
         l0ToCompare.setValidityStop(LocalDateTime.parse("2020-10-02 06:25:56", formatter));
-        ageSelector = new ProductAgeSelector(l0ToCompare, maxAgesConfiguration);
+        L0Product.T0T1DateTime t0t1 = l0ToCompare.getLevel0StartStop( "S1");
+
+        ageSelector = new ProductAgeSelector(t0t1, maxAgesConfiguration);
 
         auxFileRepo = new HashMap<>();
         AuxFile auxfile1 = new AuxFile();
