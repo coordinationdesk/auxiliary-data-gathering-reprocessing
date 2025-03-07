@@ -23,11 +23,11 @@ public class AuxTypeL0ProductMaxAge {
     private String mission;
 
     /**
-     * Max number of days between AuxFile and L0 Product
+     * Max number of seconds between AuxFile and L0 Product
      * to use the AuxFile
      */
     @Column(name="maxage")
-    private long max_days;
+    private long max_seconds;
 
     public String getAuxtype() { return auxtype;}
     public void setAuxtype(String auxtype) { this.auxtype = auxtype;}
@@ -37,7 +37,7 @@ public class AuxTypeL0ProductMaxAge {
     public void setMission(String mission) { this.mission = mission;}
 
 
-    public long getMax_days() { return max_days;}
-    public void setMax_days(long maxdays) {this.max_days = maxdays;}
+    public long getMax_seconds() { return max_seconds;}
+    public void setMax_seconds(long maxseconds) {this.max_seconds = maxseconds;}
 
 }

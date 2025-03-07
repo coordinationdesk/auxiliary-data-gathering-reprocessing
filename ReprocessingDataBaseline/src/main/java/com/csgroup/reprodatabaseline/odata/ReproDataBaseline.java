@@ -67,12 +67,8 @@ public class ReproDataBaseline {
         return this.baselineRepository.getLevel0ProductsByName(level0Name);
     }
 
-    private class T0T1DateTime {
-        public ZonedDateTime _t0;
-        public ZonedDateTime _t1;
-    }
-    private T0T1DateTime getLevel0StartStop(L0Product level0, String platformShortName) {
-        T0T1DateTime t0t1;
+    private L0Product.T0T1DateTime getLevel0StartStop(L0Product level0, String platformShortName) {
+        L0Product.T0T1DateTime t0t1;
         if( platformShortName.equals("S3"))
         {
             t0t1 = getT0T1ForS3(level0);
@@ -88,15 +84,15 @@ public class ReproDataBaseline {
         }
         return t0t1;
     }
-    private T0T1DateTime getT0T1FromName(String prodName, int startPos, int endPos, int timeFieldLen) {
-        T0T1DateTime t0t1 = new T0T1DateTime();
+    private L0Product.T0T1DateTime getT0T1FromName(String prodName, int startPos, int endPos, int timeFieldLen) {
+        L0Product.T0T1DateTime t0t1 = new L0Product.T0T1DateTime();
         t0t1._t0 = ZonedDateTime.parse(prodName.subSequence(startPos, startPos+timeFieldLen),DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss").withZone(ZoneId.of("UTC")));
         t0t1._t1 = ZonedDateTime.parse(prodName.subSequence(endPos, endPos+timeFieldLen),DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss").withZone(ZoneId.of("UTC")));
 
         return t0t1;
     }
 
-    private T0T1DateTime getT0T1ForS3(L0Product level0) {
+    private L0Product.T0T1DateTime getT0T1ForS3(L0Product level0) {
 
         // We should read t0 and t1 from the validityStart and validityStop of the L0Product, but having the L0Product object is new and not
         // necessary for the following operation. To keep the current service stable, we left it the way it was since the launching of the service.
@@ -107,9 +103,9 @@ public class ReproDataBaseline {
 
     // TODO: these functions are not linked to class
 
-    private T0T1DateTime getT0T1ForS2(L0Product level0) {
+    private L0Product.T0T1DateTime getT0T1ForS2(L0Product level0) {
 
-        T0T1DateTime t0t1 = new T0T1DateTime();
+        L0Product.T0T1DateTime t0t1 = new L0Product.T0T1DateTime();
 
         if (level0 != null && level0.getValidityStart() != null) {
             // L0Product was found on database
@@ -131,7 +127,7 @@ public class ReproDataBaseline {
         return t0t1;
     }
 
-    private T0T1DateTime getT0T1ForS1(L0Product level0) {
+    private L0Product.T0T1DateTime getT0T1ForS1(L0Product level0) {
 
         // We should read t0 and t1 from the validityStart and validityStop of the L0Product, but having the L0Product object is new and not
         // necessary for the following operation. To keep the current service stable, we left it the way it was since the launching of the service.
@@ -160,6 +156,9 @@ public class ReproDataBaseline {
     }
     private Boolean auxTypeWithIcid(String mission, AuxType auxType) {
         List<String> icidAuxTypes = this.baselineRepository.getIcidAuxTypes(mission);
+        if (icidAuxTypes.size() == 0) {
+            return Boolean.FALSE;
+        }
         return icidAuxTypes.contains(auxType.LongName);
     }
     private Boolean selectAuxType(AuxType auxType, String productType,
@@ -187,7 +186,7 @@ public class ReproDataBaseline {
     private List<AuxFile> selectAuxFilesByRule(List<AuxFile> reprocessingFiles,
                                                Map<String, AuxTypeDeltas> auxTypesDeltas,
                                                AuxType auxType,
-                                               T0T1DateTime l0Interval) {
+                                               L0Product.T0T1DateTime l0Interval) {
         List<AuxFile> files_repro_filtered;
 
         if (!reprocessingFiles.isEmpty()) {
@@ -267,7 +266,8 @@ public class ReproDataBaseline {
         // For each AuxTYpe name, define a table with : parameter Name, list of Values
         Map<String, Map<String, List<String>>> auxTypesL0Parameters = this.baselineRepository.getAuxTypesL0ParametersTable(platformShortName);
         // TODO: Use a table of positions of time fields in L0 Product name, based on mission
-        T0T1DateTime t0t1 = getLevel0StartStop(level0, platformShortName);
+        L0Product.T0T1DateTime t0t1 = getLevel0StartStop(level0, platformShortName);
+        //L0Product.T0T1DateTime t0t1 = level0.getLevel0StartStop(platformShortName);
 
         // AuxTypeSelector allows to select AuxType based on L0 attribute values
         //  L0 product is used to get its attributes
@@ -282,8 +282,9 @@ public class ReproDataBaseline {
         // For some Aux Types, Aux Files that have a validity too far in the
         // past w.r.t. the L0 Product, are discarded
         Map<String, Long> maxAuxFileAges = baselineRepository.getAuxTypesL0ProductAgeTable(mission);
-        ProductAgeSelector auxFileAgeFilter = new ProductAgeSelector(level0,
-                maxAuxFileAges);
+        //ProductAgeSelector auxFileAgeFilter = new ProductAgeSelector(level0, maxAuxFileAges);
+        ProductAgeSelector auxFileAgeFilter = new ProductAgeSelector(t0t1, maxAuxFileAges);
+
 
         IcidBasedFilter auxFileIcidSelector = null;
         LOG.debug(">>> Loading L0 ICID Timeline configuration ");
@@ -331,12 +332,10 @@ public class ReproDataBaseline {
                         }
                         // TODO Check on Aux Type configuration for Produc Age
                         //  is not neededof Type in FileAge Configuration
-                        if (maxAuxFileAges.containsKey(t.ShortName) ) {
-                            // TODO Copy to another VArible!!!
+                        if (auxFileAgeFilter.configuredProductAgeForAuxType(t.ShortName) ) {
                             // If ProductAge is Configured for AuxTYpe, Filter list using ProductAgeSelector
                             files_repro_filtered = auxFileAgeFilter.filter(files_repro_filtered);
                         }
-                        // TODO: If AuxType is associated to ICID, filter with L0AttribtueAuxFileSeelctor
                         /*
                         if (auxFileAttributeSelector != null) {
                             files_repro = auxFileAttributeSelector.filter(files_repro);

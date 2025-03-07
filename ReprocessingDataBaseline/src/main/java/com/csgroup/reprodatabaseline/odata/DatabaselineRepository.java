@@ -259,7 +259,7 @@ public class DatabaselineRepository {
                     collect(
                             Collectors.toMap(
                                     AuxTypeL0ProductMaxAge::getAuxtype,
-                                    AuxTypeL0ProductMaxAge::getMax_days
+                                    AuxTypeL0ProductMaxAge::getMax_seconds
                                     )
                             );
             LOG.info("  Loaded Aux Types L0 Product Max Age configuration for mission "+mission);
