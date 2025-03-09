@@ -297,7 +297,8 @@ public class ReproDataBaseline {
         try {
             if (icidConfiguration != null && !icidConfiguration.isEmpty()) {
                 LOG.debug(">>> Instantiating L0 ICID Based Filter ");
-                auxFileIcidSelector= new IcidBasedFilter(icidConfiguration,  t0t1._t0);
+                auxFileIcidSelector= new IcidBasedFilter(icidConfiguration,  level0,
+                                                         platformShortName);
             }
             for (AuxType t: types.getValues())
             {

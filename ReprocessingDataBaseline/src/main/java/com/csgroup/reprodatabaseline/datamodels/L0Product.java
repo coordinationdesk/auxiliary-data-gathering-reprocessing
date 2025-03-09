@@ -62,6 +62,8 @@ public class L0Product {
     private String name;
     private LocalDateTime validityStart;
     private LocalDateTime validityStop;
+    private String icid;
+
 
     public String getName() {
         return name;
@@ -73,6 +75,8 @@ public class L0Product {
     public LocalDateTime getValidityStop() {
         return validityStop;
     }
+    public String getIcid() {return icid;}
+
     public void setName(String name) {
         this.name = name;
     }
@@ -83,6 +87,8 @@ public class L0Product {
     public void setValidityStop(LocalDateTime validityStop) {
         this.validityStop = validityStop;
     }
+   public void setIcid(String icid) {this.icid = icid;}
+
     public T0T1DateTime getLevel0StartStop(String platformShortName) {
         T0T1DateTime t0t1;
         if( platformShortName.equals("S3"))

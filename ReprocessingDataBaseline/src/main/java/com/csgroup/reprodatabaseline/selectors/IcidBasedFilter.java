@@ -34,9 +34,17 @@ public class IcidBasedFilter {
      * @throws Exception
      */
     public IcidBasedFilter(S1ICIDTimeline icidConfiguration,
-                           ZonedDateTime validityStart) throws Exception
+                           L0Product l0product,
+                           String platformShortName) throws Exception
     {
-        this.l0Icid = String.valueOf(icidConfiguration.getIcid(validityStart));
+        ZonedDateTime validityStart = l0product.getLevel0StartStop(platformShortName)._t0;
+        String icid = l0product.getIcid(); 
+        if (icid == null) {
+            icid = String.valueOf(icidConfiguration.getIcid(validityStart));
+            LOG.debug(MessageFormat.format(">> No ICID Value for L0  {0}: taking value from Timeline configuration",
+                    l0product.getName()));
+        }
+        this.l0Icid = icid;
         LOG.debug(MessageFormat.format(">> Instantiated ICD Filter for Aux Files: ICID at time {0}: {1}",
                 validityStart, this.l0Icid));
     }
