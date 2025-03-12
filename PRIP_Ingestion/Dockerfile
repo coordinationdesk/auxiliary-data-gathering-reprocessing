@@ -25,7 +25,7 @@ ADD FileUtils.py /
 ADD S2_FileNaming.py /
 ADD mission_aux_types.py /
 ADD PRIP_S2.py /
-ADD odata_request.py /
+#ADD odata_request.py /
 ADD InitFuncs.sh /
 ADD PRIP_Ingestion.sh /
 ADD IngestDownloaded_funcs.sh /
