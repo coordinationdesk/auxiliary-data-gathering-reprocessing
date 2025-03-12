@@ -14,10 +14,24 @@ from .l0_attributes import get_attributes
 # S3_L0_Types = ["MW_0_MWR___", "OL_0_EFR___", "SL_0_SLT___", "SR_0_SRA___"]
 class L0IcidExtractor(LtaL0Retriever):
     DOWNLOAD_URL = "{baseurl}/Products(%s)/$value"
-    def __init__(self, mission, lta_url, lta_user, lta_passw, num_days, debug_print=False):
+    def __init__(self, mission, working_dir,
+                 lta_url, lta_user, lta_passw,
+                 num_days, debug_print=False):
         LtaL0Retriever.__init__(self, mission, lta_url,
                                   lta_user, lta_passw, num_days, debug_print)
         self.core_download_URL = self.DOWNLOAD_URL.format(baseurl= lta_url)
+        self.working_dir = working_dir
+
+    @staticmethod
+    def get_l0_names_ids_from_results(l0_results):
+        name_id_list = []
+        for l0_res in l0_results:
+            product_name = l0_res['Name']
+            product_id = l0_res['Id']
+            product_date = l0_res['ContentDate']['Start']
+            print(l0_res)
+            name_id_list.append((product_name, product_id, product_date))
+        return name_id_list
 
     def get_l0_names_ids(self, unit_list, from_date, l0_type):
         name_id_list = []
@@ -139,3 +153,18 @@ class L0IcidExtractor(LtaL0Retriever):
         # remove L0 Product file
         os.remove(l0_product_file)
         return icid
+
+    def retrieve_l0_icid(self, l0_names_result):
+        name_icid_dict = {}
+        l0_names_icid_list = self.get_l0_names_ids_from_results(l0_names_result)
+        for name, id, file_date in l0_names_icid_list:
+            self.download_lta_l0_product(name, id,
+                                          self.working_dir)
+            #   Download files
+            icid = self.get_l0_icid(name, self.working_dir)
+            print("Date ", file_date, ", File: ", name, ", ICID: ", icid)
+            name_icid_dict.update({name: icid})
+        # Integrate l0 products (l0_names_results) with ICID
+        for l0_record in l0_names_result:
+            l0_record.update({'Icid': name_icid_dict.get(l0_record['Name'])})
+        return l0_names_result
