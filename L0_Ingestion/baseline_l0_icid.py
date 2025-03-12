@@ -44,6 +44,10 @@ def get_command_arguments():
                         help="For S1, get icid from l0 products",
                         action='store_true',
                         required=False)
+    parser.add_argument("-update", "--update",
+                        help="For S1, update icid for existing l0 products",
+                        action='store_true',
+                        required=False)
     parser.add_argument("-wd", "--workingdir",
                         help="A temporary dir, where download L0 products, in order to retrieve Icid",
                         required=False)
@@ -56,9 +60,11 @@ def get_command_arguments():
     date_pattern = re.compile("([0-9]{4}})-([0-1][0-2])-([0-3][0-9])")
     print(arg_values.fromdate)
     if arg_values.fromdate is not None:
-        from_date_str = arg_values.fromdate #+  '000000'
+        from_date_str = arg_values.fromdate +  '000000'
         # TODO put under try/except to print error if format wrong
-        from_datetime = dt.datetime.strptime(from_date_str, '%Y-%m-%dT%H:%M:%S')
+        #from_datetime = dt.datetime.strptime(from_date_str, '%Y-%m-%dT%H:%M:%S')
+        from_datetime = dt.datetime.strptime(from_date_str, '%Y-%m-%d%H%M%S')
+
         arg_values.from_datetime = from_datetime
     if arg_values.geticid is not None and arg_values.workingdir is None:
         parser.error("To retrieve Icid from S1 L0, a working dir is needed")
@@ -89,7 +95,7 @@ if __name__ == "__main__":
     }
     try:
         if args.geticid and mission == 'S1':
-            l0_loader = S1_L0_NamesLoader(args)
+            l0_loader = S1_L0_NamesLoader(args, args.update)
         else:
             l0_loader = L0_NamesLoader(mission, args)
 

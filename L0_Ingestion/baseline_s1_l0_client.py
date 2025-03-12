@@ -16,12 +16,16 @@ from L0_Fields_parse import parse_start_stop_fields
 class S1_L0_NamesLoader(L0_NamesLoader):
     SAT_LEN = 3
     _insert_sql = """INSERT INTO l0_products(name, validitystart, validitystop, icid) VALUES(%s, %s, %s, %s);"""
+    _upsert_sql = """INSERT INTO l0_products(name, validitystart, validitystop, icid) VALUES(%s, %s, %s, %s) ON CONFLICT (name) DO UPDATE SET (icid) = ROW(EXCLUDED.icid);"""
     #   We retrieve all the satellite/satellte_sensor for a mission
     # Unit is satellite + any possible sensor/subsystem
     #_query_sql = """SELECT SUBSTRING(name, 0, %d) unit, SUBSTRING(name, %d, %d) l0type, MAX(validitystart) FROM l0_products where SUBSTRING(name, 0, 3) = '%s' group by l0type, unit;"""
-    def __init__(self, dbargs):
+    def __init__(self, dbargs, update=False):
         print("Initializing S1 L0 Loader for mission")
         L0_NamesLoader.__init__(self, 'S1', dbargs)
+        # If it was requested to update existing records, use
+        # the upsert expression
+        self._sql_statement = self._insert_sql if not update else self._upsert_sql
 
     def _get_lta_l0_validities(self, l0_products):
         # Appliy validity extractor to LTA query results
@@ -38,9 +42,9 @@ class S1_L0_NamesLoader(L0_NamesLoader):
                 l0_name, start, stop, icid = l0_record
                 with conn.cursor() as cursor:
                     try:
-                        print("Executing ", self._insert_sql % (l0_name, start, stop, icid))
-                        #cursor.execute(self._insert_sql, (l0_name, start, stop))
-                        #conn.commit()
+                        print("Executing ", self._sql_statement % (l0_name, start, stop, icid))
+                        cursor.execute(self._sql_statement, (l0_name, start, stop))
+                        conn.commit()
                     except IntegrityError as ie:
                         print("Record already existing, not inserted")
                         print(ie)
@@ -54,7 +58,7 @@ class S1_L0_NamesLoader(L0_NamesLoader):
             with conn.cursor() as cursor:
 
                 try:
-                    cursor.execute(self._insert_sql, (l0_name, start, stop, icid))
+                    cursor.execute(self._sql_statement, (l0_name, start, stop, icid))
                     conn.commit()
                 except Exception as e:
                     print(e)
