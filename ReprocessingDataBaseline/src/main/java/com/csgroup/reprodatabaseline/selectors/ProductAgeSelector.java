@@ -2,6 +2,7 @@ package com.csgroup.reprodatabaseline.selectors;
 
 import com.csgroup.reprodatabaseline.datamodels.AuxFile;
 import com.csgroup.reprodatabaseline.datamodels.L0Product;
+import com.csgroup.reprodatabaseline.rules.RuleUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +38,10 @@ public class ProductAgeSelector {
     }
 
     protected ZonedDateTime getL0ReferenceTime()  {
-        //return this.l0Interval._t1.toLocalDateTime();
-        return this.l0Interval._t1;
+        //return this.l0Interval._t1;
+        ZonedDateTime middle = RuleUtilities.getMeanTime(this.l0Interval._t0,
+                                                         this.l0Interval._t1);
+        return middle;
     }
     public Boolean configuredProductAgeForAuxType(String auxTypeShortName) {
         return this.auxTypesMaxAges.containsKey(auxTypeShortName);
