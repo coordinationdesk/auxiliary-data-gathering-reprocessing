@@ -34,7 +34,7 @@ class RequestGenerator:
         return {
             'date': date_range,
             'type': self.type,
-            'format': 'grib',
+            'data_format': 'grib',
             'variable': self.param_list,
             'time': self.time_list, # TODO: check that passed time values are correct
             'leadtime_hour': '0',
