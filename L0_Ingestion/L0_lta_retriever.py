@@ -38,7 +38,7 @@ class LtaL0Retriever:
         requestTriesLeft = self.nbRequestsMaxTries
 
         #Construction de la requête
-        request = (self.coreURL + "&$count=true") % (from_date, to_date, unit, l0_type)
+        request = (self.coreURL + "&$orderby=ContentDate/Start" + "&$count=true") % (from_date, to_date, unit, l0_type)
         if max_results is None:
             request = request + '&$top=200'
         else:
