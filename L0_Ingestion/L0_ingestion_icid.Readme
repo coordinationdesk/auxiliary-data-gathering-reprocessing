@@ -1,0 +1,7 @@
+L0 Ingestion version, that retrieves ICID value for S1 L0 products,
+by downloading them and parsing the metadata file.
+To execute in place of the basic L0 Ingestion application:
+python3 baseline_l0_icid.py -m S1 -dbh <DB HOST> -dbn reprocessingdatabaseline -dbu reprocessingdatabaseline -dbp $REPROCESSINGDATABASELINE_POSTGRES_PASSWORD -p <DBPort> -u $PRIP_USER -pw $PRIP_PASS -lu $PRIP_ENDPOINT -icid -fd <Date: YYYY-MM-DD> -w <Temp DownloadFolder>
+
+Script can be executed to recover ICID for L0 Products already ingested:
+python3 baseline_l0_icid.py -m S1 -dbh <DB HOST> -dbn reprocessingdatabaseline -dbu reprocessingdatabaseline -dbp $REPROCESSINGDATABASELINE_POSTGRES_PASSWORD -p <DBPort> -u $PRIP_USER -pw $PRIP_PASS -lu $PRIP_ENDPOINT -icid -update -fd <Date: YYYY-MM-DD> -w <Temp DownloadFolder>
