@@ -21,7 +21,7 @@ class S1_L0_NamesLoader(L0_NamesLoader):
     # Unit is satellite + any possible sensor/subsystem
     #_query_sql = """SELECT SUBSTRING(name, 0, %d) unit, SUBSTRING(name, %d, %d) l0type, MAX(validitystart) FROM l0_products where SUBSTRING(name, 0, 3) = '%s' group by l0type, unit;"""
     def __init__(self, dbargs, update=False):
-        print("Initializing S1 L0 Loader for mission")
+        print("Initializing S1 L0 Loader for mission; update: ", update)
         L0_NamesLoader.__init__(self, 'S1', dbargs)
         # If it was requested to update existing records, use
         # the upsert expression
@@ -40,6 +40,7 @@ class S1_L0_NamesLoader(L0_NamesLoader):
                     print("Found a record with less than 4 fields: skipping")
                     continue
                 l0_name, start, stop, icid = l0_record
+                print("Inserting/Updating ",  (l0_name, start, stop, icid))
                 with conn.cursor() as cursor:
                     try:
                         print("Executing ", self._sql_statement % (l0_name, start, stop, icid))
@@ -64,6 +65,8 @@ class S1_L0_NamesLoader(L0_NamesLoader):
                     print(e)
                     conn.rollback()
     def add_l0_products(self, l0_products):
+        print("Inserting/updating L0 Products into database")
         l0_validities = self._get_lta_l0_validities(l0_products)
+        print("Products with related data to be inserted", l0_validities)
         self.add_l0_name_validities(l0_validities)
 

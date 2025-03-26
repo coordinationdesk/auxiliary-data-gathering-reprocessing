@@ -146,13 +146,15 @@ if __name__ == "__main__":
                     # Get from LTA a list of L0 names, for N days (or up to today),
                     l0_products = lta_retriever.get_lta_l0_products(unit, l0_type, val_time)
                     print("Retrieved L0 names for unit: ", unit, ": ", [prod['Name'] for prod in l0_products])
+                    l0_subset_products = l0_products[:100]
                     if args.geticid and mission == 'S1':
                         # Build list of Name/id to be downloaded
                         # Extract ICID for  list of Name/IDS
                         # Update l0_results with retrieved ICID
                         # TODO Only for Missions needing ICID
-                        l0_products = lta_retriever.retrieve_l0_icid(l0_products)
+                        l0_products = lta_retriever.retrieve_l0_icid(l0_subset_products)
                     # With N from command line, with default if not specified (or default got from config file)
+                        print("Retrieved L0 Products with icid: ", '\n'.join(l0_subset_products))
 
                     # Add the l0 names to db
                     l0_loader.add_l0_products(l0_products)
